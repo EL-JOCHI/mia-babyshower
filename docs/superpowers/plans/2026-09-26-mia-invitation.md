@@ -41,14 +41,14 @@
 
 ## Tasks
 
-- [ ] 1. Scaffold: `git init`, `.gitignore`, pinned packages, configs, theme-token plugin, smoke test, first commit.
-- [ ] 2. Content and tuning modules.
-- [ ] 3. Pure logic with tests (invite, party, countdown, layout, era, WhatsApp, cat state, noticing, contrast, storage).
-- [ ] 4. App shell: opening, clock, theme control and persistence, reduced motion.
-- [ ] 5. Gate: sentences, count loop, finale.
-- [ ] 6. Room: layout, camera (drag, wheel, keys, glide, focus), layers, signposts, landmarks, facts, party-over state.
-- [ ] 7. Share preview: `og:` tags, `og-image.jpg`, favicon, `noindex`. **R1 is done here.**
-- [ ] 8. Cats: SVG art, noticing, greeting, **Tus gatos**, playing again. Family door. **R1 stretch.**
-- [ ] 9. Era looks, depth layers, cat acts, bows. **R2.**
-- [ ] 10. 3D scene (lazy) and music. **R3.**
-- [ ] 11. Verify: test, lint, build, preview, real-browser check at phone and desktop sizes, whole-branch review.
+- [x] 1. Scaffold: `git init`, `.gitignore`, pinned packages, configs, theme-token plugin, smoke test, first commit.
+- [x] 2. Content and tuning modules.
+- [x] 3. Pure logic with tests (invite, party, countdown, layout, era, WhatsApp, cat state, noticing, contrast, storage).
+- [x] 4. App shell: opening, clock, theme control and persistence, reduced motion.
+- [x] 5. Gate: sentences, count loop, finale.
+- [x] 6. Room: layout, camera (drag, wheel, keys, glide, focus), layers, signposts, landmarks, facts, party-over state.
+- [x] 7. Share preview: `og:` tags, `og-image.jpg`, favicon, `noindex`. **R1 is done here.**
+- [x] 8. Cats: SVG art, noticing, greeting, **Tus gatos**, playing again. Family door. **R1 stretch.**
+- [x] 9. Era looks, depth layers, cat acts, bows. **R2.**
+- [x] 10. 3D scene (lazy) and music. **R3.**
+- [x] 11. Verify: test, lint, build, preview, real-browser check at phone and desktop sizes, whole-branch review.

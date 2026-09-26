@@ -426,6 +426,7 @@ Room:
 - Map control: `Ver en el mapa`
 - Signposts: `Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`
 - Collection: `Tus gatos`
+- Close the collection: `Cerrar`
 - Greet: `Saludar`
 - Caught: `Se quedó contigo: {name}.`
 - Not yet: `Aún no se acerca`

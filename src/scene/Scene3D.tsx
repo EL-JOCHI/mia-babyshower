@@ -161,7 +161,7 @@ function Contents({ position }: { position: number }) {
   const viewport = useThree((state) => state.viewport)
   const frame = { w: viewport.width, h: viewport.height }
   // Objects shrink on narrow screens so they stay at the edges, behind the cards.
-  const k = Math.min(1, viewport.width / 6)
+  const k = Math.min(0.6, viewport.width / 10)
   const stroller: [number, number, number] = [-frame.w * 0.3, -frame.h * 0.32, 0]
   const crown: [number, number, number] = [frame.w * 0.3, frame.h * 0.3, -1]
   const pickAt: [number, number, number] = [frame.w * 0.28, -frame.h * 0.3, 0.4]

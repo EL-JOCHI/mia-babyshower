@@ -56,9 +56,10 @@ const farDots = Array.from({ length: 36 }, (_, i) => ({
   y: ((i * 53 + 11) % 100) / 100,
   size: 2 + (i % 3) * 2,
 }))
+// Near decorations stay in bands above and below the cards, so none comes to rest on the words.
 const nearBits = Array.from({ length: 12 }, (_, i) => ({
   x: (i + 0.3) / 12,
-  y: ((i * 41 + 17) % 90) / 100 + 0.05,
+  y: i % 2 === 0 ? 0.17 + ((i * 7) % 6) / 100 : 0.77 + ((i * 5) % 6) / 100,
   kind: (['heart', 'star', 'pixel', 'thunder', 'pixel', 'pick'] as const)[i % 6],
 }))
 
