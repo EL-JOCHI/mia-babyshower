@@ -25,6 +25,9 @@ function cssVars(theme: ThemeTokens): string {
     `--deep-pink:${tokens.deepPink}`,
     `--blush:${tokens.blush}`,
     `--paper:${tokens.paper}`,
+    `--gold:${tokens.gold}`,
+    `--star-yellow:${tokens.starYellow}`,
+    `--shadow:${tokens.shadow}`,
   ].join(';')
 }
 

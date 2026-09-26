@@ -10,6 +10,9 @@ export const tokens = {
   deepPink: '#E20064',
   blush: '#F7C5D8',
   paper: '#FFF7FB',
+  gold: '#FFC94D',
+  starYellow: '#FFF1A8',
+  shadow: '#0B0B0B',
 } as const
 
 export type ThemeName = 'dark' | 'light'
@@ -56,10 +59,18 @@ export const catAccents: Record<CatId, string> = {
   mimo: '#F7C5D8',
   susto: '#FFF7FB',
   bram: '#E20064',
-  nana: '#FFC94D',
+  nana: tokens.gold,
   misha: '#C8A2FF',
-  kira: '#FFF1A8',
+  kira: tokens.starYellow,
 }
+
+// The shared cat face: big simple eyes and white linework.
+export const catFace = {
+  eyeWhite: '#FFFFFF',
+  pupil: '#0A0A0A',
+  line: '#FFFFFF',
+  mimoOutline: tokens.inkLight,
+} as const
 
 // In the pixel era every accent renders as the one pink or as white.
 export const catPixelAccents: Record<CatId, string> = {
@@ -99,9 +110,21 @@ export const tuning = {
     lingerMs: 1000,
     tickMs: 100,
   },
-  gate: { countFrom: 9, stepMs: 1000, finaleMs: 1500 },
+  gate: {
+    countFrom: 9,
+    stepMs: 1000,
+    finaleMs: 1500,
+    // Where the three gate cats rest, as a share of the screen.
+    spots: {
+      luz: { left: '26%', top: '58%' },
+      mimo: { left: '80%', top: '34%' },
+      susto: { left: '70%', top: '70%' },
+    },
+  },
+  catSize: { room: 64, qr: 56, door: 68, gate: 72, collection: 56 },
   qr: { minPx: 220 },
   acts: {
+    throwMs: 900,
     autoMinMs: 7000,
     autoMaxMs: 14000,
     actMs: 1200,

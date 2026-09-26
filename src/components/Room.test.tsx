@@ -233,6 +233,15 @@ describe('US-12 Watch the cats play (invitation)', () => {
     expect(document.querySelector('.figure-mia')).not.toBeNull()
   })
 
+  it('draws the family as solid shadows whose top copy has no outline, so no face or inner line shows (§5)', () => {
+    renderRoom()
+    const groups = document.querySelectorAll('.family-shadows')
+    expect(groups).toHaveLength(2)
+    const top = groups[1]!
+    expect(top).not.toHaveAttribute('stroke')
+    expect(top.querySelectorAll('.family-figure')).toHaveLength(4)
+  })
+
   describe('acts', () => {
     beforeEach(() => vi.useFakeTimers())
     afterEach(() => vi.useRealTimers())

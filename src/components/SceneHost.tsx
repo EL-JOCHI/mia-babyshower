@@ -12,7 +12,14 @@ export function hasWebGL(): boolean {
   if (webglChecked !== null) return webglChecked
   try {
     const canvas = document.createElement('canvas')
-    webglChecked = Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
+    const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl')
+    webglChecked = Boolean(gl)
+    try {
+      // Release the test context so it does not count against the browser's limit.
+      gl?.getExtension('WEBGL_lose_context')?.loseContext()
+    } catch {
+      // Releasing is only housekeeping.
+    }
   } catch {
     webglChecked = false
   }
@@ -45,7 +52,8 @@ export function SceneHost({ era, position, reducedMotion }: Props) {
 
   const nearby = !reducedMotion && position >= tuning.eras.prefetch3dAt
   useEffect(() => {
-    if (nearby) void loadScene()
+    // A failed prefetch is fine: the lazy load tries again, and the boundary covers a real failure.
+    if (nearby) loadScene().catch(() => {})
   }, [nearby])
 
   return (

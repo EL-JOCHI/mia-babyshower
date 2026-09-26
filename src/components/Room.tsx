@@ -1,32 +1,26 @@
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type FocusEvent,
-  type MouseEvent,
-  type ReactNode,
-  type UIEvent,
-} from 'react'
+import { useMemo, useRef, useState, type CSSProperties, type FocusEvent, type ReactNode, type UIEvent } from 'react'
 import { copy, days, shared, type CatId, type DayId } from '../content'
 import { useActs, type ActId } from '../hooks/useActs'
 import { useCamera } from '../hooks/useCamera'
+import { useKeyboardModality } from '../hooks/useKeyboardModality'
 import { useNoticing } from '../hooks/useNoticing'
 import { useViewport } from '../hooks/useViewport'
 import { cameraTargetFor, horizontalPosition } from '../logic/camera'
 import type { CatState } from '../logic/catState'
-import { eraAt } from '../logic/era'
+import { eraAt, type Era } from '../logic/era'
 import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
 import { isPartyOver } from '../logic/party'
-import { whatsappUrl } from '../logic/whatsapp'
 import { tuning } from '../tuning'
 import { Cat } from './Cat'
+import { Confirmation } from './Confirmation'
 import { Countdown } from './Countdown'
 import { FamilyDoor } from './FamilyDoor'
 import { Gift } from './Gift'
-import { SceneHost } from './SceneHost'
+import { Landmark } from './Landmark'
+import { Location } from './Location'
+import { hasWebGL, SceneHost } from './SceneHost'
 import { Signposts } from './Signposts'
+import { Throwable } from './Throwable'
 import { HeartToy, PickToy, StarToy, ThunderBolt } from './Toys'
 
 interface Props {
@@ -63,19 +57,11 @@ const nearBits = Array.from({ length: 12 }, (_, i) => ({
   kind: (['heart', 'star', 'pixel', 'thunder', 'pixel', 'pick'] as const)[i % 6],
 }))
 
-function useKeyboardModality() {
-  const keyboard = useRef(false)
-  useEffect(() => {
-    const onKey = () => (keyboard.current = true)
-    const onPointer = () => (keyboard.current = false)
-    window.addEventListener('keydown', onKey, true)
-    window.addEventListener('pointerdown', onPointer, true)
-    return () => {
-      window.removeEventListener('keydown', onKey, true)
-      window.removeEventListener('pointerdown', onPointer, true)
-    }
-  }, [])
-  return keyboard
+function isOutside(el: HTMLElement): boolean {
+  const r = el.getBoundingClientRect()
+  // Without a layout (zero box) there is nothing to measure, so bring it into view anyway.
+  if (r.width === 0 && r.height === 0) return true
+  return r.left < 0 || r.top < 0 || r.right > window.innerWidth || r.bottom > window.innerHeight
 }
 
 // §3 The room, §4 How the room moves.
@@ -88,10 +74,11 @@ export function Room({ day, now, reducedMotion, catState, onGreet, musicPlaying,
   const cam = useCamera({ room: layout, vw, vh, reducedMotion, start })
   const viewport = useRef<HTMLDivElement | null>(null)
   const keyboard = useKeyboardModality()
-  const lastFocused = useRef<LandmarkId | null>(null)
 
   const position = horizontalPosition(cam.camera.x, layout.roomWidth, vw)
   const era = eraAt(position)
+  // Without a canvas, the 3D part of the room keeps the color era's look (§4).
+  const look: Era = era === '3d' && (reducedMotion || !hasWebGL()) ? 'color' : era
   const depth = reducedMotion ? { far: 1, mid: 1, near: 1 } : tuning.depth
   const noticing = useNoticing({ catIds: roomCats, container: viewport, cameraRef: cam.cameraRef, musicPlaying })
   const { active, play } = useActs({ available: roomActs, autonomous: !reducedMotion })
@@ -100,11 +87,10 @@ export function Room({ day, now, reducedMotion, catState, onGreet, musicPlaying,
 
   // Keyboard focus inside the room brings the focused control into view (BR-20, FR-11).
   const onFocusCapture = (e: FocusEvent<HTMLDivElement>) => {
-    const landmark = (e.target as HTMLElement).closest<HTMLElement>('[data-landmark-id]')
-    const id = landmark?.dataset.landmarkId as LandmarkId | undefined
-    if (!id || !ids.includes(id) || !keyboard.current || lastFocused.current === id) return
-    lastFocused.current = id
-    goTo(id)
+    if (!keyboard.current) return
+    const target = e.target as HTMLElement
+    const id = target.closest<HTMLElement>('[data-landmark-id]')?.dataset.landmarkId as LandmarkId | undefined
+    if (id && ids.includes(id) && isOutside(target)) goTo(id)
   }
 
   // The browser may scroll a clipped box to show focus. The camera owns position, so undo that.
@@ -123,11 +109,11 @@ export function Room({ day, now, reducedMotion, catState, onGreet, musicPlaying,
     kira: active.kiraStar ? 'bat' : undefined,
   }
 
-  const cat = (id: CatId, className: string, size = 64) => (
+  const cat = (id: CatId, className: string, size: number = tuning.catSize.room) => (
     <div className={`perch ${className}`}>
       <Cat
         id={id}
-        era={era}
+        era={look}
         noticing={Boolean(noticing[id])}
         inRound={catState.round.includes(id)}
         acting={acting[id]}
@@ -141,11 +127,6 @@ export function Room({ day, now, reducedMotion, catState, onGreet, musicPlaying,
   const tapCountdown = () => {
     play('luzBat')
     play('bramScratch')
-  }
-
-  const tapNearButton = (e: MouseEvent<HTMLElement>) => {
-    if ((e.target as HTMLElement).closest('a, button')) return
-    play('sustoStartle')
   }
 
   const record = days[day]
@@ -190,31 +171,26 @@ export function Room({ day, now, reducedMotion, catState, onGreet, musicPlaying,
         )}
         {cat('luz', 'perch-cuando-luz')}
         {cat('bram', 'perch-cuando-bram')}
+        <Throwable className="toy-spot toy-spot-heart" knocked={Boolean(active.luzBat)}>
+          <HeartToy size={22} />
+        </Throwable>
+        <Throwable className="toy-spot toy-spot-pick" knocked={Boolean(active.bramScratch)}>
+          <PickToy size={18} />
+        </Throwable>
       </>
     ),
-    donde: (
-      <>
-        <p className="place">{shared.place}</p>
-        <p className="city">{shared.city}</p>
-        <a className="button" href={shared.mapUrl} target="_blank" rel="noopener noreferrer">
-          {copy.map}
-        </a>
-      </>
-    ),
+    donde: <Location />,
     confirmar: (
-      <div className="confirm-spot" onClick={tapNearButton}>
-        <a className="button" href={whatsappUrl(day)} target="_blank" rel="noopener noreferrer">
-          {copy.confirm}
-        </a>
+      <Confirmation day={day} onEmptySpotTap={() => play('sustoStartle')}>
         {cat('susto', 'perch-confirmar-susto')}
-      </div>
+      </Confirmation>
     ),
     presente: (
       <Gift
         qrUrl={qrUrl}
         tilting={Boolean(active.nanaSit)}
         onQrTap={() => play('nanaSit')}
-        nana={cat('nana', 'perch-presente-nana', 56)}
+        nana={cat('nana', 'perch-presente-nana', tuning.catSize.qr)}
       />
     ),
     familia: (
@@ -228,8 +204,8 @@ export function Room({ day, now, reducedMotion, catState, onGreet, musicPlaying,
           >
             <StarToy size={30} />
           </div>
-          {cat('misha', 'perch-familia-misha', 68)}
-          {cat('kira', 'perch-familia-kira', 68)}
+          {cat('misha', 'perch-familia-misha', tuning.catSize.door)}
+          {cat('kira', 'perch-familia-kira', tuning.catSize.door)}
         </div>
         <p className="door-line">{copy.doorLine}</p>
       </>
@@ -241,7 +217,7 @@ export function Room({ day, now, reducedMotion, catState, onGreet, musicPlaying,
   })
 
   return (
-    <main className="room" data-era={era} aria-label={copy.a11y.room}>
+    <main className="room" data-era={look} aria-label={copy.a11y.room}>
       <div
         ref={viewport}
         className="room-viewport"
@@ -271,14 +247,9 @@ export function Room({ day, now, reducedMotion, catState, onGreet, musicPlaying,
           style={{ ...layer(depth.mid), width: layout.roomWidth, height: layout.roomHeight }}
         >
           {ids.map((id) => (
-            <section
-              key={id}
-              className={`landmark landmark-${id}`}
-              data-landmark-id={id}
-              style={{ left: layout.positions[id].x, top: layout.positions[id].y, width: layout.cardWidth }}
-            >
+            <Landmark key={id} id={id} at={layout.positions[id]} width={layout.cardWidth}>
               {content[id]}
-            </section>
+            </Landmark>
           ))}
         </div>
 

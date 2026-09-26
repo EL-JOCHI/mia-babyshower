@@ -5,6 +5,7 @@ import { useNoticing } from '../hooks/useNoticing'
 import type { CatState } from '../logic/catState'
 import { tuning } from '../tuning'
 import { Cat } from './Cat'
+import { Throwable } from './Throwable'
 import { BoxToy, HeartToy, StarToy, ThunderBolt, YarnToy } from './Toys'
 
 interface Props {
@@ -18,15 +19,7 @@ const gateCats: readonly CatId[] = ['luz', 'mimo', 'susto']
 const gateActs: readonly ActId[] = ['luzBat', 'mimoLift', 'sustoStartle']
 const still = { current: { x: 0, y: 0 } } as const
 
-const spots: Record<CatId, CSSProperties> = {
-  luz: { left: '26%', top: '58%' },
-  mimo: { left: '80%', top: '34%' },
-  susto: { left: '70%', top: '70%' },
-  bram: {},
-  nana: {},
-  misha: {},
-  kira: {},
-}
+const spots: Partial<Record<CatId, CSSProperties>> = tuning.gate.spots
 
 // US-10: the count runs 9 → 0, one step a second. At 0 a short finale plays, then 9 again.
 export function useGateLoop(reducedMotion: boolean): number {
@@ -76,10 +69,16 @@ export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) 
         </div>
       )}
 
-      <div className="gate-toys" aria-hidden="true">
-        <YarnToy className="gate-yarn" />
-        <BoxToy className="gate-box" />
-        <HeartToy className="gate-heart" />
+      <div className="gate-toys">
+        <Throwable className="gate-yarn">
+          <YarnToy />
+        </Throwable>
+        <Throwable className="gate-box">
+          <BoxToy />
+        </Throwable>
+        <Throwable className="gate-heart">
+          <HeartToy />
+        </Throwable>
       </div>
 
       {gateCats.map((id) => (
@@ -92,7 +91,7 @@ export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) 
             acting={acting[id]}
             still={reducedMotion}
             onGreet={onGreet}
-            size={72}
+            size={tuning.catSize.gate}
           />
           {finale && (
             <div className="finale-burst" aria-hidden="true">

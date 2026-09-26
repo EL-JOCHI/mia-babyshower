@@ -1,7 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react'
 import { cats, copy } from '../content'
 import type { CatState } from '../logic/catState'
-import { catAccents } from '../tuning'
+import { catAccents, tuning } from '../tuning'
 import { CatArt } from './CatArt'
 
 interface Props {
@@ -22,12 +22,16 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
     panel.current?.querySelector<HTMLElement>('.collection-close')?.focus()
   }, [])
 
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation()
-      onClose()
-      return
+  // Escape closes the dialog wherever focus happens to be.
+  useEffect(() => {
+    const onEscape = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
     }
+    document.addEventListener('keydown', onEscape)
+    return () => document.removeEventListener('keydown', onEscape)
+  }, [onClose])
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'Tab' || !panel.current) return
     const items = Array.from(panel.current.querySelectorAll<HTMLElement>(focusable))
     const first = items[0]
@@ -50,6 +54,7 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
         role="dialog"
         aria-modal="true"
         aria-labelledby="collection-title"
+        tabIndex={-1}
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}
       >
@@ -74,7 +79,7 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
                   pose={inRound ? 'staying' : 'playing'}
                   silhouette={!met}
                   accent={catAccents[cat.id]}
-                  size={56}
+                  size={tuning.catSize.collection}
                 />
                 <div className="collection-text">
                   {met && <p className="collection-name">{cat.name}</p>}
@@ -86,7 +91,12 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
           })}
         </ul>
         {allowPlayAgain && (
-          <button type="button" className="button collection-again" onClick={onPlayAgain}>
+          <button
+            type="button"
+            className="button collection-again"
+            disabled={state.round.length === 0}
+            onClick={onPlayAgain}
+          >
             {copy.playAgain}
           </button>
         )}

@@ -193,6 +193,20 @@ describe('US-9 Meet the cats and keep them', () => {
 })
 
 describe('Tus gatos dialog', () => {
+  it('closes with Escape even when focus has left the dialog', () => {
+    render(<App search="" />)
+    fireEvent.click(screen.getByRole('button', { name: copy.collection }))
+    act(() => (document.activeElement as HTMLElement | null)?.blur())
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('makes the page behind it inert while open', () => {
+    render(<App search="" />)
+    fireEvent.click(screen.getByRole('button', { name: copy.collection }))
+    expect(document.querySelector('.app-page')).toHaveAttribute('inert')
+  })
+
   it('moves focus in, closes with Escape, and returns focus to the control', () => {
     vi.useFakeTimers({ toFake: ['requestAnimationFrame'] })
     render(<App search="" />)
@@ -247,6 +261,18 @@ describe('US-13 Relive the party', () => {
       round: ['luz'],
       rounds: 2,
     })
+  })
+
+  it('disables Jugar otra vez while the new round is still empty, so a double tap skips nothing', () => {
+    vi.setSystemTime(satCutoff)
+    localStorage.setItem(storageKeys.cats, JSON.stringify({ caught: ['luz'], round: ['luz'], rounds: 1 }))
+    render(<App search="?e=n4vk" />)
+    openCollection()
+    const again = dialog().getByRole('button', { name: copy.playAgain })
+    fireEvent.click(again)
+    expect(again).toBeDisabled()
+    fireEvent.click(again)
+    expect(JSON.parse(localStorage.getItem(storageKeys.cats)!).rounds).toBe(2)
   })
 
   it('offers no Jugar otra vez before the cutoff (AC4)', () => {
@@ -308,16 +334,41 @@ describe('US-11 Hear the room when I ask', () => {
     render(<App search="?e=n4vk" musicUrl="/ambience.mp3" />)
     expect(media.play).not.toHaveBeenCalled()
     expect(screen.getByRole('button', { name: copy.musicOn })).toBeInTheDocument()
+    // A touch pointerdown grants no user activation, so it must not be the trigger.
     await act(async () => fireEvent.pointerDown(document.body))
+    expect(media.play).not.toHaveBeenCalled()
+    await act(async () => fireEvent.pointerUp(document.body))
     expect(media.play).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('button', { name: copy.musicOff })).toBeInTheDocument()
+    await act(async () => fireEvent.click(document.body))
+    expect(media.play).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not restart the track when the first gesture was the music control (§4)', async () => {
+    localStorage.setItem(storageKeys.music, 'on')
+    const media = stubMedia()
+    render(<App search="?e=n4vk" musicUrl="/ambience.mp3" />)
+    const control = screen.getByRole('button', { name: copy.musicOn })
+    await act(async () => {
+      fireEvent.pointerUp(control)
+      fireEvent.click(control)
+    })
+    expect(media.play).toHaveBeenCalledTimes(1)
+    const audio = document.querySelector('audio')!
+    audio.currentTime = 42
+    await act(async () => {
+      fireEvent.pointerUp(document.body)
+      fireEvent.click(document.body)
+    })
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(audio.currentTime).toBe(42)
   })
 
   it('keeps reading Activar música when the browser refuses (AC6)', async () => {
     localStorage.setItem(storageKeys.music, 'on')
     stubMedia({ refuse: true })
     render(<App search="" musicUrl="/ambience.mp3" />)
-    await act(async () => fireEvent.pointerDown(document.body))
+    await act(async () => fireEvent.pointerUp(document.body))
     expect(screen.getByRole('button', { name: copy.musicOn })).toBeInTheDocument()
   })
 
@@ -329,5 +380,18 @@ describe('US-11 Hear the room when I ask', () => {
     await act(async () => document.dispatchEvent(new Event('visibilitychange')))
     expect(media.pause).toHaveBeenCalled()
     Object.defineProperty(document, 'hidden', { configurable: true, value: false })
+    await act(async () => document.dispatchEvent(new Event('visibilitychange')))
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(screen.getByRole('button', { name: copy.musicOff })).toBeInTheDocument()
+  })
+
+  it('stays silent after the page returns if the music was off', async () => {
+    const media = stubMedia()
+    render(<App search="" musicUrl="/ambience.mp3" />)
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true })
+    await act(async () => document.dispatchEvent(new Event('visibilitychange')))
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false })
+    await act(async () => document.dispatchEvent(new Event('visibilitychange')))
+    expect(media.play).not.toHaveBeenCalled()
   })
 })

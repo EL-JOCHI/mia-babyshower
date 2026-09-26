@@ -6,8 +6,8 @@ import { tokens, tuning } from '../tuning'
 // §4 The 3D era: a simple Three.js space behind the cards. A stroller with a small pink bow, a crown,
 // a pink spotlight, floating hearts and stars, and one guitar pick. No invitation copy is imported here.
 
-const gold = '#FFC94D'
-const starYellow = '#FFF1A8'
+const gold = tokens.gold
+const starYellow = tokens.starYellow
 
 function heartShape(): THREE.Shape {
   const s = new THREE.Shape()
@@ -80,7 +80,7 @@ function Stroller({ position, scale }: { position: [number, number, number]; sca
     <group position={position} rotation={[0, 0.5, 0]} scale={scale}>
       <mesh position={[0, 0.3, 0]}>
         <sphereGeometry args={[0.9, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2]} />
-        <meshStandardMaterial color="#1A1A1A" roughness={0.5} side={THREE.DoubleSide} />
+        <meshStandardMaterial color={tokens.shadow} roughness={0.5} side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[0.05, 0.3, 0]} rotation={[0, 0, Math.PI / 5]}>
         <sphereGeometry args={[0.92, 32, 16, 0, Math.PI, 0, Math.PI / 2]} />

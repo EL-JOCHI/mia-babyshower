@@ -337,8 +337,8 @@
 
   .scratch-marks {
     position: absolute;
-    right: 6px;
-    top: -6px;
+    right: -6px;
+    top: -26px;
     width: 38px;
     height: 28px;
     opacity: 0;
@@ -360,6 +360,14 @@
   .city {
     font-size: 16px;
     opacity: 0.9;
+  }
+
+  /* The address can be selected and copied into a ride or maps app. */
+  .place,
+  .city {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
   }
 
   .confirm-spot {
@@ -401,13 +409,20 @@
 
   .qr-perch {
     position: relative;
-    width: 252px;
+    width: 240px;
+    max-width: 100%;
     height: 0;
+  }
+
+  /* The card gives the QR its full width on small phones, so the plate never spills. */
+  .landmark-presente {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .qr-plate {
     margin: 0;
-    padding: 16px;
+    padding: 8px;
     border-radius: 10px;
     background: #ffffff;
     box-shadow: 0 0 0 3px var(--accent);
@@ -554,6 +569,13 @@
   .perch-familia-kira {
     right: -14px;
     bottom: -4px;
+  }
+
+  /* At the door, Saludar pops above the cat, over the picture and away from the door line. */
+  .perch-familia-misha .saludar,
+  .perch-familia-kira .saludar {
+    top: -20px;
+    bottom: auto;
   }
 
   .cat {
@@ -801,6 +823,12 @@
     margin-top: 14px;
   }
 
+  .button:disabled {
+    opacity: 0.45;
+    box-shadow: none;
+    cursor: default;
+  }
+
   /* ---------- The guest gate ---------- */
   .gate {
     position: absolute;
@@ -872,13 +900,16 @@
     animation: gate-wander-susto 13s ease-in-out infinite;
   }
 
-  .gate-toys .toy {
+  .gate-toys .throwable {
     position: absolute;
   }
 
   .gate-yarn {
     left: 12%;
     bottom: 14%;
+  }
+
+  .gate-yarn .toy {
     animation: yarn-roll 7s ease-in-out infinite;
   }
 
@@ -890,7 +921,36 @@
   .gate-heart {
     left: 42%;
     top: 40%;
+  }
+
+  .gate-heart .toy {
     animation: heart-float 5s ease-in-out infinite;
+  }
+
+  /* Throw (§3): knocked a short way, then back to its place. */
+  .throwable {
+    display: inline-block;
+    cursor: pointer;
+    line-height: 0;
+  }
+
+  .throwable.is-thrown {
+    animation: toy-throw 900ms ease-out;
+  }
+
+  .toy-spot {
+    position: absolute;
+    z-index: 2;
+  }
+
+  .toy-spot-heart {
+    left: 34px;
+    bottom: -30px;
+  }
+
+  .toy-spot-pick {
+    right: 44px;
+    top: -30px;
   }
 
   .finale-burst {
@@ -954,6 +1014,12 @@
 
   .room[data-era='pixel'] .cat-art {
     shape-rendering: crispEdges;
+  }
+
+  /* The pixel era uses black, white, and one pink: yellow toys turn white there. */
+  .room[data-era='pixel'] .toy-star polygon,
+  .room[data-era='pixel'] .toy-thunder polygon {
+    fill: var(--paper);
   }
 
   .room[data-era='pixel'] .near-thunder,
@@ -1098,6 +1164,18 @@
   }
   60% {
     transform: rotate(3deg);
+  }
+}
+
+@keyframes toy-throw {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  40% {
+    transform: translate(26px, -22px) rotate(35deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
   }
 }
 

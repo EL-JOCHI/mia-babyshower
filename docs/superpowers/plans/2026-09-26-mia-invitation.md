@@ -34,8 +34,10 @@
 - `src/content.ts` — copy, facts, day records, cats.
 - `src/tuning.ts` — numbers, theme tokens, cat accents.
 - `src/logic/*.ts` — pure functions, one file each: `invite`, `party`, `countdown`, `layout`, `era`, `whatsapp`, `catState`, `noticing`, `contrast`, `storage`, `camera`.
-- `src/hooks/*.ts` — `useNow`, `useReducedMotion`, `useTheme`, `useCatState`, `useCamera`, `useMusic`, `useNoticing`.
-- `src/components/*.tsx` — `App`, `Gate`, `Room`, `Landmark`, `Countdown`, `Location`, `Confirmation`, `Gift`, `Collection`, `Cat`, `CatArt`, `Toy`, `ThemeControl`, `MusicControl`, `Signposts`, `FamilyDoor`, `SceneHost`.
+- `src/hooks/*.ts` — `useNow`, `useMediaQuery` (reduced motion), `useTheme`, `useCatState`, `useViewport`, `useCamera`, `useKeyboardModality`, `useNoticing`, `useActs`, `useMusic`.
+- `src/components/*.tsx` — the §10 small components: `Gate`, `Room`, `Landmark`, `Countdown`, `Location`, `Confirmation`, `Gift`, `Collection`, `Cat` and `CatArt`, `Toys` and `Throwable`, `ThemeControl`, and `SceneHost` with `src/scene/Scene3D.tsx`. Also `App`, `Hud` (holds `ThemeControl`, `MusicControl`, and the Tus gatos button), `GreetingToast`, `Signposts`, and `FamilyDoor`.
+- `src/headMeta.ts` — the share preview, theme tokens, and pre-paint theme script, injected into `index.html` by the Vite config.
+- `src/assets.ts` — build-time detection of `src/assets/qr.png` and `src/assets/audio/ambience.mp3`.
 - `src/scene/Scene3D.tsx` — the lazy Three.js far layer.
 - `src/test/*` — setup and helpers. Tests live next to the code as `*.test.ts(x)`.
 

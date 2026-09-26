@@ -129,6 +129,8 @@ export function useCamera({ room, vw, vh, reducedMotion, start }: Options): Came
   const onPointerDown = useCallback(
     (e: PointerEvent<HTMLElement>) => {
       suppressClick.current = false
+      // A primary press starts a fresh gesture, even if an earlier pointer never reported its end.
+      if (e.isPrimary) pointers.current.clear()
       pointers.current.add(e.pointerId)
       // A second finger means pinch zoom. Let the browser have it.
       if (pointers.current.size > 1) {

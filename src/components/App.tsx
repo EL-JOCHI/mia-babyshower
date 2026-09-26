@@ -34,12 +34,13 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
   const [toast, setToast] = useState<{ id: CatId; at: number } | null>(null)
   const collectionButton = useRef<HTMLButtonElement | null>(null)
 
+  const { greetCat } = cats
   const onGreet = useCallback(
     (id: CatId) => {
-      cats.greetCat(id)
+      greetCat(id)
       setToast({ id, at: performance.now() })
     },
-    [cats],
+    [greetCat],
   )
 
   useEffect(() => {
@@ -57,27 +58,29 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
 
   return (
     <div className="app">
-      <Hud
-        theme={theme}
-        onTheme={setTheme}
-        music={{ available: musicAvailable, playing: musicPlaying, toggle: toggleMusic }}
-        onOpenCollection={() => setCollectionOpen(true)}
-        collectionOpen={collectionOpen}
-        collectionButtonRef={collectionButton}
-      />
-      {opening.kind === 'gate' ? (
-        <Gate reducedMotion={reducedMotion} catState={cats.state} onGreet={onGreet} musicPlaying={musicPlaying} />
-      ) : (
-        <Room
-          day={opening.day}
-          now={now}
-          reducedMotion={reducedMotion}
-          catState={cats.state}
-          onGreet={onGreet}
-          musicPlaying={musicPlaying}
-          qrUrl={qrUrl}
+      <div className="app-page" inert={collectionOpen}>
+        <Hud
+          theme={theme}
+          onTheme={setTheme}
+          music={{ available: musicAvailable, playing: musicPlaying, toggle: toggleMusic }}
+          onOpenCollection={() => setCollectionOpen(true)}
+          collectionOpen={collectionOpen}
+          collectionButtonRef={collectionButton}
         />
-      )}
+        {opening.kind === 'gate' ? (
+          <Gate reducedMotion={reducedMotion} catState={cats.state} onGreet={onGreet} musicPlaying={musicPlaying} />
+        ) : (
+          <Room
+            day={opening.day}
+            now={now}
+            reducedMotion={reducedMotion}
+            catState={cats.state}
+            onGreet={onGreet}
+            musicPlaying={musicPlaying}
+            qrUrl={qrUrl}
+          />
+        )}
+      </div>
       {collectionOpen && (
         <Collection
           state={cats.state}
