@@ -1,15 +1,16 @@
 import { tuning } from '../tuning'
 
-export type Era = 'pixel' | 'color' | '3d'
+// Design §1 Evolution: the book starts as a pencil sketch, becomes ink, and ends in light.
+export type Stage = 'boceto' | 'tinta' | 'luz'
 
-interface EraThresholds {
+interface StageThresholds {
   color: number
   threeD: number
 }
 
-// US-7, BR-12: horizontal camera position picks the era. Vertical movement does not.
-export function eraAt(position: number, t: EraThresholds = tuning.eras): Era {
-  if (position < t.color) return 'pixel'
-  if (position < t.threeD) return 'color'
-  return '3d'
+// BR-12: progress along the book picks the stage, with the existing tunable thresholds.
+export function stageAt(position: number, t: StageThresholds = tuning.eras): Stage {
+  if (position < t.color) return 'boceto'
+  if (position < t.threeD) return 'tinta'
+  return 'luz'
 }

@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react'
 import { vi } from 'vitest'
-import { Room } from '../components/Room'
+import { FlatRoom } from '../components/FlatRoom'
 import type { CatId, DayId } from '../content'
 import { emptyCatState, type CatState } from '../logic/catState'
 
@@ -32,7 +32,7 @@ export function renderRoom(options: RoomOptions = {}) {
     musicPlaying: options.musicPlaying ?? false,
     qrUrl: options.qrUrl,
   }
-  const view = render(<Room {...props} />)
+  const view = render(<FlatRoom {...props} />)
   return { ...view, onGreet, props }
 }
 

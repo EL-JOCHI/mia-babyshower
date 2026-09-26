@@ -13,7 +13,7 @@ import { Collection } from './Collection'
 import { Gate } from './Gate'
 import { GreetingToast } from './GreetingToast'
 import { Hud } from './Hud'
-import { Room } from './Room'
+import { WorldRoom } from './WorldRoom'
 
 interface Props {
   search?: string
@@ -70,7 +70,7 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
         {opening.kind === 'gate' ? (
           <Gate reducedMotion={reducedMotion} catState={cats.state} onGreet={onGreet} musicPlaying={musicPlaying} />
         ) : (
-          <Room
+          <WorldRoom
             day={opening.day}
             now={now}
             reducedMotion={reducedMotion}

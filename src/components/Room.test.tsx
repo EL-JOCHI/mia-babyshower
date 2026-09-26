@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { copy, days, shared } from '../content'
-import { Room } from './Room'
+import { FlatRoom } from './FlatRoom'
 import { cameraTargetFor } from '../logic/camera'
 import { computeLayout, landmarksFor } from '../logic/layout'
 import { whatsappUrl } from '../logic/whatsapp'
@@ -176,7 +176,7 @@ describe('US-5 Find the place, then see the party end', () => {
   it('switches without a reload when the clock reaches the cutoff (AC5)', () => {
     const view = renderRoom({ now: at('2026-10-17T23:59:59-04:00') })
     expect(screen.getByText(shared.place)).toBeInTheDocument()
-    view.rerender(<Room {...view.props} now={satCutoff} />)
+    view.rerender(<FlatRoom {...view.props} now={satCutoff} />)
     expectOver()
   })
 })
@@ -198,7 +198,7 @@ describe('US-6 Watch the countdown', () => {
   })
 })
 
-describe('US-7 Move from pixels into 3D', () => {
+describe('US-7 Move from sketch to light', () => {
   it('shows the move hint on the opening view (AC4)', () => {
     renderRoom()
     expect(screen.getByText(copy.moveHint)).toBeInTheDocument()
@@ -214,9 +214,9 @@ describe('US-7 Move from pixels into 3D', () => {
     expect(near).toBe(midTransform())
   })
 
-  it('starts in the pixel era', () => {
+  it('starts in the boceto stage', () => {
     renderRoom()
-    expect(screen.getByRole('main')).toHaveAttribute('data-era', 'pixel')
+    expect(screen.getByRole('main')).toHaveAttribute('data-era', 'boceto')
   })
 })
 

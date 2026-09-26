@@ -997,51 +997,151 @@
     animation-delay: 360ms !important;
   }
 
-  /* ---------- Eras (§4 Three eras) ---------- */
-  .room[data-era='color'] .near-pick {
+  /* ---------- Stages (design §1: boceto, tinta, luz) ---------- */
+  .room[data-era='tinta'] .near-pick {
     display: none;
   }
 
-  .room[data-era='color'] .landmark {
+  .room[data-era='tinta'] .landmark {
     border-radius: 22px;
     box-shadow:
       0 0 0 1px var(--line),
       0 0 44px color-mix(in srgb, var(--accent) 35%, transparent);
   }
 
-  .room[data-era='3d'] .landmark {
+  .room[data-era='luz'] .landmark {
     background: color-mix(in srgb, var(--surface) 80%, transparent);
     backdrop-filter: blur(6px);
     box-shadow: 0 18px 50px color-mix(in srgb, var(--accent) 30%, transparent);
   }
 
-  .room[data-era='3d'] .layer-far {
+  .room[data-era='luz'] .layer-far {
     opacity: 0.35;
   }
 
-  .room[data-era='3d'] .near-thunder {
+  .room[data-era='luz'] .near-thunder {
     display: none;
   }
 
-  .scene-host {
+  /* ---------- The 3D book (design §2) ---------- */
+  .world-room {
     position: absolute;
     inset: 0;
-    opacity: 0;
+  }
+
+  .world-surface {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    isolation: isolate;
+    touch-action: pinch-zoom;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .world-surface:active {
+    cursor: grabbing;
+  }
+
+  /* A stacking context of its own, so the pages' depth order stays under the HUD and the cover. */
+  .world-canvas {
+    z-index: 0;
+  }
+
+  /* A page stands on the book: the slot is anchored at its foot, and the card rests at the bottom. */
+  .station-slot {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
     pointer-events: none;
-    transition: opacity 600ms ease;
   }
 
-  .scene-host.is-active {
-    opacity: 1;
+  .station-page.landmark {
+    position: relative;
+    transform: none;
+    width: 100%;
+    pointer-events: auto;
   }
 
-  .scene-canvas {
-    width: 100% !important;
-    height: 100% !important;
+  .station-slot[data-flat] .station-page {
+    pointer-events: none;
+  }
+
+  .book-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(ellipse at 50% 45%, transparent 40%, color-mix(in srgb, var(--field) 70%, transparent)),
+      var(--paper-grain),
+      var(--surface);
+    background-size: auto, 220px 220px, auto;
+    transform-origin: 0 50%;
+    backface-visibility: hidden;
+  }
+
+  .book-cover::before {
+    content: '';
+    position: absolute;
+    inset: 14px;
+    border: 2px solid var(--accent-text);
+    outline: 1px solid var(--accent-text);
+    outline-offset: -8px;
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  .book-cover.is-opening {
+    animation: cover-open 900ms cubic-bezier(0.55, 0, 0.8, 0.4) forwards;
+    pointer-events: none;
+  }
+
+  .book-cover-inner {
+    max-width: 30rem;
+    text-align: center;
+  }
+
+  .book-cover-inner > * + * {
+    margin-top: 16px;
+  }
+
+  .cover-title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: clamp(32px, 4vw + 20px, 56px);
+    line-height: 1.15;
+    color: var(--accent-text);
+  }
+
+  .cover-hero {
+    margin-bottom: 0;
+    font-size: clamp(18px, 0.6vw + 16px, 22px);
+    line-height: 1.5;
   }
 }
 
 /* ---------- Keyframes ---------- */
+/* The cover swings open on its left edge, like a book, and is gone before the swing ends. */
+@keyframes cover-open {
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: perspective(1600px) rotateY(-105deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-cover.is-opening {
+    animation-duration: 1ms !important;
+  }
+}
+
 @keyframes luz-hop {
   0%,
   100% {

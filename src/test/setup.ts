@@ -27,6 +27,8 @@ function matchMediaStub(query: string): MediaQueryList {
 }
 
 beforeEach(() => {
+  // jsdom has no canvas, so no WebGL: the invitation shows the flat room, as it does for a guest without it.
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
   window.__prefersReducedMotion = false
   window.__prefersLight = false
   window.matchMedia = vi.fn(matchMediaStub)

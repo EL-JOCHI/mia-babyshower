@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
   return {
     base: './',
     plugins: [react(), tailwindcss(), headTags(env.VITE_SITE_URL ?? '')],
-    // The Three.js scene is its own lazy chunk (about 240 kB gzipped), loaded only near the 3D era.
+    // The 3D book is its own lazy chunk (Three.js, React Three Fiber, drei), loaded behind the HTML cover.
     build: { chunkSizeWarningLimit: 1000 },
     test: {
       environment: 'jsdom',

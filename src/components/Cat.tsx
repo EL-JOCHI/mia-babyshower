@@ -1,12 +1,12 @@
 import { memo, useRef, type CSSProperties } from 'react'
 import { catById, copy, type CatId } from '../content'
-import type { Era } from '../logic/era'
+import type { Stage } from '../logic/era'
 import { catAccents, catPixelAccents, tuning } from '../tuning'
 import { CatArt } from './CatArt'
 
 interface Props {
   id: CatId
-  era: Era
+  era: Stage
   noticing: boolean
   inRound: boolean
   acting?: string
@@ -30,7 +30,8 @@ export const Cat = memo(function Cat({
 }: Props) {
   const cat = catById(id)
   const figure = useRef<HTMLDivElement | null>(null)
-  const pixel = era === 'pixel'
+  // The boceto stage keeps the pixel look until the new cats arrive in a later task.
+  const pixel = era === 'boceto'
   const accent = pixel ? catPixelAccents[id] : catAccents[id]
   const offerGreeting = noticing && !inRound
   const pose = inRound ? 'staying' : noticing ? 'noticing' : 'playing'

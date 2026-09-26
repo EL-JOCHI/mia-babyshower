@@ -1,10 +1,33 @@
-import { act, fireEvent, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { createElement, useEffect, type ComponentProps, type ReactNode } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { copy } from '../content'
 import { cameraTargetFor } from '../logic/camera'
-import { computeLayout, landmarksFor } from '../logic/layout'
+import { emptyCatState } from '../logic/catState'
+import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
+import { hasWebGL } from '../logic/webgl'
 import { tuning } from '../tuning'
-import { renderRoom } from '../test/helpers'
+import { beforeSatCutoff, renderRoom } from '../test/helpers'
+import { WorldRoom } from './WorldRoom'
+
+// jsdom has no WebGL. The world stands in as its pages in plain DOM, or fails on purpose.
+const world = vi.hoisted(() => ({ fails: true }))
+vi.mock('../world/World', () => ({
+  default: function World({
+    ids,
+    content,
+    onReady,
+  }: {
+    ids: LandmarkId[]
+    content: Record<LandmarkId, ReactNode>
+    onReady: () => void
+  }) {
+    if (world.fails) throw new Error('The world could not start')
+    useEffect(onReady, [onReady])
+    return ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id]))
+  },
+}))
+vi.mock('../logic/webgl', () => ({ hasWebGL: vi.fn(() => true) }))
 
 // §4 What the guest does: drag, touch, wheel, and focus move the camera; taps still reach their target.
 
@@ -120,29 +143,136 @@ describe('camera input (§4, BR-20)', () => {
   })
 })
 
-describe('the 3D part of the room without a canvas (§4)', () => {
-  it('keeps the color look with reduced motion', () => {
+describe('the flat room (design §2 fallback)', () => {
+  it('reaches the luz stage at the family door, with no canvas', () => {
     renderRoom({ reducedMotion: true })
+    expect(screen.getByRole('main')).toHaveAttribute('data-era', 'boceto')
     fireEvent.click(screen.getByRole('button', { name: 'La familia' }))
-    expect(screen.getByRole('main')).toHaveAttribute('data-era', 'color')
+    expect(screen.getByRole('main')).toHaveAttribute('data-era', 'luz')
+    expect(document.querySelector('canvas')).toBeNull()
+  })
+})
+
+function renderWorldRoom(props: Partial<ComponentProps<typeof WorldRoom>> = {}) {
+  return render(
+    <WorldRoom
+      day="sat"
+      now={beforeSatCutoff}
+      reducedMotion={false}
+      catState={emptyCatState}
+      onGreet={vi.fn()}
+      musicPlaying={false}
+      qrUrl={undefined}
+      {...props}
+    />,
+  )
+}
+
+const cover = () => document.querySelector('.book-cover')
+const worldSurface = () => document.querySelector('.world-surface') as HTMLElement
+const bookReady = () => waitFor(() => expect(cover()).toHaveAttribute('aria-hidden', 'true'))
+
+describe('the 3D book and its fallback (design §2)', () => {
+  beforeEach(() => {
+    world.fails = true
+    vi.mocked(hasWebGL).mockReturnValue(true)
+  })
+
+  it('shows the cover at once, and ends on the flat room when the world fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderWorldRoom()
+    expect(cover()).toHaveTextContent(copy.title)
+    expect(screen.getByText(copy.hero)).toBeInTheDocument()
+    expect(await screen.findByTestId('room-mid')).toBeInTheDocument()
+    expect(cover()).toBeNull()
+  })
+
+  it('uses the flat room with reduced motion', () => {
+    renderWorldRoom({ reducedMotion: true })
+    expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+    expect(cover()).toBeNull()
+  })
+
+  it('uses the flat room, with no canvas, when WebGL cannot start', () => {
+    vi.mocked(hasWebGL).mockReturnValue(false)
+    renderWorldRoom()
+    expect(screen.getByTestId('room-mid')).toBeInTheDocument()
     expect(document.querySelector('canvas')).toBeNull()
   })
 
-  it('keeps the color look and mounts nothing when WebGL cannot start', async () => {
-    vi.resetModules()
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
-    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })
-    try {
-      const { renderRoom: freshRoom } = await import('../test/helpers')
-      freshRoom()
-      fireEvent.click(screen.getByRole('button', { name: 'La familia' }))
+  it('opens the cover on the first move, once the book is ready', async () => {
+    world.fails = false
+    const onFirstMove = vi.fn()
+    renderWorldRoom({ onFirstMove })
+    await bookReady()
+    expect(cover()).not.toHaveClass('is-opening')
+    fireEvent.wheel(worldSurface(), { deltaY: 120 })
+    fireEvent.wheel(worldSurface(), { deltaY: 120 })
+    expect(onFirstMove).toHaveBeenCalledTimes(1)
+    expect(cover()).toHaveClass('is-opening')
+  })
+
+  it('opens the cover on any key, so the keyboard never tabs into a closed book', async () => {
+    world.fails = false
+    renderWorldRoom()
+    await bookReady()
+    fireEvent.keyDown(window, { key: 'Tab' })
+    expect(cover()).toHaveClass('is-opening')
+  })
+
+  describe('moving through the book', () => {
+    beforeEach(() => {
+      world.fails = false
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })
+    })
+    afterEach(() => vi.useRealTimers())
+
+    const settle = () =>
       act(() => {
-        vi.advanceTimersByTime(tuning.camera.glideMs + 50)
+        vi.advanceTimersByTime(tuning.world.glideMs + 50)
       })
-      expect(screen.getByRole('main')).toHaveAttribute('data-era', 'color')
-      expect(document.querySelector('canvas')).toBeNull()
-    } finally {
-      vi.useRealTimers()
-    }
+
+    it('moves forward with a drag and never past either end', async () => {
+      renderWorldRoom()
+      await bookReady()
+      const main = screen.getByRole('main')
+      fireEvent.pointerDown(worldSurface(), { pointerId: 1, isPrimary: true, button: 0, clientX: 800, clientY: 400 })
+      fireEvent.pointerMove(worldSurface(), { pointerId: 1, clientX: 800 - window.innerWidth * 1.4, clientY: 400 })
+      expect(main).toHaveAttribute('data-era', 'luz')
+      fireEvent.pointerMove(worldSurface(), { pointerId: 1, clientX: 800 + window.innerWidth * 9, clientY: 400 })
+      expect(main).toHaveAttribute('data-era', 'boceto')
+      fireEvent.pointerUp(worldSurface(), { pointerId: 1 })
+    })
+
+    it('glides to the family door from its signpost, into the luz stage', async () => {
+      renderWorldRoom()
+      await bookReady()
+      fireEvent.click(screen.getByRole('button', { name: 'La familia' }))
+      settle()
+      expect(screen.getByRole('main')).toHaveAttribute('data-era', 'luz')
+      expect(cover()).toHaveClass('is-opening')
+    })
+
+    it('steps from page to page with the arrow keys', async () => {
+      renderWorldRoom()
+      await bookReady()
+      for (let i = 0; i < 2; i++) {
+        fireEvent.keyDown(window, { key: 'ArrowRight' })
+        settle()
+      }
+      expect(screen.getByRole('main')).toHaveAttribute('data-era', 'tinta')
+      fireEvent.keyDown(window, { key: 'ArrowLeft' })
+      settle()
+      expect(screen.getByRole('main')).toHaveAttribute('data-era', 'boceto')
+    })
+
+    it('glides to the page that keyboard focus enters (FR-11)', async () => {
+      renderWorldRoom()
+      await bookReady()
+      fireEvent.keyDown(window, { key: 'Tab' })
+      act(() => screen.getByRole('link', { name: copy.confirm }).focus())
+      settle()
+      expect(screen.getByRole('main')).toHaveAttribute('data-era', 'luz')
+    })
   })
 })
