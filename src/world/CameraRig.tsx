@@ -41,8 +41,8 @@ export function CameraRig({ path, progressRef, viewRef, awake, onReady }: Props)
       target.fromArray(overview.position)
       targetLook.fromArray(overview.look)
     }
-    target.x += state.pointer.x * tilt
-    target.y += state.pointer.y * tilt * 0.5
+    target.x += state.pointer.x * tilt.x
+    target.y += state.pointer.y * tilt.y
     // The first frame lands on the path; after that the camera eases toward it.
     const k = started.current ? 1 - Math.exp(-damping * Math.min(delta, 0.1)) : 1
     camera.position.lerp(target, k)

@@ -1,29 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import * as THREE from 'three'
-import { tokens, tuning } from '../tuning'
+import { tuning } from '../tuning'
+import { paint, type WorldPalette } from './palette'
 import { floorTexture } from './paperTextures'
 
-// Design §1: a cat's attic at night. Floorboards, a gable wall with a round window and the moon
-// behind it, and a slanted roof with rafters. Static: nothing here moves or changes per frame.
+// Design §1: a cat's attic. Floorboards, a gable wall with a round window, and a slanted roof with
+// rafters. By night the moon is in the window; by day the sun (design §3). Nothing here moves.
 
 function createAttic() {
-  const { wallZ, frontZ, halfWidth, ridge, eave, windowY, windowRadius } = tuning.world.attic
+  const { wallZ, frontZ, halfWidth, ridge, eave, windowY, windowRadius, roughness } = tuning.world.attic
   const depth = frontZ - wallZ
-  const { tints } = tuning.world
-  const wood = new THREE.Color(tokens.ink).lerp(new THREE.Color(tokens.plum), tints.wood)
 
+  // Colors come from the theme's palette once mounted (see applyPalette).
   const floorMap = floorTexture()
   floorMap.repeat.set(halfWidth / 3, depth / 3)
-  const floor = new THREE.MeshStandardMaterial({ map: floorMap, color: tokens.plum, roughness: 0.95 })
-  const wall = new THREE.MeshStandardMaterial({ color: wood, roughness: 1, side: THREE.DoubleSide })
-  const beam = new THREE.MeshStandardMaterial({ color: tokens.ink, roughness: 1 })
-  const sky = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(tokens.ink).lerp(new THREE.Color(tuning.world.light.moonColor), tints.sky),
-    fog: false,
-  })
-  const moon = new THREE.MeshBasicMaterial({ color: tokens.bone, fog: false })
+  const floor = new THREE.MeshStandardMaterial({ map: floorMap, roughness: roughness.floor })
+  const wall = new THREE.MeshStandardMaterial({ roughness: roughness.wall, side: THREE.DoubleSide })
+  const beam = new THREE.MeshStandardMaterial({ roughness: roughness.beam })
+  const sky = new THREE.MeshBasicMaterial({ fog: false })
+  const moon = new THREE.MeshBasicMaterial({ fog: false })
   const halo = new THREE.MeshBasicMaterial({
-    color: tuning.world.light.moonColor,
     transparent: true,
     opacity: tuning.world.attic.moon.haloOpacity,
     depthWrite: false,
@@ -57,6 +53,7 @@ function createAttic() {
     barGeometry: new THREE.BoxGeometry(windowRadius * 2, 0.1, 0.12),
     discGeometry: new THREE.CircleGeometry(1, 40),
     roofGeometry: new THREE.PlaneGeometry(slope, depth),
+    kneeGeometry: new THREE.PlaneGeometry(depth, eave),
     rafterGeometry: new THREE.BoxGeometry(slope, 0.28, 0.32),
     ridgeGeometry: new THREE.BoxGeometry(0.4, 0.4, depth),
     slope,
@@ -65,6 +62,15 @@ function createAttic() {
 }
 
 type AtticParts = ReturnType<typeof createAttic>
+
+function applyPalette(parts: AtticParts, palette: WorldPalette) {
+  paint(parts.floor, palette.floor)
+  paint(parts.wall, palette.wood)
+  paint(parts.beam, palette.beam)
+  paint(parts.sky, palette.sky)
+  paint(parts.moon, palette.orb)
+  paint(parts.halo, palette.halo)
+}
 
 function disposeAttic(parts: AtticParts) {
   for (const texture of parts.textures) texture.dispose()
@@ -76,16 +82,19 @@ function disposeAttic(parts: AtticParts) {
     parts.barGeometry,
     parts.discGeometry,
     parts.roofGeometry,
+    parts.kneeGeometry,
     parts.rafterGeometry,
     parts.ridgeGeometry,
   ])
     geometry.dispose()
 }
 
-export function Attic() {
+export function Attic({ palette }: { palette: WorldPalette }) {
   const [parts] = useState(createAttic)
   useEffect(() => () => disposeAttic(parts), [parts])
-  const { wallZ, frontZ, halfWidth, ridge, eave, windowY, windowRadius, rafterGap, moon } = tuning.world.attic
+  // Switching theme retints the attic in place.
+  useLayoutEffect(() => applyPalette(parts, palette), [parts, palette])
+  const { wallZ, frontZ, halfWidth, ridge, eave, windowY, windowRadius, rafterGap, moon, skyScale } = tuning.world.attic
   const midZ = (wallZ + frontZ) / 2
   const rafterZs: number[] = []
   for (let z = wallZ + rafterGap / 2; z < frontZ; z += rafterGap) rafterZs.push(z)
@@ -100,10 +109,20 @@ export function Attic() {
         <mesh geometry={parts.barGeometry} material={parts.beam} />
         <mesh geometry={parts.barGeometry} material={parts.beam} rotation-z={Math.PI / 2} />
       </group>
-      <mesh geometry={parts.discGeometry} material={parts.sky} position={[0, windowY, wallZ - 0.8]} scale={windowRadius * 1.3} />
+      <mesh geometry={parts.discGeometry} material={parts.sky} position={[0, windowY, wallZ - 0.8]} scale={windowRadius * skyScale} />
       <mesh geometry={parts.discGeometry} material={parts.halo} position={[moon.x, windowY + moon.y, wallZ - 0.7]} scale={moon.halo} />
       <mesh geometry={parts.discGeometry} material={parts.moon} position={[moon.x, windowY + moon.y, wallZ - 0.6]} scale={moon.radius} />
 
+      {/* Short knee walls close the gap under the eaves. */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={side}
+          geometry={parts.kneeGeometry}
+          material={parts.wall}
+          position={[side * halfWidth, eave / 2, midZ]}
+          rotation-y={Math.PI / 2}
+        />
+      ))}
       {[-1, 1].map((side) => (
         <group
           key={side}

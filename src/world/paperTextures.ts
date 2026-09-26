@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { tokens, type PieceSpec } from '../tuning'
+import { tokens, tuning, type PieceSpec } from '../tuning'
 
 // Design §1: pop-up paper pieces, drawn from SVG path strings onto canvases. Each piece has a
 // paper texture (a white cut-out with pencil lines, tinted by its material) and an ink texture
@@ -80,13 +80,11 @@ function paperTexture(kind: PieceKind): THREE.CanvasTexture {
   const lines = new Path2D(art[kind].lines)
   ctx.fillStyle = 'white'
   ctx.fill(body, 'evenodd')
+  const { pencil } = tuning.world.art
   ctx.strokeStyle = tokens.ink
-  ctx.globalAlpha = 0.32
-  ctx.lineWidth = 0.9
-  for (const [dx, dy] of [
-    [0, 0],
-    [0.7, -0.5],
-  ]) {
+  ctx.globalAlpha = pencil.alpha
+  ctx.lineWidth = pencil.width
+  for (const [dx, dy] of [[0, 0], pencil.offset]) {
     ctx.save()
     ctx.translate(dx, dy)
     ctx.stroke(body)
@@ -99,10 +97,11 @@ function paperTexture(kind: PieceKind): THREE.CanvasTexture {
 // Bold ink outlines on a clear background.
 function inkTexture(kind: PieceKind): THREE.CanvasTexture {
   const { canvas, ctx } = canvasFor(kind)
+  const { ink } = tuning.world.art
   ctx.strokeStyle = tokens.ink
-  ctx.lineWidth = 2.6
+  ctx.lineWidth = ink.outline
   ctx.stroke(new Path2D(art[kind].body))
-  ctx.lineWidth = 1.6
+  ctx.lineWidth = ink.detail
   ctx.stroke(new Path2D(art[kind].lines))
   return toTexture(canvas)
 }
@@ -137,12 +136,13 @@ export function pageTexture(): THREE.CanvasTexture {
     seed = (seed * 16807) % 2147483647
     return seed / 2147483647
   }
-  for (let i = 0; i < 5000; i++) {
-    ctx.globalAlpha = 0.03 + next() * 0.05
+  const { grain, pageBorderAlpha, gutterShadow } = tuning.world.art
+  for (let i = 0; i < grain.specks; i++) {
+    ctx.globalAlpha = grain.alpha + next() * grain.alphaRange
     ctx.fillRect(next() * canvas.width, next() * canvas.height, 1.5, 1.5)
   }
   // A sketched border on each page.
-  ctx.globalAlpha = 0.22
+  ctx.globalAlpha = pageBorderAlpha
   ctx.strokeStyle = tokens.ink
   ctx.lineWidth = 2
   ctx.strokeRect(40, 36, canvas.width / 2 - 80, canvas.height - 72)
@@ -152,7 +152,7 @@ export function pageTexture(): THREE.CanvasTexture {
   gutter.addColorStop(0, 'rgba(0,0,0,0)')
   gutter.addColorStop(0.5, tokens.plum)
   gutter.addColorStop(1, 'rgba(0,0,0,0)')
-  ctx.globalAlpha = 0.45
+  ctx.globalAlpha = gutterShadow
   ctx.fillStyle = gutter
   ctx.fillRect(canvas.width / 2 - 60, 0, 120, canvas.height)
   return toTexture(canvas)
@@ -168,7 +168,7 @@ export function pageEdgeTexture(): THREE.CanvasTexture {
   ctx.fillStyle = 'white'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.fillStyle = tokens.ink
-  ctx.globalAlpha = 0.18
+  ctx.globalAlpha = tuning.world.art.pageEdgeAlpha
   for (let y = 2; y < canvas.height; y += 4) ctx.fillRect(0, y, canvas.width, 1)
   const texture = toTexture(canvas)
   texture.wrapS = THREE.RepeatWrapping
@@ -184,14 +184,15 @@ export function floorTexture(): THREE.CanvasTexture {
   if (!ctx) throw new Error('No 2D canvas for the floor')
   ctx.fillStyle = 'white'
   ctx.fillRect(0, 0, 256, 256)
+  const { seamAlpha, grainAlpha } = tuning.world.art.floor
   ctx.fillStyle = tokens.ink
   for (let row = 0; row < 4; row++) {
     const y = row * 64
-    ctx.globalAlpha = 0.5
+    ctx.globalAlpha = seamAlpha
     ctx.fillRect(0, y, 256, 3)
     const joint = (row * 97) % 256
     ctx.fillRect(joint, y, 3, 64)
-    ctx.globalAlpha = 0.08
+    ctx.globalAlpha = grainAlpha
     for (let k = 0; k < 5; k++) ctx.fillRect(0, y + 10 + k * 11, 256, 1)
   }
   const texture = toTexture(canvas)

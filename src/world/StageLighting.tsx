@@ -3,6 +3,7 @@ import { useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { tokens, tuning } from '../tuning'
 import type { BookPath } from './bookPath'
+import type { WorldPalette } from './palette'
 import { applyStageMix, type WorldResources } from './resources'
 import { createStageMix, writeStageMix } from './stageMix'
 
@@ -10,16 +11,16 @@ interface Props {
   path: BookPath
   viewRef: RefObject<{ progress: number }>
   resources: WorldResources
+  palette: WorldPalette
 }
 
 const mix = createStageMix()
-const { moonColor, moonSoften } = tuning.world.light
-const moonlight = new THREE.Color(moonColor).lerp(new THREE.Color(tokens.bone), moonSoften)
 
-// Design §1 Evolution: boceto has a cool moon light and gray paper; tinta adds ink outlines and plum
-// shadows; luz lights the candles (one casts shadows) and warms the paper toward the door.
-export function StageLighting({ path, viewRef, resources }: Props) {
-  const { moon, moonFrom, ambient, candleAt, candleOffset, doorOffset, candleDistance, shadowMapPx } = tuning.world.light
+// Design §1 Evolution: boceto has the window's light only (cool moonlight by night, soft daylight
+// by day) and gray paper; tinta adds ink outlines and shadows from below (plum by night, rose by
+// day); luz lights the candles (one casts shadows) and warms the paper toward the door.
+export function StageLighting({ path, viewRef, resources, palette }: Props) {
+  const { moonFrom, candleAt, candleOffset, doorOffset, candleDistance, shadowMapPx } = tuning.world.light
   const moonLight = useRef<THREE.DirectionalLight>(null)
   const sky = useRef<THREE.HemisphereLight>(null)
   const candles = useRef<(THREE.PointLight | null)[]>([])
@@ -37,19 +38,28 @@ export function StageLighting({ path, viewRef, resources }: Props) {
 
   useFrame((state) => {
     writeStageMix(viewRef.current.progress, mix)
-    const { candle: candleIntensity, candleBase, flicker } = tuning.world.light
-    if (moonLight.current) moonLight.current.intensity = THREE.MathUtils.lerp(moon.boceto, moon.luz, mix.light)
-    if (sky.current) sky.current.intensity = THREE.MathUtils.lerp(ambient.boceto, ambient.tinta, mix.ink)
+    const { candle: candleIntensity, candleBase, flicker, flickerWaves } = tuning.world.light
+    const key = moonLight.current
+    if (key) {
+      key.color.copy(palette.key)
+      key.intensity = THREE.MathUtils.lerp(palette.keyIntensity.boceto, palette.keyIntensity.luz, mix.light)
+    }
+    const ambient = sky.current
+    if (ambient) {
+      ambient.color.copy(palette.ambientSky)
+      ambient.groundColor.copy(palette.ambientGround)
+      ambient.intensity = THREE.MathUtils.lerp(palette.ambient.boceto, palette.ambient.tinta, mix.ink)
+    }
 
     const t = state.clock.elapsedTime
     const lit = mix.light * (candleBase + (1 - candleBase) * mix.warm)
     for (let i = 0; i < candles.current.length; i++) {
       const light = candles.current[i]
-      // Two slow waves per candle make a soft, uneven flicker.
-      if (light) light.intensity = candleIntensity * lit * (1 + flicker * Math.sin(t * 9 + i * 1.7) * Math.sin(t * 3.1 + i))
+      const { fast, slow, phase } = flickerWaves
+      if (light) light.intensity = candleIntensity * lit * (1 + flicker * Math.sin(t * fast + i * phase) * Math.sin(t * slow + i))
     }
 
-    applyStageMix(resources, mix)
+    applyStageMix(resources, mix, palette)
 
     // Only the lit candles cast shadows, so the shadow map is redrawn only once they are lit. It
     // is drawn once at the start so the shadow texture exists before then.
@@ -59,8 +69,8 @@ export function StageLighting({ path, viewRef, resources }: Props) {
 
   return (
     <>
-      <hemisphereLight ref={sky} args={[moonlight, tokens.plum, ambient.boceto]} />
-      <directionalLight ref={moonLight} position={[...moonFrom]} color={moonlight} intensity={moon.boceto} />
+      <hemisphereLight ref={sky} />
+      <directionalLight ref={moonLight} position={[...moonFrom]} />
       {spots.map((spot, i) => {
         const door = i === spots.length - 1
         return (

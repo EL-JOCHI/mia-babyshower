@@ -2,12 +2,13 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import type { LandmarkId } from '../logic/layout'
-import { tokens, tuning } from '../tuning'
+import { tuning, type ThemeName } from '../tuning'
 import { Attic } from './Attic'
 import { Book } from './Book'
 import { buildPath } from './bookPath'
 import { CameraRig } from './CameraRig'
 import { Dust } from './Dust'
+import { palettes } from './palette'
 import { useWorldResources } from './resources'
 import { StageLighting } from './StageLighting'
 import { Station } from './Station'
@@ -17,6 +18,8 @@ export interface WorldProps {
   stations: Record<LandmarkId, number>
   progressRef: { readonly current: number }
   content: Record<LandmarkId, ReactNode>
+  // The same book by night (Oscuro) or by day (Claro). Switching retints the scene in place.
+  theme: ThemeName
   // False until the cover has swung open: the camera waits on a wide view of the book and the pages
   // lie flat, so the guest sees the whole book before the camera swoops down to the first page.
   awake: boolean
@@ -26,7 +29,8 @@ export interface WorldProps {
 
 type SceneProps = Omit<WorldProps, 'onFail'>
 
-function Scene({ ids, stations, progressRef, content, awake, onReady }: SceneProps) {
+function Scene({ ids, stations, progressRef, content, theme, awake, onReady }: SceneProps) {
+  const palette = palettes[theme]
   const size = useThree((state) => state.size)
   const resources = useWorldResources()
   const aspect = size.width / Math.max(1, size.height)
@@ -36,11 +40,11 @@ function Scene({ ids, stations, progressRef, content, awake, onReady }: ScenePro
 
   return (
     <>
-      <fog attach="fog" args={[tokens.plum, fog.near, fog.far]} />
+      <fog attach="fog" args={[palette.fog, fog.near, fog.far]} />
       <CameraRig path={path} progressRef={progressRef} viewRef={viewRef} awake={awake} onReady={onReady} />
-      <StageLighting path={path} viewRef={viewRef} resources={resources} />
-      <Attic />
-      <Book resources={resources} />
+      <StageLighting path={path} viewRef={viewRef} resources={resources} palette={palette} />
+      <Attic palette={palette} />
+      <Book resources={resources} palette={palette} />
       {ids.map((id, i) => (
         <Station
           key={id}

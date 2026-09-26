@@ -1,4 +1,17 @@
-import { Component, lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+import {
+  Component,
+  lazy,
+  memo,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import { copy, type CatId, type DayId } from '../content'
 import { useKeyboardModality } from '../hooks/useKeyboardModality'
 import { useWorldCamera } from '../hooks/useWorldCamera'
@@ -8,7 +21,7 @@ import { landmarksFor, type LandmarkId, type Point } from '../logic/layout'
 import { isPartyOver } from '../logic/party'
 import { stationProgress } from '../logic/path'
 import { hasWebGL } from '../logic/webgl'
-import { tuning } from '../tuning'
+import { tuning, type ThemeName } from '../tuning'
 import { FlatRoom, type RoomProps } from './FlatRoom'
 import { useLandmarkContent } from './landmarkContent'
 import { Signposts } from './Signposts'
@@ -16,6 +29,8 @@ import { Signposts } from './Signposts'
 const World = lazy(() => import('../world/World'))
 
 interface Props extends RoomProps {
+  // The world is the same book by night (Oscuro) and by day (Claro), design §3.
+  theme: ThemeName
   // The guest's first drag, wheel, or key: it opens the cover.
   onFirstMove?: () => void
 }
@@ -48,6 +63,7 @@ interface PagesProps {
   container: RefObject<HTMLElement | null>
   noticeCamera: { readonly current: Point }
   progressRef: { readonly current: number }
+  theme: ThemeName
   awake: boolean
   onReady: () => void
   onFail: () => void
@@ -69,6 +85,7 @@ const BookPages = memo(function BookPages({
   container,
   noticeCamera,
   progressRef,
+  theme,
   awake,
   onReady,
   onFail,
@@ -94,6 +111,7 @@ const BookPages = memo(function BookPages({
           stations={stations}
           progressRef={progressRef}
           content={content}
+          theme={theme}
           awake={awake}
           onReady={onReady}
           onFail={onFail}
@@ -110,7 +128,7 @@ function Cover({ partyOver, opening, behind }: { partyOver: boolean; opening: bo
       className={`book-cover${opening ? ' is-opening' : ''}`}
       // Once the book is ready, its first page carries the same words for screen readers.
       aria-hidden={behind || undefined}
-      style={{ animationDuration: `${tuning.world.coverFlipMs}ms` }}
+      style={{ '--cover-flip': `${tuning.world.coverFlipMs}ms` } as CSSProperties}
     >
       <div className="book-cover-inner">
         <p className="cover-title">{copy.title}</p>
@@ -135,6 +153,7 @@ function BookRoom({
   onGreet,
   musicPlaying,
   qrUrl,
+  theme,
   onFirstMove,
   onFail,
 }: Props & { onFail: () => void }) {
@@ -179,6 +198,13 @@ function BookRoom({
     const timer = window.setTimeout(() => setCoverGone(true), tuning.world.coverFlipMs)
     return () => window.clearTimeout(timer)
   }, [opening])
+
+  // Facts are never gated: a world that stalls before its first frame hands over to the flat room.
+  useEffect(() => {
+    if (ready) return
+    const timer = window.setTimeout(onFail, tuning.world.loadTimeoutMs)
+    return () => window.clearTimeout(timer)
+  }, [ready, onFail])
 
   // Keyboard focus inside a page glides the camera to that page (BR-20, FR-11). The pages live in
   // their own DOM roots inside the surface, so this listens on the DOM directly.
@@ -238,6 +264,7 @@ function BookRoom({
           container={surface}
           noticeCamera={noticeCamera}
           progressRef={progressRef}
+          theme={theme}
           awake={coverGone}
           onReady={onReady}
           onFail={onFail}

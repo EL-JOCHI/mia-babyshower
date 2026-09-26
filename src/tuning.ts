@@ -12,6 +12,33 @@ export interface PieceSpec {
   flip?: boolean
 }
 
+// A color straight from the palette, or a mix: from one token toward another by an amount.
+export type ColorMix = string | readonly [from: string, to: string, amount: number]
+
+// How the 3D book looks under one theme (design §3): Oscuro is the moonlit attic, Claro the same
+// book by day.
+export interface WorldLook {
+  fog: ColorMix
+  wood: ColorMix
+  floor: ColorMix
+  beam: ColorMix
+  // The window's sky, the moon or sun in it, and its halo.
+  sky: ColorMix
+  orb: ColorMix
+  halo: ColorMix
+  cloth: ColorMix
+  // The key light through the window, and the ambient light from above and below.
+  key: ColorMix
+  keyIntensity: { boceto: number; luz: number }
+  ambientSky: ColorMix
+  ambientGround: ColorMix
+  ambient: { boceto: number; tinta: number }
+  // Pencil paper is bone with no color at this lightness; candles warm it by `warmth`.
+  sketchLightness: number
+  warmth: number
+  dust: ColorMix
+}
+
 export interface GateGameConfig {
   durationMs: number
   spawnEveryMs: number
@@ -191,7 +218,8 @@ export const tuning = {
     // Until the cover opens, the camera waits on a wide view of the book, then swoops down to the first page.
     rig: {
       damping: 3,
-      tilt: 0.18,
+      // How far the pointer tilts the camera, across and up.
+      tilt: { x: 0.18, y: 0.09 },
       near: 0.1,
       far: 60,
       overview: {
@@ -200,7 +228,7 @@ export const tuning = {
       },
     },
     // The open book: pages curve down to the cover at the outer edges and dip at the gutter.
-    book: { pageWidth: 11.6, pageDepth: 8.4, pageTop: 0.42, coverTop: 0.12, gutterDip: 0.12, gutterWidth: 0.35, edgeCurl: 1.6, coverMargin: 0.3 },
+    book: { pageWidth: 11.6, pageDepth: 8.4, pageTop: 0.42, coverTop: 0.12, gutterDip: 0.12, gutterWidth: 0.35, edgeCurl: 1.6, coverMargin: 0.3, clothRoughness: 0.85 },
     // A station's page is HTML: `cardPx` wide in a slot `slotPx` tall, drawn `cardWidth` world units wide.
     // It fades in between `fadeFrom` and `fadeTo` of the way up, so a page lying flat far away is not a sliver.
     page: { cardPx: 320, slotPx: 640, cardWidth: 1.8, lift: 0.04, zIndexRange: [100, 0], fadeFrom: 0.2, fadeTo: 0.7 },
@@ -245,29 +273,86 @@ export const tuning = {
         { kind: 'candle', x: 1.4, z: 0.45, height: 0.9 },
       ],
     } satisfies Record<LandmarkId, readonly PieceSpec[]>,
-    // A candle's flame and the lit doorway, as sizes relative to their piece.
-    flameSize: 0.4,
+    // A candle's flame is `scale` times the candle's width and sinks `sink` of its size below the
+    // wick; the lit doorway is sized relative to the door.
+    flame: { scale: 0.8, sink: 0.35 },
     doorway: { width: 0.52, height: 0.8 },
     // How far around each stage threshold the ink and the light blend in.
     stageBlend: 0.08,
-    paper: { sketchLightness: 0.72, warmth: 0.32 },
-    // Dust fills a box of air over the book: x from -width/2, y from `bottom`, z from `back`.
-    dust: { phone: 200, desktop: 500, size: 0.06, opacity: 0.55, drift: 0.3, box: { width: 28, bottom: 0.3, height: 6.5, back: -8, depth: 16 } },
-    // How much of the second token each surface mixes in: wood (ink to plum), night sky (ink to moon
-    // blue), and the book's cloth cover (plum to deep rose).
-    tints: { wood: 0.55, sky: 0.18, cloth: 0.35 },
-    light: {
-      moonColor: feelingColors.misha,
-      // The moonlight is the moon's blue softened toward bone, so the paper reads as paper.
-      moonSoften: 0.7,
-      moonFrom: [-5, 14, 9],
-      moon: { boceto: 1.3, luz: 0.6 },
+    paper: { roughness: { piece: 0.95, page: 0.9 } },
+    // Dust fills a box of air over the book: x from -width/2, y from `bottom`, z from `back`. It bobs
+    // up and down by `drift` and sways by `sway` radians, at those speeds.
+    dust: {
+      phone: 200,
+      desktop: 500,
+      size: 0.06,
+      opacity: 0.55,
+      drift: 0.3,
+      driftSpeed: 0.2,
+      sway: 0.06,
+      swaySpeed: 0.05,
+      box: { width: 28, bottom: 0.3, height: 6.5, back: -8, depth: 16 },
+    },
+    // Oscuro: the moonlit attic. The moonlight is the moon's blue softened toward bone, so the
+    // paper reads as paper.
+    night: {
+      fog: tokens.plum,
+      wood: [tokens.ink, tokens.plum, 0.55],
+      floor: tokens.plum,
+      beam: tokens.ink,
+      sky: [tokens.ink, feelingColors.misha, 0.18],
+      orb: tokens.bone,
+      halo: feelingColors.misha,
+      cloth: [tokens.plum, tokens.deepRose, 0.35],
+      key: [feelingColors.misha, tokens.bone, 0.7],
+      keyIntensity: { boceto: 1.3, luz: 0.6 },
+      ambientSky: [feelingColors.misha, tokens.bone, 0.7],
+      ambientGround: tokens.plum,
       ambient: { boceto: 0.25, tinta: 0.6 },
+      sketchLightness: 0.72,
+      warmth: 0.32,
+      dust: tokens.bone,
+    } satisfies WorldLook,
+    // Claro: the same book by day. Bone parchment and pale wood under a daylight window with the
+    // sun in it, ink lines, deep rose accents; the candles still warm the pages toward the door.
+    day: {
+      fog: tokens.bone,
+      wood: [tokens.bone, tokens.plum, 0.38],
+      floor: [tokens.bone, tokens.plum, 0.5],
+      beam: [tokens.plum, tokens.bone, 0.2],
+      sky: [feelingColors.misha, tokens.bone, 0.45],
+      orb: tokens.candle,
+      halo: tokens.candle,
+      cloth: tokens.deepRose,
+      key: tokens.bone,
+      keyIntensity: { boceto: 1.7, luz: 1.2 },
+      ambientSky: tokens.bone,
+      ambientGround: tokens.rose,
+      ambient: { boceto: 0.8, tinta: 1 },
+      sketchLightness: 0.86,
+      warmth: 0.25,
+      dust: tokens.candle,
+    } satisfies WorldLook,
+    // The canvas drawing of the paper: pencil passes, ink strokes (in SVG units), page grain, and
+    // how dark the page border, gutter shadow, page edges, and floor seams are.
+    art: {
+      pencil: { alpha: 0.32, width: 0.9, offset: [0.7, -0.5] },
+      ink: { outline: 2.6, detail: 1.6 },
+      grain: { specks: 5000, alpha: 0.03, alphaRange: 0.05 },
+      pageBorderAlpha: 0.22,
+      gutterShadow: 0.45,
+      pageEdgeAlpha: 0.18,
+      floor: { seamAlpha: 0.5, grainAlpha: 0.08 },
+    },
+    light: {
+      moonFrom: [-5, 14, 9],
       candle: 14,
       // Candles start at this share of their brightness and reach full brightness at the door.
       candleBase: 0.55,
       candleDistance: 11,
       flicker: 0.12,
+      // Two waves per candle make a soft, uneven flicker: their speeds, and each candle's phase step.
+      flickerWaves: { fast: 9, slow: 3.1, phase: 1.7 },
       shadowMapPx: 512,
       // Candles stand along the path near the end of the book; the last one lights the door and casts shadows.
       candleAt: [0.83, 1],
@@ -285,10 +370,15 @@ export const tuning = {
       windowY: 6.4,
       windowRadius: 1.7,
       rafterGap: 4,
-      // The moon sits a little up and to the right in the window, with a soft halo.
+      // The moon (or the sun, by day) sits a little up and to the right in the window, with a soft halo.
       moon: { x: 0.5, y: 0.4, radius: 0.62, halo: 1.15, haloOpacity: 0.22 },
+      // The sky disc behind the window is this much wider than the window.
+      skyScale: 1.3,
+      roughness: { floor: 0.95, wall: 1, beam: 1 },
     },
     coverFlipMs: 900,
+    // Facts are never gated: if the world has not drawn its first frame by then, the flat room takes over.
+    loadTimeoutMs: 6000,
   },
   battle: { energy: 100, patience: 100, damage: { ovillo: 35, mimos: 25, ronroneo: 20 }, boost: 1.5, effectiveAt: 35, catDamage: [12, 15, 10, 18], floor: 1, safetyRestore: 30 },
 } as const

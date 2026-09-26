@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import * as THREE from 'three'
-import { tokens, tuning } from '../tuning'
+import { tuning } from '../tuning'
 import { pageHeight } from './bookPath'
+import { paint, type WorldPalette } from './palette'
 import type { WorldResources } from './resources'
 
 const segments = 160
@@ -35,10 +36,8 @@ function edgeGeometry(): THREE.PlaneGeometry {
 
 function createBook() {
   const { pageWidth, pageDepth, coverTop, coverMargin } = tuning.world.book
-  const cloth = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(tokens.plum).lerp(new THREE.Color(tokens.deepRose), tuning.world.tints.cloth),
-    roughness: 0.85,
-  })
+  // Its color comes from the theme's palette once mounted.
+  const cloth = new THREE.MeshStandardMaterial({ roughness: tuning.world.book.clothRoughness })
   return {
     cloth,
     pages: pagesGeometry(),
@@ -48,8 +47,9 @@ function createBook() {
 }
 
 // Design §1: a giant open book lying on the attic floor.
-export function Book({ resources }: { resources: WorldResources }) {
+export function Book({ resources, palette }: { resources: WorldResources; palette: WorldPalette }) {
   const [book] = useState(createBook)
+  useLayoutEffect(() => paint(book.cloth, palette.cloth), [book, palette])
   useEffect(
     () => () => {
       book.cloth.dispose()

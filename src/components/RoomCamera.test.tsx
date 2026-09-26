@@ -10,21 +10,30 @@ import { tuning } from '../tuning'
 import { beforeSatCutoff, renderRoom } from '../test/helpers'
 import { WorldRoom } from './WorldRoom'
 
-// jsdom has no WebGL. The world stands in as its pages in plain DOM, or fails on purpose.
-const world = vi.hoisted(() => ({ fails: true }))
+// jsdom has no WebGL. The world stands in as its pages in plain DOM: it gets ready, fails on
+// purpose, or stalls and never draws a first frame.
+const world = vi.hoisted(() => ({ mode: 'fails' as 'fails' | 'ready' | 'stalls' }))
 vi.mock('../world/World', () => ({
   default: function World({
     ids,
     content,
+    theme,
     onReady,
   }: {
     ids: LandmarkId[]
     content: Record<LandmarkId, ReactNode>
+    theme: string
     onReady: () => void
   }) {
-    if (world.fails) throw new Error('The world could not start')
-    useEffect(onReady, [onReady])
-    return ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id]))
+    if (world.mode === 'fails') throw new Error('The world could not start')
+    useEffect(() => {
+      if (world.mode === 'ready') onReady()
+    }, [onReady])
+    return createElement(
+      'div',
+      { 'data-testid': 'world', 'data-theme': theme },
+      ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id])),
+    )
   },
 }))
 vi.mock('../logic/webgl', () => ({ hasWebGL: vi.fn(() => true) }))
@@ -163,6 +172,7 @@ function renderWorldRoom(props: Partial<ComponentProps<typeof WorldRoom>> = {}) 
       onGreet={vi.fn()}
       musicPlaying={false}
       qrUrl={undefined}
+      theme="dark"
       {...props}
     />,
   )
@@ -174,7 +184,7 @@ const bookReady = () => waitFor(() => expect(cover()).toHaveAttribute('aria-hidd
 
 describe('the 3D book and its fallback (design §2)', () => {
   beforeEach(() => {
-    world.fails = true
+    world.mode = 'fails'
     vi.mocked(hasWebGL).mockReturnValue(true)
   })
 
@@ -201,7 +211,7 @@ describe('the 3D book and its fallback (design §2)', () => {
   })
 
   it('opens the cover on the first move, once the book is ready', async () => {
-    world.fails = false
+    world.mode = 'ready'
     const onFirstMove = vi.fn()
     renderWorldRoom({ onFirstMove })
     await bookReady()
@@ -213,16 +223,55 @@ describe('the 3D book and its fallback (design §2)', () => {
   })
 
   it('opens the cover on any key, so the keyboard never tabs into a closed book', async () => {
-    world.fails = false
+    world.mode = 'ready'
     renderWorldRoom()
     await bookReady()
     fireEvent.keyDown(window, { key: 'Tab' })
     expect(cover()).toHaveClass('is-opening')
   })
 
+  it('falls back to the flat room when the world never gets ready (facts are never gated)', async () => {
+    world.mode = 'stalls'
+    vi.useFakeTimers()
+    try {
+      renderWorldRoom()
+      await act(async () => {
+        await vi.dynamicImportSettled()
+      })
+      expect(screen.getByTestId('world')).toBeInTheDocument()
+      expect(screen.queryByTestId('room-mid')).not.toBeInTheDocument()
+      act(() => {
+        vi.advanceTimersByTime(tuning.world.loadTimeoutMs + 10)
+      })
+      expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+      expect(cover()).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('hands the theme to the world, and updates it without a reload (design §3)', async () => {
+    world.mode = 'ready'
+    const view = renderWorldRoom({ theme: 'dark' })
+    expect(await screen.findByTestId('world')).toHaveAttribute('data-theme', 'dark')
+    view.rerender(
+      <WorldRoom
+        day="sat"
+        now={beforeSatCutoff}
+        reducedMotion={false}
+        catState={emptyCatState}
+        onGreet={vi.fn()}
+        musicPlaying={false}
+        qrUrl={undefined}
+        theme="light"
+      />,
+    )
+    expect(screen.getByTestId('world')).toHaveAttribute('data-theme', 'light')
+  })
+
   describe('moving through the book', () => {
     beforeEach(() => {
-      world.fails = false
+      world.mode = 'ready'
       vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })
     })
     afterEach(() => vi.useRealTimers())

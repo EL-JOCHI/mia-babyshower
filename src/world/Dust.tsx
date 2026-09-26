@@ -30,9 +30,10 @@ export function Dust({ count, material }: { count: number; material: THREE.Point
   useFrame((state) => {
     const p = points.current
     if (!p) return
+    const { drift, driftSpeed, sway, swaySpeed } = tuning.world.dust
     const t = state.clock.elapsedTime
-    p.position.y = Math.sin(t * 0.2) * tuning.world.dust.drift
-    p.rotation.y = Math.sin(t * 0.05) * 0.06
+    p.position.y = Math.sin(t * driftSpeed) * drift
+    p.rotation.y = Math.sin(t * swaySpeed) * sway
   })
 
   return <points ref={points} geometry={geometry} material={material} />

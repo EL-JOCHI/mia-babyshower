@@ -71,6 +71,7 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
           <Gate reducedMotion={reducedMotion} catState={cats.state} onGreet={onGreet} musicPlaying={musicPlaying} />
         ) : (
           <WorldRoom
+            theme={theme}
             day={opening.day}
             now={now}
             reducedMotion={reducedMotion}

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { tokens, tuning } from '../tuning'
 import { glowTexture, pageEdgeTexture, pageTexture, pieceKinds, pieceTextures, type PieceKind } from './paperTextures'
-import { paperTints, type StageMix } from './stageMix'
+import type { WorldPalette } from './palette'
+import type { StageMix } from './stageMix'
 
 export interface PieceLook {
   paper: THREE.MeshStandardMaterial
@@ -40,7 +41,7 @@ function createResources(): WorldResources {
         map: textures.paper,
         alphaTest: 0.5,
         side: THREE.DoubleSide,
-        roughness: 0.95,
+        roughness: tuning.world.paper.roughness.piece,
       }),
       ink: new THREE.MeshBasicMaterial({
         map: textures.ink,
@@ -55,8 +56,9 @@ function createResources(): WorldResources {
     }
   }
 
-  const page = new THREE.MeshStandardMaterial({ map: pageTexture(), roughness: 0.9 })
-  const pageEdge = new THREE.MeshStandardMaterial({ map: pageEdgeTexture(), roughness: 0.9 })
+  const { roughness } = tuning.world.paper
+  const page = new THREE.MeshStandardMaterial({ map: pageTexture(), roughness: roughness.page })
+  const pageEdge = new THREE.MeshStandardMaterial({ map: pageEdgeTexture(), roughness: roughness.page })
   const glow = glowTexture()
   const flame = new THREE.MeshBasicMaterial({
     map: glow,
@@ -106,21 +108,19 @@ function disposeResources(r: WorldResources) {
   for (const material of [r.page, r.pageEdge, r.flame, r.doorGlow, r.dust]) disposeMaterial(material)
 }
 
-const tints = paperTints()
 const paper = new THREE.Color()
-const bone = new THREE.Color(tokens.bone)
 const candle = new THREE.Color(tokens.candle)
 const unlitDoor = new THREE.Color(tokens.plum)
 
-// Retints the shared materials for the stage: the paper warms, the ink fades in, the flames and
-// the doorway light up. Runs every frame without allocating.
-export function applyStageMix(r: WorldResources, mix: StageMix) {
-  paper.copy(tints.sketch).lerp(tints.bone, mix.ink).lerp(tints.warm, mix.warm)
+// Retints the shared materials for the stage and the theme: the paper warms, the ink fades in, the
+// flames and the doorway light up. Runs every frame without allocating.
+export function applyStageMix(r: WorldResources, mix: StageMix, palette: WorldPalette) {
+  paper.copy(palette.paper.sketch).lerp(palette.paper.bone, mix.ink).lerp(palette.paper.warm, mix.warm)
   for (const material of r.tinted) material.color.copy(paper)
   for (const material of r.inked) material.opacity = mix.ink
   r.flame.opacity = mix.light
   r.doorGlow.color.copy(unlitDoor).lerp(candle, mix.light)
-  r.dust.color.copy(bone).lerp(candle, mix.warm)
+  r.dust.color.copy(palette.dust).lerp(candle, mix.warm)
 }
 
 export function useWorldResources(): WorldResources {

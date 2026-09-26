@@ -37,6 +37,7 @@ function PaperPiece({
   const width = height * look.aspect
   const scaleX = piece.flip ? -width : width
   const light = look.light
+  const flameSize = width * tuning.world.flame.scale
   return (
     <group ref={hinge} position={[piece.x, 0, piece.z]} rotation-x={flat}>
       <mesh geometry={resources.plane} material={look.paper} scale={[scaleX, height, 1]} castShadow />
@@ -45,8 +46,8 @@ function PaperPiece({
         <mesh
           geometry={resources.plane}
           material={resources.flame}
-          position={[0, light[1] * height - width * tuning.world.flameSize * 0.7, 0.02]}
-          scale={width * tuning.world.flameSize * 2}
+          position={[0, light[1] * height - flameSize * tuning.world.flame.sink, 0.02]}
+          scale={flameSize}
         />
       )}
       {piece.kind === 'door' && (
