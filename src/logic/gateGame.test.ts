@@ -55,4 +55,20 @@ describe('gate game', () => {
     expect(moveCatcher(g, -3).catcherX).toBe(0)
     expect(moveCatcher(g, 3).catcherX).toBe(1)
   })
+  it('spawns drops within the spawn margin bounds', () => {
+    let g = moveCatcher(startGame(newGame(0, 42)), 0.5)
+    const allDrops: Array<{ id: number; kind: 'yarn' | 'heart'; x: number; y: number }> = []
+    // Tick multiple times to spawn at least 20 drops (spawnEveryMs 650 means ~46 in 30s)
+    for (let i = 0; i < 300; i++) {
+      allDrops.push(...g.drops)
+      g = tick(g, t.maxStepMs)
+      if (g.phase !== 'playing') break
+    }
+    expect(allDrops.length).toBeGreaterThanOrEqual(20)
+    const m = t.spawnMarginX
+    for (const drop of allDrops) {
+      expect(drop.x).toBeGreaterThanOrEqual(m)
+      expect(drop.x).toBeLessThanOrEqual(1 - m)
+    }
+  })
 })

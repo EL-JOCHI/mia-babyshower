@@ -53,7 +53,8 @@ export function tick(g: GateGame, dtMs: number): GateGame {
     const [rx, s1] = rand(seed)
     const [rk, s2] = rand(s1)
     seed = s2
-    drops.push({ id: nextId++, kind: rk < cfg.heartChance ? 'heart' : 'yarn', x: 0.06 + rx * 0.88, y: 0 })
+    const m = cfg.spawnMarginX
+    drops.push({ id: nextId++, kind: rk < cfg.heartChance ? 'heart' : 'yarn', x: m + rx * (1 - 2 * m), y: 0 })
     spawnInMs += cfg.spawnEveryMs
   }
   const timeLeftMs = Math.max(0, g.timeLeftMs - dt)
