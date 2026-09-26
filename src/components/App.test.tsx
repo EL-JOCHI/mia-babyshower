@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { copy, days, shared } from '../content'
+import { battleCopy, copy, days, shared } from '../content'
 import { storageKeys } from '../logic/storageKeys'
 import { tuning } from '../tuning'
 import { advance, at, beforeSatCutoff, catsInView, satCutoff, stubMedia } from '../test/helpers'
@@ -8,6 +8,18 @@ import { App } from './App'
 
 const openCollection = () => fireEvent.click(screen.getByRole('button', { name: copy.collection }))
 const dialog = () => within(screen.getByRole('dialog', { name: copy.collection }))
+const stored = (key: string) => JSON.parse(localStorage.getItem(key)!)
+
+// Most of these run with reduced motion, so the battle is instant (no wipe, no typewriter) and the
+// flat room is on screen.
+const startBattle = (name: 'Misha' | 'Kira') =>
+  fireEvent.click(screen.getByRole('button', { name: battleCopy.start, description: name }))
+const play = (move: string) => fireEvent.click(screen.getByRole('button', { name: move }))
+const winBattle = (name: 'Misha' | 'Kira') => {
+  startBattle(name)
+  for (let i = 0; i < 3; i++) play(battleCopy.moves.ovillo)
+  fireEvent.click(screen.getByRole('button', { name: copy.caught(name) }))
+}
 
 describe('US-8 Enter only with the link I was sent', () => {
   it('shows the gate with both sentences, and no date, place, WhatsApp, or QR (AC4, SC-3)', () => {
@@ -147,17 +159,19 @@ describe('US-9 Meet the cats and keep them', () => {
     expect(screen.getByRole('status')).toBeEmptyDOMElement()
   })
 
-  it('greets Misha and Kira as Legendario (AC3, AC4)', () => {
+  it('greets Misha and Kira as Legendario, each through a battle (AC3, AC4, design §7)', () => {
+    window.__prefersReducedMotion = true
     vi.setSystemTime(beforeSatCutoff)
     catsInView()
     render(<App search="?e=n4vk" />)
     advance(tuning.noticing.waitMs.legendario + tuning.noticing.tickMs)
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Misha' }))
+    expect(screen.queryByRole('button', { name: 'Saludar a Misha' })).not.toBeInTheDocument()
+    winBattle('Misha')
     expect(screen.getByRole('status')).toHaveTextContent('Legendario')
     expect(screen.getByRole('status')).toHaveTextContent('Está en calma, y está en casa.')
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Kira' }))
+    winBattle('Kira')
     expect(screen.getByRole('status')).toHaveTextContent('Mira la puerta, y se queda cerca.')
-    expect(JSON.parse(localStorage.getItem(storageKeys.cats)!).caught).toEqual(['misha', 'kira'])
+    expect(stored(storageKeys.cats).caught).toEqual(['misha', 'kira'])
   })
 
   it('greets Mimo on the gate, where Bram never appears (AC5, AC7)', () => {
@@ -189,6 +203,110 @@ describe('US-9 Meet the cats and keep them', () => {
     expect(kira.getByText(copy.notYet)).toBeInTheDocument()
     expect(kira.queryByText('Mira la puerta, y se queda cerca.')).not.toBeInTheDocument()
     expect(kira.queryByText('Kira')).not.toBeInTheDocument()
+  })
+})
+
+describe('US-14 The legendary battle and the card reward (design §6, §7)', () => {
+  beforeEach(() => {
+    window.__prefersReducedMotion = true
+    vi.useFakeTimers()
+    vi.setSystemTime(beforeSatCutoff)
+    catsInView()
+  })
+  afterEach(() => vi.useRealTimers())
+
+  const noticeLegendaries = () => advance(tuning.noticing.waitMs.legendario + tuning.noticing.tickMs)
+
+  it('greeting Misha through the battle stores her in mia-cats and shows Legendario', () => {
+    // With motion: the wipe plays and every line types out before the next move.
+    window.__prefersReducedMotion = false
+    const typeOut = () => advance(10000)
+    render(<App search="?e=n4vk" />)
+    noticeLegendaries()
+    startBattle('Misha')
+    expect(screen.getByRole('dialog', { name: battleCopy.intro('Misha') })).toBeInTheDocument()
+    advance(tuning.battleScreen.wipeMs)
+    typeOut()
+    for (let i = 0; i < 3; i++) {
+      play(battleCopy.moves.ovillo)
+      typeOut()
+    }
+    expect(screen.getByRole('log')).toHaveTextContent(battleCopy.finisher.misha)
+    fireEvent.click(screen.getByRole('button', { name: copy.caught('Misha') }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(stored(storageKeys.cats)).toEqual({ caught: ['misha'], round: ['misha'], rounds: 1 })
+    expect(screen.getByRole('status')).toHaveTextContent('Legendario')
+    expect(screen.getByTestId('card-reveal')).toHaveTextContent('Legendario')
+    expect(screen.getByTestId('card-reveal')).toHaveClass('rarity-legendario')
+  })
+
+  it('Huir stores nothing, and the cat can be challenged again', () => {
+    render(<App search="?e=n4vk" />)
+    noticeLegendaries()
+    startBattle('Kira')
+    play(battleCopy.moves.huir)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(localStorage.getItem(storageKeys.cats)).toBeNull()
+    expect(localStorage.getItem(storageKeys.progress)).toBeNull()
+    expect(screen.queryByTestId('card-reveal')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: battleCopy.start, description: 'Kira' })).toBeInTheDocument()
+  })
+
+  it('keeps one dialog at a time: Tus gatos cannot open during a battle, and Escape is Huir (Review Focus 1)', () => {
+    render(<App search="?e=n4vk" />)
+    noticeLegendaries()
+    startBattle('Misha')
+    expect(document.querySelector('.app-page')).toHaveAttribute('inert')
+    fireEvent.click(screen.getByRole('button', { name: copy.collection }))
+    expect(screen.queryByRole('dialog', { name: copy.collection })).not.toBeInTheDocument()
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(document.querySelector('.app-page')).not.toHaveAttribute('inert')
+    expect(localStorage.getItem(storageKeys.cats)).toBeNull()
+  })
+
+  it('starts no battle while Tus gatos is open', () => {
+    render(<App search="?e=n4vk" />)
+    noticeLegendaries()
+    openCollection()
+    fireEvent.click(screen.getByRole('button', { name: battleCopy.start, description: 'Misha' }))
+    expect(screen.queryByRole('dialog', { name: battleCopy.intro('Misha') })).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: copy.collection })).toBeInTheDocument()
+  })
+
+  it('shows the card for a normal greeting, and a tap sends it away', () => {
+    render(<App search="?e=n4vk" />)
+    advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    const card = screen.getByTestId('card-reveal')
+    expect(card).toHaveClass('rarity-comun')
+    expect(card).toHaveTextContent('Luz')
+    expect(card).toHaveTextContent('Común')
+    fireEvent.click(card)
+    advance(tuning.card.leaveMs + 10)
+    expect(screen.queryByTestId('card-reveal')).not.toBeInTheDocument()
+  })
+
+  it('a first greeting earns XP for the cat and the first-cat badge (metCat)', () => {
+    render(<App search="?e=n4vk" />)
+    advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    const progress = stored(storageKeys.progress)
+    expect(progress.xp).toBeGreaterThan(0)
+    expect(progress.xp).toBe(tuning.progress.catXp.comun + tuning.progress.badgeXp.primerGato)
+    expect(progress.badges).toEqual(['primerGato'])
+  })
+
+  it('a known cat greeted again in a new round adds no XP', () => {
+    vi.setSystemTime(satCutoff)
+    localStorage.setItem(storageKeys.cats, JSON.stringify({ caught: ['luz'], round: [], rounds: 2 }))
+    const progress = JSON.stringify({ pages: [], badges: ['primerGato'], xp: 40 })
+    localStorage.setItem(storageKeys.progress, progress)
+    render(<App search="?e=n4vk" />)
+    advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    expect(stored(storageKeys.cats).round).toEqual(['luz'])
+    expect(localStorage.getItem(storageKeys.progress)).toBe(progress)
   })
 })
 

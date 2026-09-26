@@ -1,8 +1,9 @@
-import { useEffect, useRef, type KeyboardEvent } from 'react'
+import { useEffect, useRef } from 'react'
 import { cats, copy } from '../content'
 import type { CatState } from '../logic/catState'
-import { catAccents, tuning } from '../tuning'
-import { CatArt } from './CatArt'
+import { tuning } from '../tuning'
+import { CatSprite } from './art/CatSprite'
+import { trapTab } from './focusTrap'
 
 interface Props {
   state: CatState
@@ -10,8 +11,6 @@ interface Props {
   onPlayAgain: () => void
   onClose: () => void
 }
-
-const focusable = 'button, [href], [tabindex]:not([tabindex="-1"])'
 
 // Tus gatos (§3): a dialog over the room. Focus moves in, Escape closes it,
 // and the caller returns focus to the Tus gatos control.
@@ -31,21 +30,6 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
     return () => document.removeEventListener('keydown', onEscape)
   }, [onClose])
 
-  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Tab' || !panel.current) return
-    const items = Array.from(panel.current.querySelectorAll<HTMLElement>(focusable))
-    const first = items[0]
-    const last = items[items.length - 1]
-    if (!first || !last) return
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault()
-      last.focus()
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault()
-      first.focus()
-    }
-  }
-
   return (
     <div className="collection-backdrop" onClick={onClose}>
       <div
@@ -55,7 +39,7 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
         aria-modal="true"
         aria-labelledby="collection-title"
         tabIndex={-1}
-        onKeyDown={onKeyDown}
+        onKeyDown={(e) => trapTab(e, panel.current)}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="collection-header">
@@ -74,11 +58,11 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
             const inRound = state.round.includes(cat.id)
             return (
               <li key={cat.id} className={`collection-item${met ? ' is-met' : ''}`} data-testid={`collection-${cat.id}`}>
-                <CatArt
+                <CatSprite
                   id={cat.id}
+                  stage="luz"
                   pose={inRound ? 'staying' : 'playing'}
                   silhouette={!met}
-                  accent={catAccents[cat.id]}
                   size={tuning.catSize.collection}
                 />
                 <div className="collection-text">

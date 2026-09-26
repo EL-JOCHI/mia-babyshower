@@ -1,41 +1,49 @@
-import { memo, useRef, type CSSProperties } from 'react'
-import { catById, copy, type CatId } from '../content'
+import { memo, useId, useRef, type CSSProperties } from 'react'
+import { battleCopy, catById, copy, type CatId } from '../content'
+import type { BattleCat } from '../logic/battle'
 import type { Stage } from '../logic/era'
-import { catAccents, catPixelAccents, tuning } from '../tuning'
-import { CatArt } from './CatArt'
+import { tuning } from '../tuning'
+import { CatSprite } from './art/CatSprite'
 
 interface Props {
   id: CatId
-  era: Stage
+  stage: Stage
   noticing: boolean
   inRound: boolean
   acting?: string
   still: boolean
   onGreet: (id: CatId) => void
+  // Misha and Kira answer with a battle instead of a greeting (design §7). Only the invitation has them.
+  onChallenge?: (id: BattleCat) => void
   style?: CSSProperties
   size?: number
 }
 
+function isBattleCat(id: CatId): id is BattleCat {
+  return id === 'misha' || id === 'kira'
+}
+
 // A cat on the page: playing, noticing (Saludar appears), or staying (a small heart marks it).
+// When Misha or Kira notices the guest, Saludar becomes ¡A jugar!.
 export const Cat = memo(function Cat({
   id,
-  era,
+  stage,
   noticing,
   inRound,
   acting,
   still,
   onGreet,
+  onChallenge,
   style,
   size = tuning.catSize.room,
 }: Props) {
   const cat = catById(id)
   const figure = useRef<HTMLDivElement | null>(null)
-  // The boceto stage keeps the pixel look until the new cats arrive in a later task.
-  const pixel = era === 'boceto'
-  const accent = pixel ? catPixelAccents[id] : catAccents[id]
+  const nameId = useId()
   const offerGreeting = noticing && !inRound
   const pose = inRound ? 'staying' : noticing ? 'noticing' : 'playing'
   const classes = ['cat', `cat-${id}`, still ? 'is-still' : 'is-roaming', acting ? `act-${acting}` : '']
+  const behavior = { '--behavior': `${tuning.cats.behaviorMs[id]}ms`, ...style } as CSSProperties
 
   const greet = () => {
     onGreet(id)
@@ -44,15 +52,31 @@ export const Cat = memo(function Cat({
   }
 
   return (
-    <div className={classes.filter(Boolean).join(' ')} data-cat-id={id} style={style}>
+    <div className={classes.filter(Boolean).join(' ')} data-cat-id={id} style={behavior}>
       <div ref={figure} className="cat-figure" role="img" aria-label={cat.name} tabIndex={-1}>
-        <CatArt id={id} pose={pose} accent={accent} size={size} pixel={pixel} />
+        <CatSprite id={id} stage={stage} pose={pose} size={size} boil={!still} />
       </div>
-      {offerGreeting && (
-        <button type="button" className="saludar" aria-label={copy.greetName(cat.name)} onClick={greet}>
-          {copy.greet}
-        </button>
-      )}
+      {offerGreeting &&
+        (isBattleCat(id) ? (
+          <>
+            {/* Two cats at the door both say ¡A jugar!, so each button names its cat as a description. */}
+            <span id={nameId} hidden>
+              {cat.name}
+            </span>
+            <button
+              type="button"
+              className="saludar saludar-battle"
+              aria-describedby={nameId}
+              onClick={() => onChallenge?.(id)}
+            >
+              {battleCopy.start}
+            </button>
+          </>
+        ) : (
+          <button type="button" className="saludar" aria-label={copy.greetName(cat.name)} onClick={greet}>
+            {copy.greet}
+          </button>
+        ))}
     </div>
   )
 })

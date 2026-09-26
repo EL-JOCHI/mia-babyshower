@@ -4,6 +4,7 @@ import { useCamera } from '../hooks/useCamera'
 import { useKeyboardModality } from '../hooks/useKeyboardModality'
 import { useViewport } from '../hooks/useViewport'
 import { cameraTargetFor, horizontalPosition } from '../logic/camera'
+import type { BattleCat } from '../logic/battle'
 import type { CatState } from '../logic/catState'
 import { stageAt } from '../logic/era'
 import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
@@ -20,6 +21,8 @@ export interface RoomProps {
   reducedMotion: boolean
   catState: CatState
   onGreet: (id: CatId) => void
+  // Misha and Kira's ¡A jugar! opens the legendary battle (design §7).
+  onChallenge: (id: BattleCat) => void
   musicPlaying: boolean
   qrUrl: string | undefined
 }
@@ -46,7 +49,7 @@ function isOutside(el: HTMLElement): boolean {
 
 // §3 The room, §4 How the room moves. The flat room is the fallback for reduced motion and for
 // browsers without WebGL (design §2): everything is reachable, nothing moves on its own, no canvas.
-export function FlatRoom({ day, now, reducedMotion, catState, onGreet, musicPlaying, qrUrl }: RoomProps) {
+export function FlatRoom({ day, now, reducedMotion, catState, onGreet, onChallenge, musicPlaying, qrUrl }: RoomProps) {
   const { vw, vh } = useViewport()
   const partyOver = isPartyOver(day, now)
   const ids = useMemo(() => landmarksFor(partyOver), [partyOver])
@@ -67,6 +70,7 @@ export function FlatRoom({ day, now, reducedMotion, catState, onGreet, musicPlay
     reducedMotion,
     catState,
     onGreet,
+    onChallenge,
     musicPlaying,
     qrUrl,
     container: viewport,

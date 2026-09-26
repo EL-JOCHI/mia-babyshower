@@ -15,6 +15,7 @@ import {
 import { copy, type CatId, type DayId } from '../content'
 import { useKeyboardModality } from '../hooks/useKeyboardModality'
 import { useWorldCamera } from '../hooks/useWorldCamera'
+import type { BattleCat } from '../logic/battle'
 import type { CatState } from '../logic/catState'
 import { stageAt, type Stage } from '../logic/era'
 import { landmarksFor, type LandmarkId, type Point } from '../logic/layout'
@@ -58,6 +59,7 @@ interface PagesProps {
   partyOver: boolean
   catState: CatState
   onGreet: (id: CatId) => void
+  onChallenge: (id: BattleCat) => void
   musicPlaying: boolean
   qrUrl: string | undefined
   container: RefObject<HTMLElement | null>
@@ -80,6 +82,7 @@ const BookPages = memo(function BookPages({
   partyOver,
   catState,
   onGreet,
+  onChallenge,
   musicPlaying,
   qrUrl,
   container,
@@ -98,6 +101,7 @@ const BookPages = memo(function BookPages({
     reducedMotion: false,
     catState,
     onGreet,
+    onChallenge,
     musicPlaying,
     qrUrl,
     container,
@@ -151,6 +155,7 @@ function BookRoom({
   now,
   catState,
   onGreet,
+  onChallenge,
   musicPlaying,
   qrUrl,
   theme,
@@ -259,6 +264,7 @@ function BookRoom({
           partyOver={partyOver}
           catState={catState}
           onGreet={onGreet}
+          onChallenge={onChallenge}
           musicPlaying={musicPlaying}
           qrUrl={qrUrl}
           container={surface}
@@ -289,6 +295,7 @@ export function WorldRoom(props: Props) {
         reducedMotion={props.reducedMotion}
         catState={props.catState}
         onGreet={props.onGreet}
+        onChallenge={props.onChallenge}
         musicPlaying={props.musicPlaying}
         qrUrl={props.qrUrl}
       />

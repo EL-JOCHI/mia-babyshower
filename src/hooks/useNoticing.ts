@@ -43,11 +43,16 @@ export function useNoticing({ catIds, container, cameraRef, musicPlaying }: Opti
       const speed = (Math.hypot(cam.x - last.x, cam.y - last.y) / dt) * 1000
       last = cam
 
-      const root = container.current
+      // One pass over the page finds every cat (the first element per cat, as querySelector would).
+      const found = new Map<string, HTMLElement>()
+      for (const el of container.current?.querySelectorAll<HTMLElement>('[data-cat-id]') ?? []) {
+        const catId = el.dataset.catId
+        if (catId && !found.has(catId)) found.set(catId, el)
+      }
       const next: Noticing = {}
       let changed = false
       for (const catId of ids) {
-        const el = root?.querySelector<HTMLElement>(`[data-cat-id="${catId}"]`)
+        const el = found.get(catId)
         const within = el ? inZone(el.getBoundingClientRect(), window.innerWidth, window.innerHeight, zone) : false
         const prev = timers.current[catId] ?? idleNotice
         const timer = stepNotice(prev, { catId, inZone: within, speed, musicPlaying: music.current }, dt)

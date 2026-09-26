@@ -60,17 +60,15 @@ export const tokens = {
   deepRose: '#BB3267',
   plum: '#3C1F3D',
   candle: '#F2B84B',
+  // Palette ink as a constant (the theme's --ink flips with the theme): shadows under paper.
+  shadow: '#140E14',
   // Legacy aliases: components not yet ported to the new palette read these names.
   // A later task removes them once every component uses the tokens above directly.
-  fieldDark: '#140E14',
-  inkLight: '#140E14',
   hotPink: '#E08AAB',
   deepPink: '#BB3267',
   blush: '#F1E7D6',
   paper: '#F1E7D6',
-  gold: '#F2B84B',
   starYellow: '#F2B84B',
-  shadow: '#140E14',
 } as const
 
 export type ThemeName = 'dark' | 'light'
@@ -85,6 +83,8 @@ export interface ThemeTokens {
   buttonBg: string
   buttonInk: string
   catBody: string
+  // The paper each cat is cut from (design §4).
+  catPaper: string
 }
 
 export const themes: Record<ThemeName, ThemeTokens> = {
@@ -98,6 +98,7 @@ export const themes: Record<ThemeName, ThemeTokens> = {
     buttonBg: tokens.rose,
     buttonInk: tokens.ink,
     catBody: tokens.ink,
+    catPaper: tokens.bone,
   },
   light: {
     field: tokens.bone,
@@ -109,6 +110,7 @@ export const themes: Record<ThemeName, ThemeTokens> = {
     buttonBg: tokens.rose,
     buttonInk: tokens.ink,
     catBody: '#111111',
+    catPaper: '#FBF5EA',
   },
 }
 
@@ -123,28 +125,12 @@ export const feelingColors: Record<CatId, string> = {
   kira: '#5FD4D0',
 }
 
-// Legacy alias: components not yet ported to the new palette still import catAccents.
-// A later task removes this once every component reads feelingColors directly.
-export const catAccents: Record<CatId, string> = feelingColors
-
-// The shared cat face: big simple eyes and white linework.
-export const catFace = {
-  eyeWhite: '#FFFFFF',
-  pupil: '#0A0A0A',
-  line: '#FFFFFF',
-  mimoOutline: tokens.inkLight,
-} as const
-
-// In the pixel era every accent renders as rose or bone.
-// TODO(later task): the pixel era is going away; this map goes with it.
-export const catPixelAccents: Record<CatId, string> = {
-  luz: tokens.rose,
-  mimo: tokens.rose,
-  susto: tokens.bone,
-  bram: tokens.rose,
-  nana: tokens.bone,
-  misha: tokens.bone,
-  kira: tokens.bone,
+// A CSS color mix: from one color toward another by an amount. The colors may be CSS variables,
+// so a mix of theme variables follows the theme.
+export function cssColor(spec: ColorMix): string {
+  if (typeof spec === 'string') return spec
+  const [from, to, amount] = spec
+  return `color-mix(in oklab, ${from}, ${to} ${Math.round(amount * 100)}%)`
 }
 
 export const tuning = {
@@ -185,7 +171,47 @@ export const tuning = {
       susto: { left: '70%', top: '70%' },
     },
   },
-  catSize: { room: 64, qr: 56, door: 68, gate: 72, collection: 56 },
+  catSize: { room: 64, qr: 56, door: 68, gate: 72, collection: 56, card: 176, battle: 176 },
+  // The cats (design §4): one family of paper cut-outs, drawn in pencil (boceto), then ink (tinta),
+  // then light (luz). Line widths and offsets are in the drawing's units (a 120 by 120 box).
+  cats: {
+    // Pencil graphite on the cut-out paper: ink faded toward the paper.
+    pencil: ['var(--shadow)', 'var(--cat-paper)', 0.32] as ColorMix,
+    // Mimo keeps a blush body.
+    mimoBody: [tokens.bone, tokens.rose, 0.5] as ColorMix,
+    // In tinta the feeling color is muted toward pencil gray: this much of it shows.
+    tintaFeel: 0.5,
+    // The ink stroke, and the lighter second pass offset beside it.
+    line: 2.4,
+    echo: { width: 1.3, opacity: 0.35, dx: 1.5, dy: -1.1 },
+    detail: 1.2,
+    // How far the lids' lower edge bows down, as a share of the eye: soft, sleepy lids.
+    lidCurve: 0.35,
+    // Luz: the feeling color glows around the cat, this many pixels at the room size.
+    glowPx: 5,
+    // The rig (ms). Blinks and ear twitches are staggered per cat so the family never moves in unison;
+    // the tail tip follows the tail after `tailFollowMs`.
+    breathMs: 3200,
+    blinkMs: { luz: 4100, mimo: 6000, susto: 4600, bram: 5200, nana: 5600, misha: 5900, kira: 4400 } satisfies Record<CatId, number>,
+    blinkDelayMs: { luz: 300, mimo: 1700, susto: 900, bram: 2300, nana: 1200, misha: 2900, kira: 600 } satisfies Record<CatId, number>,
+    earMs: { luz: 3700, mimo: 7300, susto: 2900, bram: 4900, nana: 6100, misha: 8300, kira: 5300 } satisfies Record<CatId, number>,
+    tailMs: 2600,
+    tailFollowMs: 180,
+    // Each cat's own behavior loop (design §4), while it roams the page.
+    behaviorMs: { luz: 2800, mimo: 6400, susto: 5200, bram: 4200, nana: 5400, misha: 4800, kira: 4800 } satisfies Record<CatId, number>,
+  },
+  // Line boil (design §4): the ink outlines jitter a few times a second. The turbulence seed steps
+  // through `seeds` values at `fps`. The paper cut-out grows a rough margin of `radius` around the
+  // drawing and casts a soft shadow on the page; cards get a wobbly hand-drawn edge.
+  ink: {
+    boil: { fps: 8, seeds: 4, frequency: 0.035, octaves: 2, scale: 2.4 },
+    paperCut: { radius: 2.4, roughness: 0.12, roughScale: 2.2, shadow: { dx: 1, dy: 2.2, blur: 1.3, opacity: 0.4 } },
+    paperEdge: { frequency: 0.03, octaves: 2, scale: 5 },
+  },
+  // The collectible card (design §6): it flips in, stays for `greetingToastMs`, then leaves.
+  card: { flipMs: 800, leaveMs: 420 },
+  // The battle screen (design §7): the spiral wipe, the typewriter, the bars, and the win burst.
+  battleScreen: { wipeMs: 700, typeMs: 26, linePauseMs: 520, barMs: 650, burstMs: 1400 },
   qr: { minPx: 220 },
   acts: {
     throwMs: 900,

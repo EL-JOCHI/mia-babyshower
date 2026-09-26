@@ -2,6 +2,7 @@ import type { ReactNode, RefObject } from 'react'
 import { copy, days, shared, type CatId, type DayId } from '../content'
 import { useActs, type ActId } from '../hooks/useActs'
 import { useNoticing } from '../hooks/useNoticing'
+import type { BattleCat } from '../logic/battle'
 import type { CatState } from '../logic/catState'
 import type { Stage } from '../logic/era'
 import type { LandmarkId, Point } from '../logic/layout'
@@ -23,6 +24,7 @@ interface Options {
   reducedMotion: boolean
   catState: CatState
   onGreet: (id: CatId) => void
+  onChallenge: (id: BattleCat) => void
   musicPlaying: boolean
   qrUrl: string | undefined
   // Where the cats are measured for noticing, and the camera whose speed counts as rushing.
@@ -51,6 +53,7 @@ export function useLandmarkContent({
   reducedMotion,
   catState,
   onGreet,
+  onChallenge,
   musicPlaying,
   qrUrl,
   container,
@@ -73,12 +76,13 @@ export function useLandmarkContent({
     <div className={`perch ${className}`}>
       <Cat
         id={id}
-        era={stage}
+        stage={stage}
         noticing={Boolean(noticing[id])}
         inRound={catState.round.includes(id)}
         acting={acting[id]}
         still={reducedMotion}
         onGreet={onGreet}
+        onChallenge={onChallenge}
         size={size}
       />
     </div>

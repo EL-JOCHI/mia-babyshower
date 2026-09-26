@@ -85,7 +85,7 @@ export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) 
         <div key={id} className={`gate-spot gate-spot-${id}`} style={spots[id]}>
           <Cat
             id={id}
-            era="tinta"
+            stage="tinta"
             noticing={Boolean(noticing[id])}
             inRound={catState.round.includes(id)}
             acting={acting[id]}

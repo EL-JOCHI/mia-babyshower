@@ -2,6 +2,7 @@ import { act, render } from '@testing-library/react'
 import { vi } from 'vitest'
 import { FlatRoom } from '../components/FlatRoom'
 import type { CatId, DayId } from '../content'
+import type { BattleCat } from '../logic/battle'
 import { emptyCatState, type CatState } from '../logic/catState'
 
 export const at = (iso: string) => Date.parse(iso)
@@ -17,23 +18,26 @@ interface RoomOptions {
   reducedMotion?: boolean
   catState?: CatState
   onGreet?: (id: CatId) => void
+  onChallenge?: (id: BattleCat) => void
   musicPlaying?: boolean
   qrUrl?: string
 }
 
 export function renderRoom(options: RoomOptions = {}) {
   const onGreet = options.onGreet ?? vi.fn()
+  const onChallenge = options.onChallenge ?? vi.fn()
   const props = {
     day: options.day ?? ('sat' as DayId),
     now: options.now ?? beforeSatCutoff,
     reducedMotion: options.reducedMotion ?? false,
     catState: options.catState ?? emptyCatState,
     onGreet,
+    onChallenge,
     musicPlaying: options.musicPlaying ?? false,
     qrUrl: options.qrUrl,
   }
   const view = render(<FlatRoom {...props} />)
-  return { ...view, onGreet, props }
+  return { ...view, onGreet, onChallenge, props }
 }
 
 // Put every cat in the middle of the viewport, so noticing can run in jsdom.

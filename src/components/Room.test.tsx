@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { copy, days, shared } from '../content'
+import { battleCopy, copy, days, shared } from '../content'
 import { FlatRoom } from './FlatRoom'
 import { cameraTargetFor } from '../logic/camera'
 import { computeLayout, landmarksFor } from '../logic/layout'
@@ -318,7 +318,18 @@ describe('US-9 noticing and greeting in the room', () => {
     catsInView()
     renderRoom({ musicPlaying: true })
     advance(tuning.noticing.mishaMusicWaitMs + tuning.noticing.tickMs)
-    expect(screen.getByRole('button', { name: 'Saludar a Misha' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: battleCopy.start, description: 'Misha' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: battleCopy.start, description: 'Kira' })).not.toBeInTheDocument()
+  })
+
+  it('turns Saludar into ¡A jugar! for Misha and Kira, which starts a battle instead of greeting (design §7)', () => {
+    catsInView()
+    const { onGreet, onChallenge } = renderRoom()
+    advance(tuning.noticing.waitMs.legendario + tuning.noticing.tickMs)
+    expect(screen.queryByRole('button', { name: 'Saludar a Misha' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Saludar a Kira' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: battleCopy.start, description: 'Kira' }))
+    expect(onChallenge).toHaveBeenCalledWith('kira')
+    expect(onGreet).not.toHaveBeenCalled()
   })
 })
