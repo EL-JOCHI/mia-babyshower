@@ -161,3 +161,53 @@ export const copy = {
   a11y: { room: 'Invitación', signposts: 'Ir a', theme: 'Tema' },
   share: { title: 'Baby shower de Mia', description: 'Una invitación para invitados especiales.' },
 } as const
+
+// New Spanish copy (design §13). Later tasks wire these into the quest log, the legendary
+// battle, and the gate mini-game.
+export const gameCopy = {
+  pageFound: '¡Página encontrada!',
+  pages: (n: number, total: number) => `Páginas ${n}/${total}`,
+  cats: (n: number) => `Gatos ${n}/7`,
+  level: (n: number) => `Nivel ${n}`,
+  xp: (n: number) => `${n} XP`,
+  levelTitles: ['Visitante curioso', 'Amigo de los gatos', 'Guardián del cuento', 'Invitado de honor', 'Leyenda de la casa'],
+  levelUp: (n: number) => `¡Subiste a nivel ${n}!`,
+  badgeXp: (n: number) => `+${n} XP`,
+  badges: {
+    openBook: 'Abriste el cuento', palabra: 'La palabra', fecha: 'Guardaste la fecha', lugar: 'Encontraste el lugar',
+    sellada: 'Invitación sellada', regalo: 'Encontraste el regalo', qrGuardado: 'QR guardado', puerta: 'Llegaste a la puerta',
+    primerGato: 'Tu primer gato', cuentoCompleto: 'Cuento completo', todosLosGatos: 'Todos los gatos',
+  },
+} as const
+
+export const battleCopy = {
+  start: '¡A jugar!',
+  intro: (name: string) => `¡${name} quiere jugar!`,
+  catBar: 'Energía de juego', youBar: 'Paciencia', you: 'Tú',
+  prompt: '¿Qué vas a hacer?',
+  moves: { ovillo: 'Lanzar ovillo', mimos: 'Mimos', ronroneo: 'Ronroneo', huir: 'Huir' },
+  yourMove: {
+    ovillo: (name: string) => `¡Lanzaste el ovillo! ${name} corre tras él.`,
+    mimos: (name: string) => `Le diste mimos a ${name}. ¡Ronronea feliz!`,
+    ronroneo: (name: string) => `Imitaste un ronroneo. ${name} se relaja…`,
+  },
+  effective: '¡Es muy efectivo!',
+  fled: 'Te fuiste sin hacer ruido.',
+  catMoves: {
+    misha: ['Misha bosteza…', 'Misha te mira con calma.', 'Misha se estira despacio.', 'Misha amasa una cobija.'],
+    kira: ['Kira persigue su cola.', 'Kira hace ojitos.', 'Kira mira una estrella fugaz.', 'Kira salta hacia la puerta.'],
+  },
+  effectOnYou: 'Tu paciencia baja un poco.',
+  safety: (name: string) => `${name} te da un cabezazo cariñoso. ¡Recuperas paciencia!`,
+  finisher: { misha: '¡Misha se ha dormido!', kira: '¡Kira se ha echado al suelo!' },
+} as const
+
+export const gateGameCopy = {
+  start: 'Toca para jugar',
+  score: (n: number) => `Puntos ${n}`,
+  combo: (n: number) => `Combo ×${n}`,
+  seconds: (s: number) => `${s} s`,
+  over: '¡Se acabó el tiempo!',
+  best: (n: number) => `Tu mejor puntaje: ${n}`,
+  record: '¡Nuevo récord!',
+} as const

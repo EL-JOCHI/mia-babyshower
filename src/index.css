@@ -5,8 +5,13 @@
   --color-field: var(--field);
   --color-ink: var(--ink);
   --color-accent: var(--accent);
-  --font-pixel: 'Press Start 2P', ui-monospace, monospace;
-  --font-sans: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+  /* Type (design §3): Mystery Quest for titles, Alegreya for reading text, Pixelify Sans
+     only on game screens (battle boxes, scores, XP, the gate game). */
+  --font-title: 'Mystery Quest', ui-serif, serif;
+  --font-read: 'Alegreya', ui-serif, serif;
+  --font-game: 'Pixelify Sans', ui-monospace, monospace;
+  /* Paper grain (design §3 Texture): a feTurbulence noise filter at 0.08 opacity, over the field. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
 }
 
 @layer base {
@@ -16,9 +21,14 @@
     margin: 0;
     overflow: hidden;
     overscroll-behavior: none;
-    background: var(--field);
+    background-color: var(--field);
+    background-image: var(--paper-grain);
+    background-repeat: repeat;
+    background-size: 220px 220px;
     color: var(--ink);
-    font-family: var(--font-sans);
+    font-family: var(--font-read);
+    font-size: 17px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
   }
@@ -236,7 +246,7 @@
 
   .title {
     margin: 0;
-    font-family: var(--font-pixel);
+    font-family: var(--font-title);
     font-size: 17px;
     line-height: 1.5;
     color: var(--accent-text);
@@ -773,7 +783,7 @@
 
   .collection-header h2 {
     margin: 0;
-    font-family: var(--font-pixel);
+    font-family: var(--font-game);
     font-size: 15px;
     color: var(--accent-text);
   }
@@ -867,7 +877,7 @@
     left: 50%;
     top: 58%;
     transform: translate(-50%, -50%);
-    font-family: var(--font-pixel);
+    font-family: var(--font-game);
     font-size: clamp(64px, 22vw, 128px);
     line-height: 1;
     color: var(--accent);
@@ -988,42 +998,6 @@
   }
 
   /* ---------- Eras (§4 Three eras) ---------- */
-  .room[data-era='pixel'] .landmark {
-    border: 4px solid var(--accent);
-    border-radius: 0;
-    box-shadow: 8px 8px 0 color-mix(in srgb, var(--accent) 55%, transparent);
-  }
-
-  .room[data-era='pixel'] .countdown,
-  .room[data-era='pixel'] .button,
-  .room[data-era='pixel'] .hud-button,
-  .room[data-era='pixel'] .qr-pending {
-    border-radius: 0;
-  }
-
-  .room[data-era='pixel'] .far-dot {
-    border-radius: 0;
-    background: var(--paper);
-    box-shadow: none;
-    opacity: 0.5;
-  }
-
-  :root[data-theme='light'] .room[data-era='pixel'] .far-dot {
-    background: var(--accent);
-  }
-
-  .room[data-era='pixel'] .cat-art {
-    shape-rendering: crispEdges;
-  }
-
-  /* The pixel era uses black, white, and one pink: yellow toys turn white there. */
-  .room[data-era='pixel'] .toy-star polygon,
-  .room[data-era='pixel'] .toy-thunder polygon {
-    fill: var(--paper);
-  }
-
-  .room[data-era='pixel'] .near-thunder,
-  .room[data-era='pixel'] .near-pick,
   .room[data-era='color'] .near-pick {
     display: none;
   }

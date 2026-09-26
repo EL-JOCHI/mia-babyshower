@@ -14,8 +14,10 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@fontsource/press-start-2p": "5.3.0",
-    "@fontsource/source-sans-3": "5.3.0",
+    "@fontsource/alegreya": "5.3.0",
+    "@fontsource/mystery-quest": "5.3.0",
+    "@fontsource/pixelify-sans": "5.3.0",
+    "@react-three/drei": "10.7.8",
     "@react-three/fiber": "9.7.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",

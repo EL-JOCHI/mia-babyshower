@@ -3,16 +3,25 @@
 
 import type { CatId, Rarity } from './content.ts'
 
+// Burton pink noir (design §3).
 export const tokens = {
-  fieldDark: '#0A0A0A',
-  inkLight: '#141414',
-  hotPink: '#FF2D8A',
-  deepPink: '#E20064',
-  blush: '#F7C5D8',
-  paper: '#FFF7FB',
-  gold: '#FFC94D',
-  starYellow: '#FFF1A8',
-  shadow: '#0B0B0B',
+  ink: '#140E14',
+  bone: '#F1E7D6',
+  rose: '#E08AAB',
+  deepRose: '#BB3267',
+  plum: '#3C1F3D',
+  candle: '#F2B84B',
+  // Legacy aliases: components not yet ported to the new palette read these names.
+  // A later task removes them once every component uses the tokens above directly.
+  fieldDark: '#140E14',
+  inkLight: '#140E14',
+  hotPink: '#E08AAB',
+  deepPink: '#BB3267',
+  blush: '#F1E7D6',
+  paper: '#F1E7D6',
+  gold: '#F2B84B',
+  starYellow: '#F2B84B',
+  shadow: '#140E14',
 } as const
 
 export type ThemeName = 'dark' | 'light'
@@ -31,38 +40,43 @@ export interface ThemeTokens {
 
 export const themes: Record<ThemeName, ThemeTokens> = {
   dark: {
-    field: tokens.fieldDark,
-    ink: tokens.paper,
-    accent: tokens.hotPink,
-    accentText: tokens.hotPink,
-    surface: tokens.fieldDark,
-    line: 'rgba(255, 45, 138, 0.45)',
-    buttonBg: tokens.hotPink,
-    buttonInk: tokens.inkLight,
-    catBody: '#111111',
+    field: tokens.ink,
+    ink: tokens.bone,
+    accent: tokens.rose,
+    accentText: tokens.rose,
+    surface: tokens.plum,
+    line: 'rgba(224,138,171,0.45)',
+    buttonBg: tokens.rose,
+    buttonInk: tokens.ink,
+    catBody: tokens.ink,
   },
   light: {
-    field: tokens.paper,
-    ink: tokens.inkLight,
-    accent: tokens.hotPink,
-    accentText: tokens.deepPink,
-    surface: '#FFFFFF',
-    line: 'rgba(226, 0, 100, 0.35)',
-    buttonBg: tokens.hotPink,
-    buttonInk: tokens.inkLight,
+    field: tokens.bone,
+    ink: tokens.ink,
+    accent: tokens.rose,
+    accentText: tokens.deepRose,
+    surface: '#FBF5EA',
+    line: 'rgba(60,31,61,0.35)',
+    buttonBg: tokens.rose,
+    buttonInk: tokens.ink,
     catBody: '#111111',
   },
 }
 
-export const catAccents: Record<CatId, string> = {
-  luz: '#FF2D8A',
-  mimo: '#F7C5D8',
-  susto: '#FFF7FB',
-  bram: '#E20064',
-  nana: tokens.gold,
-  misha: '#C8A2FF',
-  kira: tokens.starYellow,
+// Feeling colors (design §3, an Inside Out touch, original art only).
+export const feelingColors: Record<CatId, string> = {
+  luz: '#F5C542',
+  mimo: '#F28DB2',
+  susto: '#A98BEA',
+  bram: '#F2784B',
+  nana: '#7FD9B0',
+  misha: '#8EB8F0',
+  kira: '#5FD4D0',
 }
+
+// Legacy alias: components not yet ported to the new palette still import catAccents.
+// A later task removes this once every component reads feelingColors directly.
+export const catAccents: Record<CatId, string> = feelingColors
 
 // The shared cat face: big simple eyes and white linework.
 export const catFace = {
@@ -72,15 +86,16 @@ export const catFace = {
   mimoOutline: tokens.inkLight,
 } as const
 
-// In the pixel era every accent renders as the one pink or as white.
+// In the pixel era every accent renders as rose or bone.
+// TODO(later task): the pixel era is going away; this map goes with it.
 export const catPixelAccents: Record<CatId, string> = {
-  luz: tokens.hotPink,
-  mimo: tokens.hotPink,
-  susto: tokens.paper,
-  bram: tokens.hotPink,
-  nana: tokens.paper,
-  misha: tokens.paper,
-  kira: tokens.paper,
+  luz: tokens.rose,
+  mimo: tokens.rose,
+  susto: tokens.bone,
+  bram: tokens.rose,
+  nana: tokens.bone,
+  misha: tokens.bone,
+  kira: tokens.bone,
 }
 
 export const tuning = {

@@ -32,8 +32,8 @@ describe('headMeta (BR-23, FR-22)', () => {
 describe('themeCss (BR-21)', () => {
   it('emits variables for both themes from the tuning module', () => {
     const css = themeCss()
-    expect(css).toContain(':root[data-theme="dark"]{--field:#0A0A0A')
-    expect(css).toContain(':root[data-theme="light"]{--field:#FFF7FB')
-    expect(css).toContain('--accent-text:#E20064')
+    expect(css).toContain(':root[data-theme="dark"]{--field:#140E14')
+    expect(css).toContain(':root[data-theme="light"]{--field:#F1E7D6')
+    expect(css).toContain('--accent-text:#BB3267')
   })
 })

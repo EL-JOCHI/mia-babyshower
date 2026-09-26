@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { themes, type ThemeName } from '../tuning'
+import { catIds } from '../content'
+import { feelingColors, tokens } from '../tuning'
 import { contrastRatio } from './contrast'
 
 describe('contrastRatio', () => {
@@ -9,23 +10,26 @@ describe('contrastRatio', () => {
   })
 })
 
-describe('theme contrast (US-2 AC4)', () => {
-  const pairsInUse = (name: ThemeName) => {
-    const t = themes[name]
-    return [
-      ['ink on field', t.ink, t.field],
-      ['ink on surface', t.ink, t.surface],
-      ['pink text on field', t.accentText, t.field],
-      ['pink text on surface', t.accentText, t.surface],
-      ['button label on button', t.buttonInk, t.buttonBg],
-    ] as const
-  }
+describe('theme contrast (US-2 AC4, design §3 Burton pink noir)', () => {
+  it('meets 4.5:1 for every text pair in the dark theme', () => {
+    const pairs: Array<readonly [string, string, string]> = [
+      ['bone on ink', tokens.bone, tokens.ink],
+      ['rose on ink', tokens.rose, tokens.ink],
+      ['ink on rose (buttons)', tokens.ink, tokens.rose],
+      ...catIds.map((id) => [`${id} feeling color on ink`, feelingColors[id], tokens.ink] as const),
+    ]
+    for (const [label, fg, bg] of pairs) {
+      expect(contrastRatio(fg, bg), label).toBeGreaterThanOrEqual(4.5)
+    }
+  })
 
-  for (const name of ['dark', 'light'] as const) {
-    it(`meets 4.5:1 for every text pair in the ${name} theme`, () => {
-      for (const [label, fg, bg] of pairsInUse(name)) {
-        expect(contrastRatio(fg, bg), `${name}: ${label}`).toBeGreaterThanOrEqual(4.5)
-      }
-    })
-  }
+  it('meets 4.5:1 for every text pair in the light theme', () => {
+    const pairs = [
+      ['ink on bone', tokens.ink, tokens.bone],
+      ['deep rose on bone', tokens.deepRose, tokens.bone],
+    ] as const
+    for (const [label, fg, bg] of pairs) {
+      expect(contrastRatio(fg, bg), label).toBeGreaterThanOrEqual(4.5)
+    }
+  })
 })
