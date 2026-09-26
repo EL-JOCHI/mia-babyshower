@@ -154,6 +154,8 @@ No account art, no Pokémon tiles, no Pixar characters, no skulls.
 
 The workflow is `.github/workflows/pages.yml`. It runs on every push to `main`, and it can also be started by hand.
 
+Step-by-step publishing, checks before sending the links, and troubleshooting: [`docs/publishing.md`](publishing.md).
+
 When the repository exists, once:
 
 1. Open **Settings → Pages**.
