@@ -147,4 +147,9 @@ export const tuning = {
   },
   greetingToastMs: 4500,
   familyEnterMs: 1800,
+  progress: {
+    levels: [0, 60, 180, 360, 600],
+    badgeXp: { openBook: 10, palabra: 20, fecha: 30, lugar: 30, sellada: 50, regalo: 20, qrGuardado: 20, puerta: 30, primerGato: 20, cuentoCompleto: 100, todosLosGatos: 150 },
+    catXp: { comun: 20, pocoComun: 40, legendario: 100 },
+  },
 } as const
