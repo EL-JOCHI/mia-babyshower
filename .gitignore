@@ -1,0 +1,14 @@
+# Host reference photos stay local. They must never enter git history.
+ideas/
+
+node_modules/
+dist/
+coverage/
+.env.local
+*.local
+
+# Editor and tool files
+.DS_Store
+.idea/
+.vscode/
+.mcp-overflow/
