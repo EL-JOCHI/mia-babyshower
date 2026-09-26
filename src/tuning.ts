@@ -1,7 +1,7 @@
 // The tuning module (requirements §11, BR-21). Every number and color that tunes the feel lives here.
 // These are starting values. Change them here; components and tests read them.
 
-import type { CatId, Rarity } from './content'
+import type { CatId, Rarity } from './content.ts'
 
 export const tokens = {
   fieldDark: '#0A0A0A',

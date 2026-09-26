@@ -2,9 +2,9 @@
 // the theme tokens as CSS variables (BR-21), and the pre-paint theme choice (US-2).
 // The Vite config injects this into index.html, so the copy and colors keep one source.
 
-import { copy } from './content'
-import { storageKeys } from './logic/storageKeys'
-import { themes, tokens, type ThemeName, type ThemeTokens } from './tuning'
+import { copy } from './content.ts'
+import { storageKeys } from './logic/storageKeys.ts'
+import { themes, tokens, type ThemeName, type ThemeTokens } from './tuning.ts'
 
 function escapeAttr(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')

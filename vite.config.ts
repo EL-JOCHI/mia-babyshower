@@ -2,7 +2,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { loadEnv, type Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
-import { headMeta } from './src/headMeta'
+import { headMeta } from './src/headMeta.ts'
 
 function headTags(siteUrl: string): Plugin {
   return {
@@ -18,6 +18,8 @@ export default defineConfig(({ mode }) => {
   return {
     base: './',
     plugins: [react(), tailwindcss(), headTags(env.VITE_SITE_URL ?? '')],
+    // The Three.js scene is its own lazy chunk (about 240 kB gzipped), loaded only near the 3D era.
+    build: { chunkSizeWarningLimit: 1000 },
     test: {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],

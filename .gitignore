@@ -12,3 +12,6 @@ coverage/
 .idea/
 .vscode/
 .mcp-overflow/
+
+# Local browser checks
+.playwright-mcp/

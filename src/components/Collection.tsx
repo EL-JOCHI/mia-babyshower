@@ -1,0 +1,96 @@
+import { useEffect, useRef, type KeyboardEvent } from 'react'
+import { cats, copy } from '../content'
+import type { CatState } from '../logic/catState'
+import { catAccents } from '../tuning'
+import { CatArt } from './CatArt'
+
+interface Props {
+  state: CatState
+  allowPlayAgain: boolean
+  onPlayAgain: () => void
+  onClose: () => void
+}
+
+const focusable = 'button, [href], [tabindex]:not([tabindex="-1"])'
+
+// Tus gatos (§3): a dialog over the room. Focus moves in, Escape closes it,
+// and the caller returns focus to the Tus gatos control.
+export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Props) {
+  const panel = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    panel.current?.querySelector<HTMLElement>('.collection-close')?.focus()
+  }, [])
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation()
+      onClose()
+      return
+    }
+    if (e.key !== 'Tab' || !panel.current) return
+    const items = Array.from(panel.current.querySelectorAll<HTMLElement>(focusable))
+    const first = items[0]
+    const last = items[items.length - 1]
+    if (!first || !last) return
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+
+  return (
+    <div className="collection-backdrop" onClick={onClose}>
+      <div
+        ref={panel}
+        className="collection"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="collection-title"
+        onKeyDown={onKeyDown}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="collection-header">
+          <h2 id="collection-title">{copy.collection}</h2>
+          <p className="collection-count">
+            <span>{copy.roundCount(state.round.length)}</span>
+            {state.rounds > 1 && <span className="collection-round">{copy.roundNumber(state.rounds)}</span>}
+          </p>
+          <button type="button" className="hud-button collection-close" onClick={onClose}>
+            {copy.close}
+          </button>
+        </div>
+        <ul className="collection-list">
+          {cats.map((cat) => {
+            const met = state.caught.includes(cat.id)
+            const inRound = state.round.includes(cat.id)
+            return (
+              <li key={cat.id} className={`collection-item${met ? ' is-met' : ''}`} data-testid={`collection-${cat.id}`}>
+                <CatArt
+                  id={cat.id}
+                  pose={inRound ? 'staying' : 'playing'}
+                  silhouette={!met}
+                  accent={catAccents[cat.id]}
+                  size={56}
+                />
+                <div className="collection-text">
+                  {met && <p className="collection-name">{cat.name}</p>}
+                  <p className={`collection-rarity rarity-${cat.rarity}`}>{copy.rarity[cat.rarity]}</p>
+                  <p className="collection-line">{met ? cat.line : copy.notYet}</p>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+        {allowPlayAgain && (
+          <button type="button" className="button collection-again" onClick={onPlayAgain}>
+            {copy.playAgain}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
