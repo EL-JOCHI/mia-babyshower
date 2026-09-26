@@ -23,26 +23,38 @@ export interface ProgressApi {
 // The progress state changes only through the pure functions, then persists.
 // Loading the page writes nothing.
 export function useProgress(): ProgressApi {
-  const [progress, setProgress] = useState<Progress>(loadProgress)
-  const [awards, setAwards] = useState<Award[]>([])
-  const loaded = useRef(progress)
+  const [state, setState] = useState<{ progress: Progress; awards: Award[] }>(() => ({
+    progress: loadProgress(),
+    awards: [],
+  }))
+  const loaded = useRef(state.progress)
 
   useEffect(() => {
-    if (progress === loaded.current) return
-    writeStorage(storageKeys.progress, JSON.stringify(progress))
-  }, [progress])
+    if (state.progress === loaded.current) return
+    writeStorage(storageKeys.progress, JSON.stringify(state.progress))
+  }, [state.progress])
 
   const dispatch = useCallback((e: ProgressEvent) => {
-    setProgress((prev) => {
-      const result = applyEvent(prev, e)
-      setAwards((a) => [...a, ...result.awards])
-      return result.progress
+    setState((s) => {
+      const result = applyEvent(s.progress, e)
+      return {
+        progress: result.progress,
+        awards: [...s.awards, ...result.awards],
+      }
     })
   }, [])
 
   const dismissAward = useCallback(() => {
-    setAwards((a) => a.slice(1))
+    setState((s) => ({
+      ...s,
+      awards: s.awards.slice(1),
+    }))
   }, [])
 
-  return { progress, dispatch, awards, dismissAward }
+  return {
+    progress: state.progress,
+    dispatch,
+    awards: state.awards,
+    dismissAward,
+  }
 }
