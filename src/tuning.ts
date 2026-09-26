@@ -3,6 +3,18 @@
 
 import type { CatId, Rarity } from './content.ts'
 
+export interface GateGameConfig {
+  durationMs: number
+  spawnEveryMs: number
+  fallPerS: number
+  catchY: number
+  catchRadius: number
+  heartChance: number
+  points: { yarn: number; heart: number }
+  comboMax: number
+  maxStepMs: number
+}
+
 // Burton pink noir (design §3).
 export const tokens = {
   ink: '#140E14',
@@ -152,4 +164,5 @@ export const tuning = {
     badgeXp: { openBook: 10, palabra: 20, fecha: 30, lugar: 30, sellada: 50, regalo: 20, qrGuardado: 20, puerta: 30, primerGato: 20, cuentoCompleto: 100, todosLosGatos: 150 },
     catXp: { comun: 20, pocoComun: 40, legendario: 100 },
   },
+  gateGame: { durationMs: 30000, spawnEveryMs: 650, fallPerS: 0.42, catchY: 0.86, catchRadius: 0.09, heartChance: 0.3, points: { yarn: 10, heart: 20 }, comboMax: 5, maxStepMs: 100 } satisfies GateGameConfig,
 } as const
