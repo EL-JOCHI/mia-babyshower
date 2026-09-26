@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { catIds } from '../content'
-import { feelingColors, tokens } from '../tuning'
+import { feelingColors, themes, tokens, type ThemeName } from '../tuning'
 import { contrastRatio } from './contrast'
 
 describe('contrastRatio', () => {
@@ -32,4 +32,25 @@ describe('theme contrast (US-2 AC4, design §3 Burton pink noir)', () => {
       expect(contrastRatio(fg, bg), label).toBeGreaterThanOrEqual(4.5)
     }
   })
+
+  // The token-level pairs above cover the palette in the abstract. These read straight from
+  // `themes` so the wiring itself (which token lands on which theme role) stays covered too.
+  const wiredPairs = (name: ThemeName) => {
+    const t = themes[name]
+    return [
+      ['ink on field', t.ink, t.field],
+      ['ink on surface', t.ink, t.surface],
+      ['accentText on field', t.accentText, t.field],
+      ['accentText on surface', t.accentText, t.surface],
+      ['buttonInk on buttonBg', t.buttonInk, t.buttonBg],
+    ] as const
+  }
+
+  for (const name of ['dark', 'light'] as const) {
+    it(`meets 4.5:1 for every wired-up text pair in the ${name} theme`, () => {
+      for (const [label, fg, bg] of wiredPairs(name)) {
+        expect(contrastRatio(fg, bg), `${name}: ${label}`).toBeGreaterThanOrEqual(4.5)
+      }
+    })
+  }
 })
