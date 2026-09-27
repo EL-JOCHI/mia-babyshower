@@ -22,8 +22,9 @@ function createMaterials() {
     charm: new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }),
     // White: each garland star brings its own color.
     garland: new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }),
-    // White times the lanterns' glow: each lantern brings its own color, and glows by it only.
-    lantern: new THREE.MeshBasicMaterial(),
+    // White times the lanterns' glow: each lantern brings its own color, and glows by it only. The
+    // geometry's vertex colors shade its ribs and collars darker.
+    lantern: new THREE.MeshBasicMaterial({ vertexColors: true }),
     shaft: new THREE.MeshBasicMaterial({
       vertexColors: true,
       transparent: true,

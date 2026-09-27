@@ -548,14 +548,15 @@ export const tuning = {
       // `drop` below each end.
       mobile: { at: [0, 3.6, -8.2], hang: 4, arms: 3, radius: 0.55, drop: 0.3, charm: 0.14, speed: 0.22 },
       // Saturday: paper stars on a string sagging between two rafters. It holds still (the Motion rule).
-      garland: { from: -10, to: 10, y: 7.4, z: -7.8, sag: 0.9, drop: 0.14, count: 22, size: 0.2, colors: [tokens.bone, tokens.candle, tokens.rose] },
+      // Its ends meet the sloping roof, so every star hangs under it (src/world/props/moodProps.test.ts).
+      garland: { from: -6, to: 6, y: 7, z: -7.8, sag: 0.6, drop: 0.14, count: 14, size: 0.2, colors: [tokens.bone, tokens.candle, tokens.rose] },
       // Sunday: paper lanterns on a string, swaying by up to `sway` radians at `speed`, `phase` apart,
-      // glowing by their own color only. Unlit, they keep `dim` of their brightness. The string spans
-      // ±7.5 so the end lanterns hang under the sloping roof (at ±9 they poked through it).
+      // glowing by their own color only. Unlit, they keep `dim` of their brightness. Every lantern
+      // hangs under the sloping roof, at the top of its swing too.
       lanterns: {
         from: -7.5,
         to: 7.5,
-        y: 6.8,
+        y: 6.6,
         z: -6.6,
         sag: 1,
         drop: 0.3,
@@ -566,6 +567,12 @@ export const tuning = {
         phase: 0.8,
         dim: 0.45,
         colors: [tokens.rose, tokens.candle, tokens.bone, tokens.deepRose],
+        // Each lantern's paper shape, `size` up and down from its middle: `width` times as wide as
+        // tall, a collar at the top and bottom `collar` of its height, and `ribs` wire ribs each `rib`
+        // of its height, the paper pinched in by `pinch` between them (each stretch of paper drawn in
+        // `steps`, `segments` sides around). The ribs and collars are darker shades of the lantern's
+        // own color, as multipliers (the paper is 1).
+        paper: { width: 0.8, collar: 0.1, ribs: 4, rib: 0.05, pinch: 0.07, steps: 3, segments: 12, ribShade: 0.5, collarShade: 0.22 },
       },
       // The beam from the window to the floor (the moonbeam, or Sunday's golden beam): how wide it
       // leaves the window and lands, how much of its light reaches the floor, and per mood where it

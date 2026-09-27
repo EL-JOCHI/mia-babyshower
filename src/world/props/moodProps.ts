@@ -125,6 +125,45 @@ export function mobileGeometry(): { frame: THREE.BufferGeometry; charms: THREE.B
   return { frame: merge(frame), charms: merge(charms) }
 }
 
+// Sunday's paper lantern, centred where it hangs: a round paper body pinched in a little between
+// thin wire ribs, with a darker collar at the top and the bottom. One geometry: its vertex colors
+// shade the ribs and the collars, and each lantern's own color tints the whole.
+export function lanternGeometry(): THREE.BufferGeometry {
+  const { size, paper } = tuning.world.mood.lanterns
+  const { width, collar, ribs, rib, pinch, ribShade, collarShade, segments, steps } = paper
+  const height = size * 2
+  // The round body's radius at height y, and the pinched paper's.
+  const body = (y: number) => size * width * Math.sqrt(Math.max(0, 1 - (y / size) ** 2))
+  const paperAt = (y: number): [number, number] => [body(y) * (1 - pinch), y]
+  const neck = size - collar * height
+  const ring = body(neck)
+  const half = (rib * height) / 2
+  const pieces: THREE.BufferGeometry[] = []
+  // One run of the profile, as [radius, height] pairs from the bottom up, turned around y in one shade.
+  const turn = (shade: number, points: [number, number][]) => {
+    const piece = new THREE.LatheGeometry(
+      points.map(([r, h]) => new THREE.Vector2(r, h)),
+      segments,
+    )
+    piece.setAttribute('color', new THREE.Float32BufferAttribute(new Array<number>(piece.attributes.position!.count * 3).fill(shade), 3))
+    pieces.push(piece)
+  }
+  const paperRun = (a: number, b: number) => Array.from({ length: steps + 1 }, (_, s) => paperAt(a + ((b - a) * s) / steps))
+  // The bottom collar: its underside, its side, and the step in to the paper.
+  turn(collarShade, [[0, -size], [ring, -size], [ring, -neck], paperAt(-neck)])
+  let from = -neck
+  for (let k = 1; k <= ribs; k++) {
+    const at = -neck + (2 * neck * k) / (ribs + 1)
+    turn(1, paperRun(from, at - half))
+    // A wire rib: out from the paper, up, and back in.
+    turn(ribShade, [paperAt(at - half), [body(at - half), at - half], [body(at + half), at + half], paperAt(at + half)])
+    from = at + half
+  }
+  turn(1, paperRun(from, neck))
+  turn(collarShade, [paperAt(neck), [ring, neck], [ring, size], [0, size]])
+  return merge(pieces)
+}
+
 // The beam from the window to the floor: an unlit, additive quad, fading toward the floor (its
 // vertex colors carry the fade as alpha).
 export function shaftGeometry(mood: MoodId): THREE.BufferGeometry {
@@ -161,9 +200,8 @@ export function buildMoodProps(mood: MoodId): MoodBuild {
       shaft: shaftGeometry('saturday'),
     }
   }
-  const { from, to, y, z, sag, drop, count, size, colors } = tuning.world.mood.lanterns
-  const lantern = new THREE.SphereGeometry(size, 10, 8)
-  lantern.scale(0.8, 1, 0.8)
+  const { from, to, y, z, sag, drop, count, colors } = tuning.world.mood.lanterns
+  const lantern = lanternGeometry()
   return {
     kind: 'sunday',
     lantern,

@@ -3,7 +3,17 @@ import { describe, expect, it } from 'vitest'
 import { tierCount } from '../../logic/deviceTier'
 import { tuning, type MoodId, type ThemeName } from '../../tuning'
 import { fireflyAt, fireflyField, fireflyGlow } from './fireflies'
-import { ambientMotions, buildMoodProps, disposeMoodBuild, lanternSway, moodDrawCalls, sagY, shaftGeometry } from './moodProps'
+import {
+  ambientMotions,
+  buildMoodProps,
+  disposeMoodBuild,
+  hangings,
+  lanternGeometry,
+  lanternSway,
+  moodDrawCalls,
+  sagY,
+  shaftGeometry,
+} from './moodProps'
 
 const looks: [MoodId, ThemeName][] = [
   ['saturday', 'dark'],
@@ -55,6 +65,72 @@ describe('the mood props (spec §3)', () => {
     expect(sagY(-10, -10, 10, 7, 1)).toBeCloseTo(7, 6)
     expect(sagY(10, -10, 10, 7, 1)).toBeCloseTo(7, 6)
     expect(sagY(0, -10, 10, 7, 1)).toBeCloseTo(6, 6)
+  })
+})
+
+describe('the paper lanterns (spec §3)', () => {
+  it('shapes each lantern as a paper lantern: a darker collar top and bottom, and wire ribs', () => {
+    const { size, paper } = tuning.world.mood.lanterns
+    const lantern = lanternGeometry()
+    const p = lantern.attributes.position as THREE.BufferAttribute
+    const c = lantern.attributes.color as THREE.BufferAttribute
+    expect(c).toBeDefined()
+    // It stands on its middle, `size` up and down: the lanterns' boxes and the roof test hold.
+    lantern.computeBoundingBox()
+    expect(lantern.boundingBox!.max.y).toBeCloseTo(size, 6)
+    expect(lantern.boundingBox!.min.y).toBeCloseTo(-size, 6)
+    expect(lantern.boundingBox!.max.x).toBeLessThanOrEqual(size)
+    // Three shades of the lantern's own color: the paper, the ribs, and the collars.
+    const shadeAt = (i: number) => Number(c.getX(i).toFixed(6))
+    const shades = new Set(Array.from({ length: c.count }, (_, i) => shadeAt(i)))
+    expect([...shades].sort()).toEqual([1, paper.ribShade, paper.collarShade].sort())
+    // The collars are at the very top and bottom; each rib is a thin band with its own bottom and top.
+    const top = Array.from({ length: p.count }, (_, i) => i).filter((i) => p.getY(i) > size - 1e-6)
+    expect(top.length).toBeGreaterThan(0)
+    for (const i of top) expect(shadeAt(i)).toBe(paper.collarShade)
+    const ribHeights = new Set(
+      Array.from({ length: p.count }, (_, i) => i)
+        .filter((i) => shadeAt(i) === paper.ribShade)
+        .map((i) => p.getY(i).toFixed(6)),
+    )
+    expect(ribHeights.size).toBe(paper.ribs * 2)
+    lantern.dispose()
+  })
+
+  it('hangs that one shape on every Sunday lantern', () => {
+    const build = buildMoodProps('sunday')
+    if (build.kind !== 'sunday') throw new Error('Sunday builds Sunday props')
+    expect(build.lantern.attributes.color).toBeDefined()
+    disposeMoodBuild(build)
+  })
+})
+
+// The attic's roof slopes from the ridge down to the eaves: its height at x.
+function roofAt(x: number): number {
+  const { ridge, eave, halfWidth } = tuning.world.attic
+  return ridge - ((ridge - eave) * Math.abs(x)) / halfWidth
+}
+
+describe('the strings hang under the roof (spec §3)', () => {
+  // Each hanging thing is checked by the corner of its box nearest the sloping roof: `reach` up and
+  // `reach` out from where it hangs.
+  it('hangs every garland star below the roof, its points included', () => {
+    const { from, to, y, z, sag, drop, count, size, colors } = tuning.world.mood.garland
+    for (const star of hangings(count, from, to, y, z, sag, drop, colors)) {
+      const { x } = star.position
+      expect(star.position.y + size, `star at x=${x.toFixed(2)}`).toBeLessThan(roofAt(Math.abs(x) + size))
+    }
+  })
+
+  it('hangs every lantern below the roof, at the top of its swing too', () => {
+    const { from, to, y, z, sag, drop, count, size, sway, colors } = tuning.world.mood.lanterns
+    // Swinging from the string, a lantern rises by drop·(1 − cos sway) and moves out by drop·sin sway.
+    const rise = drop * (1 - Math.cos(sway))
+    const out = drop * Math.sin(sway)
+    for (const lantern of hangings(count, from, to, y, z, sag, drop, colors)) {
+      const { x } = lantern.position
+      expect(lantern.position.y + size + rise, `lantern at x=${x.toFixed(2)}`).toBeLessThan(roofAt(Math.abs(x) + size + out))
+    }
   })
 })
 
