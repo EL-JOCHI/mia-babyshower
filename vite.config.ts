@@ -23,7 +23,9 @@ export default defineConfig(({ mode }) => {
     test: {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
-      css: false,
+      // Stylesheets are not processed in tests, except when read as raw text (the CSS variable
+      // guard in src/cssVariables.test.ts reads them with ?raw).
+      css: { include: [/\.css\?raw$/] },
       restoreMocks: true,
       // Deploys run `npm test` on shared CI runners: a few whole-App tests (a 30 s gate round, two
       // battles) take seconds of fake time and can pass 5 s on a slow or busy machine.

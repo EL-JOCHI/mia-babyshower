@@ -61,7 +61,7 @@ At midnight after each party (Bolivia time), that page changes. The address, the
 
 - The first paint is the book's cover, in `index.html` itself: readable before any script runs.
 - The 3D book (Three.js, React Three Fiber, drei) is its own lazy chunk, loaded behind the cover.
-- Nothing is drawn behind the closed cover, the pixel ratio is capped at 1.75, one candle casts shadows, and its shadow map is redrawn only while paper moves.
+- The book renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. The pixel ratio is capped at 1.75, one candle casts shadows, and its shadow map is redrawn only while paper moves.
 
 ---
 

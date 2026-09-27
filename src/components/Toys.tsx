@@ -11,7 +11,7 @@ export function HeartToy({ size = 28, className = '' }: ToyProps) {
     <svg className={`toy toy-heart ${className}`} viewBox="-10 -4 20 18" width={size} height={size} aria-hidden="true">
       <path
         d="M0 3 C -1.5 -1.5, -8 -1.5, -8 3.5 C -8 7.5, -3 10, 0 12.5 C 3 10, 8 7.5, 8 3.5 C 8 -1.5, 1.5 -1.5, 0 3 Z"
-        fill="var(--hot-pink)"
+        fill="var(--rose)"
       />
     </svg>
   )
@@ -25,7 +25,7 @@ export function StarToy({ size = 26, className = '' }: ToyProps) {
   }).join(' ')
   return (
     <svg className={`toy toy-star ${className}`} viewBox="-11 -11 22 22" width={size} height={size} aria-hidden="true">
-      <polygon points={points} fill="var(--star-yellow)" stroke="var(--hot-pink)" strokeWidth={1} strokeLinejoin="round" />
+      <polygon points={points} fill="var(--candle)" stroke="var(--rose)" strokeWidth={1} strokeLinejoin="round" />
     </svg>
   )
 }
@@ -33,7 +33,7 @@ export function StarToy({ size = 26, className = '' }: ToyProps) {
 export function PickToy({ size = 24, className = '' }: ToyProps) {
   return (
     <svg className={`toy toy-pick ${className}`} viewBox="0 0 20 22" width={size} height={size} aria-hidden="true">
-      <path d="M10 21 C 4 15, 1 9, 2 5 C 3 1, 17 1, 18 5 C 19 9, 16 15, 10 21 Z" fill="var(--deep-pink)" />
+      <path d="M10 21 C 4 15, 1 9, 2 5 C 3 1, 17 1, 18 5 C 19 9, 16 15, 10 21 Z" fill="var(--deep-rose)" />
       <path d="M6 6 C 8 5, 12 5, 14 6" stroke="var(--bone)" strokeWidth={1} fill="none" opacity={0.7} />
     </svg>
   )
@@ -42,11 +42,11 @@ export function PickToy({ size = 24, className = '' }: ToyProps) {
 export function YarnToy({ size = 40, className = '' }: ToyProps) {
   return (
     <svg className={`toy toy-yarn ${className}`} viewBox="0 0 40 40" width={size} height={size} aria-hidden="true">
-      <circle cx={18} cy={20} r={14} fill="var(--hot-pink)" />
+      <circle cx={18} cy={20} r={14} fill="var(--rose)" />
       <path d="M7 14 C 14 18, 24 18, 30 12" stroke="var(--bone)" strokeWidth={1.4} fill="none" opacity={0.7} />
       <path d="M5 22 C 14 26, 24 26, 32 20" stroke="var(--bone)" strokeWidth={1.4} fill="none" opacity={0.7} />
       <path d="M10 31 C 12 20, 22 10, 26 8" stroke="var(--bone)" strokeWidth={1.4} fill="none" opacity={0.7} />
-      <path d="M31 27 C 36 30, 38 34, 36 38" stroke="var(--hot-pink)" strokeWidth={1.6} fill="none" />
+      <path d="M31 27 C 36 30, 38 34, 36 38" stroke="var(--rose)" strokeWidth={1.6} fill="none" />
     </svg>
   )
 }
@@ -54,10 +54,10 @@ export function YarnToy({ size = 40, className = '' }: ToyProps) {
 export function BoxToy({ size = 56, className = '' }: ToyProps) {
   return (
     <svg className={`toy toy-box ${className}`} viewBox="0 0 56 44" width={size} height={(size * 44) / 56} aria-hidden="true">
-      <path d="M6 16 H50 V42 H6 Z" fill="var(--shadow)" stroke="var(--hot-pink)" strokeWidth={2} strokeLinejoin="round" />
-      <path d="M6 16 L0 6 H22 L28 16" fill="var(--shadow)" stroke="var(--hot-pink)" strokeWidth={2} strokeLinejoin="round" />
-      <path d="M50 16 L56 6 H34 L28 16" fill="var(--shadow)" stroke="var(--hot-pink)" strokeWidth={2} strokeLinejoin="round" />
-      <path d="M22 28 h12" stroke="var(--hot-pink)" strokeWidth={1.5} opacity={0.6} />
+      <path d="M6 16 H50 V42 H6 Z" fill="var(--shadow)" stroke="var(--rose)" strokeWidth={2} strokeLinejoin="round" />
+      <path d="M6 16 L0 6 H22 L28 16" fill="var(--shadow)" stroke="var(--rose)" strokeWidth={2} strokeLinejoin="round" />
+      <path d="M50 16 L56 6 H34 L28 16" fill="var(--shadow)" stroke="var(--rose)" strokeWidth={2} strokeLinejoin="round" />
+      <path d="M22 28 h12" stroke="var(--rose)" strokeWidth={1.5} opacity={0.6} />
     </svg>
   )
 }
@@ -65,7 +65,7 @@ export function BoxToy({ size = 56, className = '' }: ToyProps) {
 export function ThunderBolt({ size = 36, className = '' }: ToyProps) {
   return (
     <svg className={`toy toy-thunder ${className}`} viewBox="0 0 24 36" width={size * 0.67} height={size} aria-hidden="true">
-      <polygon points="14,0 2,20 11,20 7,36 22,13 13,13" fill="var(--star-yellow)" stroke="var(--hot-pink)" strokeWidth={1.2} strokeLinejoin="round" />
+      <polygon points="14,0 2,20 11,20 7,36 22,13 13,13" fill="var(--candle)" stroke="var(--rose)" strokeWidth={1.2} strokeLinejoin="round" />
     </svg>
   )
 }

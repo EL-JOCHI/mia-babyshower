@@ -228,8 +228,9 @@ describe('the 3D book and its fallback (design §2)', () => {
     expect(cover()).toHaveClass('is-opening')
   })
 
-  // Performance (design §12): nothing draws behind the closed, opaque cover. The world draws the
-  // frame it needs to get ready, then waits, and runs from the moment the cover starts to open.
+  // Performance (design §12): behind the closed, opaque cover the world renders on demand — the
+  // frame it needs to get ready, then only when something changes — and it runs continuously from
+  // the moment the cover starts to open.
   it('keeps the world waiting behind the closed cover, and runs it once the cover opens', async () => {
     world.mode = 'ready'
     renderWorldRoom()

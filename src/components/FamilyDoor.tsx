@@ -98,20 +98,20 @@ export function FamilyDoor({ scratching, still, onFrameTap }: Props) {
       <defs>
         <radialGradient id="door-light" cx="50%" cy="60%" r="65%">
           <stop offset="0%" style={{ stopColor: 'var(--bone)' }} />
-          <stop offset="45%" style={{ stopColor: 'var(--blush)' }} />
-          <stop offset="100%" style={{ stopColor: 'var(--hot-pink)' }} />
+          <stop offset="45%" style={{ stopColor: 'var(--bone)' }} />
+          <stop offset="100%" style={{ stopColor: 'var(--rose)' }} />
         </radialGradient>
         <radialGradient id="door-halo" cx="50%" cy="55%" r="50%">
-          <stop offset="0%" style={{ stopColor: 'var(--hot-pink)', stopOpacity: 0.55 }} />
-          <stop offset="100%" style={{ stopColor: 'var(--hot-pink)', stopOpacity: 0 }} />
+          <stop offset="0%" style={{ stopColor: 'var(--rose)', stopOpacity: 0.55 }} />
+          <stop offset="100%" style={{ stopColor: 'var(--rose)', stopOpacity: 0 }} />
         </radialGradient>
       </defs>
 
       <ellipse cx={160} cy={140} rx={160} ry={120} fill="url(#door-halo)" />
       <path d={`M66 ${floor} V104 A94 64 0 0 1 254 104 V${floor} Z`} fill="url(#door-light)" />
-      <ellipse cx={160} cy={floor + 4} rx={120} ry={8} fill="var(--hot-pink)" opacity={0.35} />
+      <ellipse cx={160} cy={floor + 4} rx={120} ry={8} fill="var(--rose)" opacity={0.35} />
 
-      <g className="family-shadows family-rim" fill="var(--shadow)" stroke="var(--hot-pink)" strokeOpacity={0.6} strokeWidth={2.4}>
+      <g className="family-shadows family-rim" fill="var(--shadow)" stroke="var(--rose)" strokeOpacity={0.6} strokeWidth={2.4}>
         <Figures />
       </g>
       <g className="family-shadows" fill="var(--shadow)">
@@ -122,7 +122,7 @@ export function FamilyDoor({ scratching, still, onFrameTap }: Props) {
         className="door-frame"
         d={`M66 ${floor} V104 A94 64 0 0 1 254 104 V${floor}`}
         fill="none"
-        stroke="var(--hot-pink)"
+        stroke="var(--rose)"
         strokeWidth={6}
         strokeLinejoin="round"
       />

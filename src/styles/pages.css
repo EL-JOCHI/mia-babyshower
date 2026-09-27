@@ -945,7 +945,7 @@
 }
 
 .door-frame {
-  filter: drop-shadow(0 0 6px var(--hot-pink));
+  filter: drop-shadow(0 0 6px var(--rose));
 }
 
 .door-frame-hit {
