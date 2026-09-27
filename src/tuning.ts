@@ -541,6 +541,40 @@ export const tuning = {
     // the dust); `attic` is the attic's own meshes and its window (sky, halo, moon or sun). The new
     // props must fit in what is left.
     budget: { book: 100, backdrop: 60, bookAtRest: 47, attic: 27, materials: 14 },
+    // Spec §3: each mood's own props, in world units, with speeds in radians per second.
+    mood: {
+      // Saturday: a star-and-crescent mobile turning slowly over the crib, its string rising `hang`
+      // to the rafters, with `arms` crossed arms of `radius` and a charm of size `charm` hanging
+      // `drop` below each end.
+      mobile: { at: [0, 3.6, -8.2], hang: 4, arms: 3, radius: 0.55, drop: 0.3, charm: 0.14, speed: 0.22 },
+      // Saturday: paper stars on a string sagging between two rafters. It holds still (the Motion rule).
+      garland: { from: -10, to: 10, y: 7.4, z: -7.8, sag: 0.9, drop: 0.14, count: 22, size: 0.2, colors: [tokens.bone, tokens.candle, tokens.rose] },
+      // Sunday: paper lanterns on a string, swaying by up to `sway` radians at `speed`, `phase` apart,
+      // glowing by their own color only. Unlit, they keep `dim` of their brightness. The string spans
+      // ±7.5 so the end lanterns hang under the sloping roof (at ±9 they poked through it).
+      lanterns: {
+        from: -7.5,
+        to: 7.5,
+        y: 6.8,
+        z: -6.6,
+        sag: 1,
+        drop: 0.3,
+        count: 9,
+        size: 0.3,
+        sway: 0.14,
+        speed: 0.9,
+        phase: 0.8,
+        dim: 0.45,
+        colors: [tokens.rose, tokens.candle, tokens.bone, tokens.deepRose],
+      },
+      // The beam from the window to the floor (the moonbeam, or Sunday's golden beam): how wide it
+      // leaves the window and lands, how much of its light reaches the floor, and per mood where it
+      // lands (sideways, away from the moon or sun, and how far from the back wall).
+      shaft: { topWidth: 2.6, bottomWidth: 4.2, bottomAlpha: 0.2, saturday: { drift: -1.6, reach: 4.8 }, sunday: { drift: 1.4, reach: 5.4 } },
+      // Sunday's dusk: fireflies drifting by up to `drift` around their spots in a box of air behind
+      // the book, blinking at `blink`. They replace the dust.
+      fireflies: { count: 60, size: 0.08, drift: 0.35, speed: 0.5, blink: 1.4, box: { width: 24, bottom: 0.8, height: 4.5, back: -9.2, depth: 6 } },
+    },
     // Spec §3: two moods, one attic, each in a lighter (Claro) and a darker (Oscuro) version. Every
     // color is a mix of the palette tokens and the feeling colors. The 3D attic mixes in linear light,
     // so a little of a light color goes a long way (and the window's sky blends the same way).
@@ -551,7 +585,9 @@ export const tuning = {
         dark: {
           fog: tokens.plum,
           wood: [tokens.plum, tokens.rose, 0.15],
-          floor: tokens.plum,
+          // Lifted a little toward rose: the furniture's wood mixes from the floor (props.woodMix), so
+          // the crib, chair, and trunks read as plum wood rather than black, still darker than Claro.
+          floor: [tokens.plum, tokens.rose, 0.18],
           beam: tokens.ink,
           skyTop: [tokens.ink, feelingColors.misha, 0.06],
           skyBottom: [tokens.plum, feelingColors.misha, 0.22],
@@ -615,7 +651,8 @@ export const tuning = {
         dark: {
           fog: [tokens.plum, tokens.deepRose, 0.25],
           wood: [tokens.plum, tokens.rose, 0.2],
-          floor: [tokens.plum, tokens.deepRose, 0.15],
+          // Lifted toward deep rose, so the furniture's wood (mixed from the floor) reads as wine, not black.
+          floor: [tokens.plum, tokens.deepRose, 0.4],
           beam: tokens.ink,
           skyTop: [tokens.ink, tokens.plum, 0.6],
           skyBottom: [tokens.candle, tokens.rose, 0.6],

@@ -1,14 +1,16 @@
 import { Canvas, useThree } from '@react-three/fiber'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
-import type { DeviceTier } from '../logic/deviceTier'
+import { tierCount, type DeviceTier } from '../logic/deviceTier'
 import type { LandmarkId } from '../logic/layout'
 import { tuning, type MoodId, type ThemeName } from '../tuning'
 import { Attic } from './Attic'
 import { Book } from './Book'
 import { buildPath } from './bookPath'
 import { CameraRig } from './CameraRig'
+import { MoodProps } from './MoodProps'
 import { Dust } from './Dust'
+import { Fireflies } from './Fireflies'
 import { paletteFor } from './palette'
 import { Props } from './Props'
 import { useWorldResources } from './resources'
@@ -63,6 +65,7 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
       <Attic palette={palette} />
       <WindowSky palette={palette} tier={tier} />
       <Props palette={palette} />
+      <MoodProps key={mood} mood={mood} palette={palette} tier={tier} />
       <Book resources={resources} palette={palette} />
       {ids.map((id, i) => (
         <Station
@@ -78,7 +81,12 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
           {content[id]}
         </Station>
       ))}
-      <Dust count={size.width < phoneMaxPx ? dust.phone : dust.desktop} material={resources.dust} />
+      {/* The Motion rule (spec §3): dust, or fireflies at Sunday's dusk. About half on a low device. */}
+      {palette.motes === 'fireflies' ? (
+        <Fireflies palette={palette} tier={tier} />
+      ) : (
+        <Dust count={tierCount(size.width < phoneMaxPx ? dust.phone : dust.desktop, tier)} material={resources.dust} />
+      )}
     </>
   )
 }

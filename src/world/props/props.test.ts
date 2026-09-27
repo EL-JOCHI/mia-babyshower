@@ -1,7 +1,9 @@
 import * as THREE from 'three'
 import { afterAll, describe, expect, it } from 'vitest'
+import { tierCount } from '../../logic/deviceTier'
 import { tuning, type PropName } from '../../tuning'
 import { buildProps, disposeBuiltProps, propDrawCalls, propFactories, totalCalls } from './build'
+import { buildMoodProps, disposeMoodBuild, moodDrawCalls, moodMaterials, skyAndMotesCalls } from './moodProps'
 
 describe('the lived-in attic (spec §5)', () => {
   it('builds every prop from a pure factory: the same shapes on every call', () => {
@@ -47,12 +49,21 @@ describe('the lived-in attic (spec §5)', () => {
 describe('the draw-call budget (spec §8)', () => {
   const built = buildProps()
   afterAll(() => disposeBuiltProps(built))
+  const cases = (['saturday', 'sunday'] as const).flatMap((mood) =>
+    (['dark', 'light'] as const).flatMap((theme) => (['normal', 'low'] as const).map((tier) => [mood, theme, tier] as const)),
+  )
 
-  it('fits the props into the book and level 2 budgets, with few materials', () => {
-    const calls = propDrawCalls(built)
+  it.each(cases)('keeps %s %s on a %s device within 100 calls in the book and 60 behind the cards', (mood, theme, tier) => {
+    const look = tuning.world.looks[mood][theme]
+    const build = buildMoodProps(mood)
+    const calls = totalCalls(propDrawCalls(built)) + moodDrawCalls(build) + skyAndMotesCalls(look)
     const { book, backdrop, bookAtRest, attic, materials } = tuning.world.budget
-    expect(bookAtRest + totalCalls(calls)).toBeLessThanOrEqual(book)
-    expect(attic + totalCalls(calls)).toBeLessThanOrEqual(backdrop)
-    expect(calls.materials).toBeLessThanOrEqual(materials)
+    expect(bookAtRest + calls).toBeLessThanOrEqual(book)
+    expect(attic + calls).toBeLessThanOrEqual(backdrop)
+    expect(propDrawCalls(built).materials + moodMaterials[mood].length).toBeLessThanOrEqual(materials)
+    // A low device draws fewer stars and fireflies, never more (the calls stay the same: one each).
+    expect(tierCount(tuning.world.stars.count, tier)).toBeLessThanOrEqual(tuning.world.stars.count)
+    expect(tierCount(tuning.world.mood.fireflies.count, tier)).toBeLessThanOrEqual(tuning.world.mood.fireflies.count)
+    disposeMoodBuild(build)
   })
 })
