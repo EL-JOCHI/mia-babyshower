@@ -1,0 +1,173 @@
+/* The game layer (design §6): the quest log and the badge toasts, in Pixelify Sans. Imported into
+   the components layer by index.css. */
+
+/* ---------- The quest log ---------- */
+/* First in the HUD's row: it keeps the left, and the controls stay on the right. It shrinks and
+   wraps its own lines before it ever pushes a control off its row. */
+.quest-log {
+  display: grid;
+  flex: 0 1 auto;
+  gap: 4px;
+  min-width: 0;
+  max-width: 16rem;
+  margin-right: auto;
+  padding: 6px 10px 7px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--field) 90%, transparent);
+  box-shadow:
+    0 0 0 2px var(--field),
+    0 0 0 3.5px var(--accent);
+  color: var(--ink);
+  font-family: var(--font-game);
+  font-size: 12px;
+  line-height: 1.2;
+  backdrop-filter: blur(4px);
+  transition: opacity 200ms ease;
+}
+
+/* A toast takes the quest log's place for a moment; they cross-fade as the toast leaves. */
+.app:has(.badge-toast:not(.is-leaving)) .quest-log {
+  opacity: 0;
+}
+
+/* Nothing to press here: the room behind stays draggable. */
+.hud > .quest-log {
+  pointer-events: none;
+}
+
+.quest-log p {
+  margin: 0;
+}
+
+.quest-level {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+}
+
+.quest-level-number {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.quest-bar {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--field) 70%, var(--plum));
+}
+
+.quest-bar-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--rose), var(--candle));
+  transform: scaleX(var(--fill));
+  transform-origin: 0 50%;
+  transition: transform var(--bar-ms) var(--spring);
+}
+
+.quest-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+}
+
+.quest-xp {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* ---------- The badge toasts ---------- */
+/* One at a time, laid over the quest log in the top-left corner, so a toast never covers a page
+   or a control; when it goes, the quest log shows the new count. They never take a tap. */
+.badge-toasts {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: 10px;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.badge-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 11rem;
+  max-width: min(300px, calc(100vw - 150px));
+  padding: 8px 16px 9px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px var(--accent),
+    0 10px 24px color-mix(in oklab, var(--shadow) 45%, transparent);
+  transform-origin: 0 50%;
+  animation: toast-in 420ms var(--spring) both;
+}
+
+.badge-toast.is-leaving {
+  animation: toast-out var(--toast-leave-ms) ease-in forwards;
+}
+
+.badge-toast.is-level-up {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px var(--candle),
+    0 0 26px color-mix(in oklab, var(--candle) 55%, transparent),
+    0 10px 24px color-mix(in oklab, var(--shadow) 45%, transparent);
+}
+
+.badge-toast-icon {
+  font-size: 24px;
+  line-height: 1;
+  color: var(--accent-text);
+}
+
+.badge-toast-text p {
+  margin: 0;
+}
+
+.badge-toast-name {
+  font-family: var(--font-title);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.badge-toast-xp {
+  font-family: var(--font-game);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.badge-toast-level {
+  margin-top: 2px;
+  font-family: var(--font-game);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-18px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}

@@ -9,9 +9,12 @@ import { useProgress } from '../hooks/useProgress'
 import { useTheme } from '../hooks/useTheme'
 import type { BattleCat } from '../logic/battle'
 import { resolveInvite } from '../logic/invite'
+import { landmarksFor } from '../logic/layout'
 import { isPartyOver } from '../logic/party'
+import { countablePages } from '../logic/progress'
 import { tuning } from '../tuning'
 import { InkDefs } from './art/InkDefs'
+import { BadgeToasts } from './BadgeToasts'
 import { Battle } from './Battle'
 import { CardReveal } from './CardReveal'
 import { Collection } from './Collection'
@@ -34,7 +37,7 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
   const reducedMotion = useReducedMotion()
   const [theme, setTheme] = useTheme()
   const cats = useCatState()
-  const { dispatch } = useProgress()
+  const { progress, dispatch, awards, dismissAward } = useProgress()
   const { available: musicAvailable, playing: musicPlaying, audioRef, toggle: toggleMusic } = useMusic(musicUrl)
   const [collectionOpen, setCollectionOpen] = useState(false)
   const [battleCat, setBattleCat] = useState<BattleCat | null>(null)
@@ -112,6 +115,20 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
   }, [])
 
   const partyOver = opening.kind === 'day' && isPartyOver(opening.day, now)
+  const onFirstMove = useCallback(() => dispatch({ type: 'moved' }), [dispatch])
+
+  // The quest log (design §6): pages found out of the pages that count now (6, or 3 after the
+  // party), cats ever met, and XP. The gate has no pages, so it has no quest log.
+  const countable = countablePages(landmarksFor(partyOver))
+  const quest =
+    opening.kind === 'day'
+      ? {
+          pages: countable.filter((page) => progress.pages.includes(page)).length,
+          total: countable.length,
+          cats: cats.state.caught.length,
+          xp: progress.xp,
+        }
+      : null
 
   return (
     <div className="app">
@@ -124,6 +141,7 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
           onOpenCollection={openCollection}
           collectionOpen={collectionOpen}
           collectionButtonRef={collectionButton}
+          quest={quest}
         />
         {opening.kind === 'gate' ? (
           <Gate reducedMotion={reducedMotion} catState={cats.state} onGreet={onGreet} musicPlaying={musicPlaying} />
@@ -138,6 +156,9 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
             onChallenge={onChallenge}
             musicPlaying={musicPlaying}
             qrUrl={qrUrl}
+            progress={progress}
+            onEvent={dispatch}
+            onFirstMove={onFirstMove}
           />
         )}
       </div>
@@ -152,6 +173,8 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
       {battleCat && <Battle cat={battleCat} onWin={onWin} onFlee={onFlee} instant={reducedMotion} />}
       {toast && <CardReveal key={toast.at} catId={toast.id} />}
       <GreetingToast catId={toast?.id ?? null} />
+      {/* Badges and XP wait while a card is showing, so a toast never lands on the card. */}
+      <BadgeToasts awards={awards} xp={progress.xp} paused={toast !== null} onDone={dismissAward} />
       {musicAvailable && <audio ref={audioRef} src={musicUrl} loop preload="none" />}
     </div>
   )

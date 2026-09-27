@@ -1,17 +1,19 @@
-import { useMemo, useRef, useState, type CSSProperties, type FocusEvent, type UIEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent, type UIEvent } from 'react'
 import { copy, type CatId, type DayId } from '../content'
 import { useCamera } from '../hooks/useCamera'
 import { useKeyboardModality } from '../hooks/useKeyboardModality'
+import { useSettledPage } from '../hooks/useSettledPage'
 import { useViewport } from '../hooks/useViewport'
 import { cameraTargetFor, horizontalPosition } from '../logic/camera'
 import type { BattleCat } from '../logic/battle'
 import type { CatState } from '../logic/catState'
 import { stageAt } from '../logic/era'
-import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
+import { computeLayout, landmarksFor, type LandmarkId, type Layout, type Point } from '../logic/layout'
 import { isPartyOver } from '../logic/party'
+import { countablePages, type Progress, type ProgressEvent } from '../logic/progress'
 import { tuning } from '../tuning'
 import { Landmark } from './Landmark'
-import { useLandmarkContent } from './landmarkContent'
+import { usePages } from './Pages'
 import { Signposts } from './Signposts'
 import { HeartToy, PickToy, StarToy, ThunderBolt } from './Toys'
 
@@ -25,6 +27,11 @@ export interface RoomProps {
   onChallenge: (id: BattleCat) => void
   musicPlaying: boolean
   qrUrl: string | undefined
+  // The game layer (design §6): pages found and badges so far, and where page events go.
+  progress: Progress
+  onEvent: (event: ProgressEvent) => void
+  // The guest's first drag, wheel, or arrow key. Tab, Escape, and modifier keys do not count.
+  onFirstMove?: () => void
 }
 
 // Fixed decoration spots, as fractions of the layer. Deterministic, so rendering stays pure.
@@ -40,6 +47,20 @@ const nearBits = Array.from({ length: 12 }, (_, i) => ({
   kind: (['heart', 'star', 'pixel', 'thunder', 'pixel', 'pick'] as const)[i % 6],
 }))
 
+// The page the camera is centred on: the nearest one, if the camera is within
+// tuning.pages.reachShare of the screen of centring it.
+function pageInView(camera: Point, layout: Layout, ids: readonly LandmarkId[], vw: number, vh: number): LandmarkId | undefined {
+  let best: { id: LandmarkId; dx: number; dy: number } | undefined
+  for (const id of ids) {
+    const target = cameraTargetFor(layout.positions[id], layout, vw, vh)
+    const dx = Math.abs(target.x - camera.x)
+    const dy = Math.abs(target.y - camera.y)
+    if (!best || Math.hypot(dx, dy) < Math.hypot(best.dx, best.dy)) best = { id, dx, dy }
+  }
+  const { reachShare } = tuning.pages
+  return best && best.dx <= reachShare * vw && best.dy <= reachShare * vh ? best.id : undefined
+}
+
 function isOutside(el: HTMLElement): boolean {
   const r = el.getBoundingClientRect()
   // Without a layout (zero box) there is nothing to measure, so bring it into view anyway.
@@ -49,20 +70,43 @@ function isOutside(el: HTMLElement): boolean {
 
 // §3 The room, §4 How the room moves. The flat room is the fallback for reduced motion and for
 // browsers without WebGL (design §2): everything is reachable, nothing moves on its own, no canvas.
-export function FlatRoom({ day, now, reducedMotion, catState, onGreet, onChallenge, musicPlaying, qrUrl }: RoomProps) {
+export function FlatRoom({
+  day,
+  now,
+  reducedMotion,
+  catState,
+  onGreet,
+  onChallenge,
+  musicPlaying,
+  qrUrl,
+  progress,
+  onEvent,
+  onFirstMove,
+}: RoomProps) {
   const { vw, vh } = useViewport()
   const partyOver = isPartyOver(day, now)
   const ids = useMemo(() => landmarksFor(partyOver), [partyOver])
+  const pages = useMemo(() => countablePages(ids), [ids])
   const layout = useMemo(() => computeLayout(vw, vh, ids), [vw, vh, ids])
   const [start] = useState(() => cameraTargetFor(layout.positions.llegada, layout, vw, vh))
-  const cam = useCamera({ room: layout, vw, vh, reducedMotion, start })
+  const hasMoved = useRef(false)
+  const firstMove = useRef(onFirstMove)
+  useEffect(() => {
+    firstMove.current = onFirstMove
+  }, [onFirstMove])
+  const onMove = useCallback(() => {
+    if (hasMoved.current) return
+    hasMoved.current = true
+    firstMove.current?.()
+  }, [])
+  const cam = useCamera({ room: layout, vw, vh, reducedMotion, start, onMove })
   const viewport = useRef<HTMLDivElement | null>(null)
   const keyboard = useKeyboardModality()
 
   const position = horizontalPosition(cam.camera.x, layout.roomWidth, vw)
   const stage = stageAt(position)
   const depth = reducedMotion ? { far: 1, mid: 1, near: 1 } : tuning.depth
-  const content = useLandmarkContent({
+  const content = usePages({
     day,
     now,
     partyOver,
@@ -73,8 +117,16 @@ export function FlatRoom({ day, now, reducedMotion, catState, onGreet, onChallen
     onChallenge,
     musicPlaying,
     qrUrl,
+    progress,
+    onEvent,
     container: viewport,
     cameraRef: cam.cameraRef,
+  })
+
+  // Design §6: a page is found once the camera rests on it (the cover never counts).
+  const inView = pageInView(cam.camera, layout, ids, vw, vh)
+  useSettledPage(inView && pages.includes(inView) ? inView : undefined, (page) => {
+    if (!progress.pages.includes(page)) onEvent({ type: 'reachedPage', page, pages })
   })
 
   const goTo = (id: LandmarkId) => cam.glideTo(cameraTargetFor(layout.positions[id], layout, vw, vh))

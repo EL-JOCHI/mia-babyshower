@@ -14,6 +14,9 @@ interface Options {
   vh: number
   reducedMotion: boolean
   start: Point
+  // Called whenever the guest moves the room: a drag, the wheel, or an arrow key. Glides (a
+  // signpost, keyboard focus) are not the guest's own move.
+  onMove?: () => void
 }
 
 interface DragState {
@@ -43,7 +46,7 @@ const interactive = 'button, a, input, select, textarea, [data-no-drag]'
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 
 // §4: one camera position, moved by drag, touch, wheel, arrow keys, signposts, and focus.
-export function useCamera({ room, vw, vh, reducedMotion, start }: Options): CameraApi {
+export function useCamera({ room, vw, vh, reducedMotion, start, onMove }: Options): CameraApi {
   const { edgeMarginPx, glideMs, arrowStepPx, dragThresholdPx } = tuning.camera
   const [raw, setRaw] = useState<Point>(start)
   const camera = clampCamera(raw, room, vw, vh, edgeMarginPx)
@@ -54,10 +57,12 @@ export function useCamera({ room, vw, vh, reducedMotion, start }: Options): Came
   const suppressClick = useRef(false)
   const animation = useRef<number | null>(null)
   const limits = useRef({ room, vw, vh })
+  const moved = useRef(onMove)
 
   useEffect(() => {
     cameraRef.current = camera
     limits.current = { room, vw, vh }
+    moved.current = onMove
   })
 
   const stopGlide = useCallback(() => {
@@ -79,6 +84,7 @@ export function useCamera({ room, vw, vh, reducedMotion, start }: Options): Came
     (dx: number, dy: number) => {
       stopGlide()
       setCamera({ x: cameraRef.current.x + dx, y: cameraRef.current.y + dy })
+      moved.current?.()
     },
     [setCamera, stopGlide],
   )
@@ -164,6 +170,7 @@ export function useCamera({ room, vw, vh, reducedMotion, start }: Options): Came
         e.currentTarget.setPointerCapture?.(e.pointerId)
       }
       setCamera({ x: d.from.x - dx, y: d.from.y - dy })
+      moved.current?.()
     },
     [dragThresholdPx, setCamera],
   )

@@ -14,6 +14,7 @@ import {
 } from 'react'
 import { copy, type CatId, type DayId } from '../content'
 import { useKeyboardModality } from '../hooks/useKeyboardModality'
+import { useSettledPage } from '../hooks/useSettledPage'
 import { useWorldCamera } from '../hooks/useWorldCamera'
 import type { BattleCat } from '../logic/battle'
 import type { CatState } from '../logic/catState'
@@ -21,10 +22,11 @@ import { stageAt, type Stage } from '../logic/era'
 import { landmarksFor, type LandmarkId, type Point } from '../logic/layout'
 import { isPartyOver } from '../logic/party'
 import { stationProgress } from '../logic/path'
+import { countablePages, type Progress, type ProgressEvent } from '../logic/progress'
 import { hasWebGL } from '../logic/webgl'
 import { tuning, type ThemeName } from '../tuning'
 import { FlatRoom, type RoomProps } from './FlatRoom'
-import { useLandmarkContent } from './landmarkContent'
+import { usePages } from './Pages'
 import { Signposts } from './Signposts'
 
 const World = lazy(() => import('../world/World'))
@@ -32,8 +34,6 @@ const World = lazy(() => import('../world/World'))
 interface Props extends RoomProps {
   // The world is the same book by night (Oscuro) and by day (Claro), design §3.
   theme: ThemeName
-  // The guest's first drag, wheel, or key: it opens the cover.
-  onFirstMove?: () => void
 }
 
 // If the world fails anyway, the guest gets the flat room instead.
@@ -62,6 +62,8 @@ interface PagesProps {
   onChallenge: (id: BattleCat) => void
   musicPlaying: boolean
   qrUrl: string | undefined
+  progress: Progress
+  onEvent: (event: ProgressEvent) => void
   container: RefObject<HTMLElement | null>
   noticeCamera: { readonly current: Point }
   progressRef: { readonly current: number }
@@ -85,6 +87,8 @@ const BookPages = memo(function BookPages({
   onChallenge,
   musicPlaying,
   qrUrl,
+  progress,
+  onEvent,
   container,
   noticeCamera,
   progressRef,
@@ -93,7 +97,7 @@ const BookPages = memo(function BookPages({
   onReady,
   onFail,
 }: PagesProps) {
-  const content = useLandmarkContent({
+  const content = usePages({
     day,
     now,
     partyOver,
@@ -104,6 +108,8 @@ const BookPages = memo(function BookPages({
     onChallenge,
     musicPlaying,
     qrUrl,
+    progress,
+    onEvent,
     container,
     cameraRef: noticeCamera,
   })
@@ -158,12 +164,15 @@ function BookRoom({
   onChallenge,
   musicPlaying,
   qrUrl,
+  progress,
+  onEvent,
   theme,
   onFirstMove,
   onFail,
 }: Props & { onFail: () => void }) {
   const partyOver = isPartyOver(day, now)
   const ids = useMemo(() => landmarksFor(partyOver), [partyOver])
+  const pages = useMemo(() => countablePages(ids), [ids])
   const stations = useMemo(() => stationProgress(ids), [ids])
   const surface = useRef<HTMLDivElement | null>(null)
   const keyboard = useKeyboardModality()
@@ -177,19 +186,29 @@ function BookRoom({
     firstMove.current = onFirstMove
   }, [onFirstMove])
 
-  const openCover = useCallback(() => {
+  const openCover = useCallback(() => setMoved(true), [])
+  // A drag, the wheel, or an arrow key: the guest's own move. It opens the cover and, the first
+  // time, counts as the first move (design §6). Other keys and signposts only open the cover.
+  const onMove = useCallback(() => {
+    openCover()
     if (hasMoved.current) return
     hasMoved.current = true
-    setMoved(true)
     firstMove.current?.()
-  }, [])
+  }, [openCover])
   const onReady = useCallback(() => setReady(true), [])
 
-  const cam = useWorldCamera({ stations, reducedMotion: false, onMove: openCover })
+  const cam = useWorldCamera({ stations, reducedMotion: false, onMove })
   const { glideTo, progressRef } = cam
   const stage = stageAt(cam.progress)
   // The cover opens once the world is ready and the guest has moved, in either order.
   const opening = ready && moved
+
+  // Design §6: a page is found once the camera rests within tuning.world.stationEps of its
+  // station (the cover never counts).
+  const atStation = pages.find((id) => Math.abs(cam.progress - stations[id]) <= tuning.world.stationEps)
+  useSettledPage(atStation, (page) => {
+    if (!progress.pages.includes(page)) onEvent({ type: 'reachedPage', page, pages })
+  })
 
   // Any key opens the cover, so a keyboard never tabs into a closed book.
   useEffect(() => {
@@ -267,6 +286,8 @@ function BookRoom({
           onChallenge={onChallenge}
           musicPlaying={musicPlaying}
           qrUrl={qrUrl}
+          progress={progress}
+          onEvent={onEvent}
           container={surface}
           noticeCamera={noticeCamera}
           progressRef={progressRef}
@@ -298,6 +319,9 @@ export function WorldRoom(props: Props) {
         onChallenge={props.onChallenge}
         musicPlaying={props.musicPlaying}
         qrUrl={props.qrUrl}
+        progress={props.progress}
+        onEvent={props.onEvent}
+        onFirstMove={props.onFirstMove}
       />
     )
   }

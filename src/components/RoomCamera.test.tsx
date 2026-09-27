@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { copy } from '../content'
 import { cameraTargetFor } from '../logic/camera'
 import { emptyCatState } from '../logic/catState'
+import { emptyProgress } from '../logic/progress'
 import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
 import { hasWebGL } from '../logic/webgl'
 import { tuning } from '../tuning'
@@ -173,6 +174,8 @@ function renderWorldRoom(props: Partial<ComponentProps<typeof WorldRoom>> = {}) 
       onChallenge={vi.fn()}
       musicPlaying={false}
       qrUrl={undefined}
+      progress={emptyProgress}
+      onEvent={vi.fn()}
       theme="dark"
       {...props}
     />,
@@ -225,10 +228,15 @@ describe('the 3D book and its fallback (design §2)', () => {
 
   it('opens the cover on any key, so the keyboard never tabs into a closed book', async () => {
     world.mode = 'ready'
-    renderWorldRoom()
+    const onFirstMove = vi.fn()
+    renderWorldRoom({ onFirstMove })
     await bookReady()
     fireEvent.keyDown(window, { key: 'Tab' })
     expect(cover()).toHaveClass('is-opening')
+    // Tab opens the book for the keyboard, but only a real move counts as the first move.
+    expect(onFirstMove).not.toHaveBeenCalled()
+    fireEvent.keyDown(window, { key: 'ArrowRight' })
+    expect(onFirstMove).toHaveBeenCalledTimes(1)
   })
 
   it('falls back to the flat room when the world never gets ready (facts are never gated)', async () => {
@@ -265,6 +273,8 @@ describe('the 3D book and its fallback (design §2)', () => {
         onChallenge={vi.fn()}
         musicPlaying={false}
         qrUrl={undefined}
+        progress={emptyProgress}
+        onEvent={vi.fn()}
         theme="light"
       />,
     )
@@ -315,6 +325,25 @@ describe('the 3D book and its fallback (design §2)', () => {
       fireEvent.keyDown(window, { key: 'ArrowLeft' })
       settle()
       expect(screen.getByRole('main')).toHaveAttribute('data-era', 'boceto')
+    })
+
+    it('counts the page the camera comes to rest on, and not the pages it glides past (design §6)', async () => {
+      const onEvent = vi.fn()
+      renderWorldRoom({ onEvent })
+      await bookReady()
+      // The settle wait is a timeout: fake it too, now that waitFor is done.
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'setTimeout', 'clearTimeout'] })
+      fireEvent.click(screen.getByRole('button', { name: 'La familia' }))
+      settle()
+      act(() => {
+        vi.advanceTimersByTime(tuning.pages.settleMs + 10)
+      })
+      expect(onEvent).toHaveBeenCalledTimes(1)
+      expect(onEvent).toHaveBeenCalledWith({
+        type: 'reachedPage',
+        page: 'familia',
+        pages: ['palabra', 'cuando', 'donde', 'confirmar', 'presente', 'familia'],
+      })
     })
 
     it('glides to the page that keyboard focus enters (FR-11)', async () => {

@@ -62,6 +62,8 @@ export const tokens = {
   candle: '#F2B84B',
   // Palette ink as a constant (the theme's --ink flips with the theme): shadows under paper.
   shadow: '#140E14',
+  // Fresh paper, lighter than the page: pinned notes, the letter, the QR plate.
+  paperWhite: '#FFFFFF',
   // Legacy aliases: components not yet ported to the new palette read these names.
   // A later task removes them once every component uses the tokens above directly.
   hotPink: '#E08AAB',
@@ -85,6 +87,12 @@ export interface ThemeTokens {
   catBody: string
   // The paper each cat is cut from (design §4).
   catPaper: string
+  // The pop-up pages are parchment in both themes (design §3: bone parchment cards, rose never as
+  // text on bone): the paper, its ink, its accent text, and its hand-drawn inner line.
+  page: string
+  pageInk: string
+  pageAccentText: string
+  pageLine: string
 }
 
 export const themes: Record<ThemeName, ThemeTokens> = {
@@ -99,6 +107,10 @@ export const themes: Record<ThemeName, ThemeTokens> = {
     buttonInk: tokens.ink,
     catBody: tokens.ink,
     catPaper: tokens.bone,
+    page: tokens.bone,
+    pageInk: tokens.ink,
+    pageAccentText: tokens.deepRose,
+    pageLine: 'rgba(60,31,61,0.45)',
   },
   light: {
     field: tokens.bone,
@@ -111,6 +123,10 @@ export const themes: Record<ThemeName, ThemeTokens> = {
     buttonInk: tokens.ink,
     catBody: '#111111',
     catPaper: '#FBF5EA',
+    page: '#FBF5EA',
+    pageInk: tokens.ink,
+    pageAccentText: tokens.deepRose,
+    pageLine: 'rgba(60,31,61,0.4)',
   },
 }
 
@@ -221,6 +237,30 @@ export const tuning = {
     scratchFadeMs: 2200,
   },
   greetingToastMs: 4500,
+  // The pop-up pages (design §5). A page counts as found once the view rests on it for `settleMs`:
+  // within world.stationEps of its station in the book, or, in the flat room, when it is the page
+  // nearest the camera and within `reachShare` of the screen of being centred. Gliding past a page
+  // does not count. The stamp presses in over `stampMs`; the paper gives a "fwip" over `fwipMs`.
+  pages: { settleMs: 350, reachShare: 0.25, stampMs: 700, fwipMs: 560 },
+  // The themed objects on the pages (design §5).
+  objects: {
+    // The candle is whole `candleDays` before the party and burns down to `candleStub` of its
+    // wax at the start. The flame flickers every `flickerMs`; the hourglass pours for `sandMs`.
+    // Palabra's candle stands beside the verse with `verseWax` of its wax left.
+    candle: { candleDays: 30, candleStub: 0.12, flickerMs: 1700, verseWax: 0.8 },
+    sandMs: 3200,
+    // A countdown digit flips down over `flipMs` when it changes.
+    flipMs: 420,
+    // The treasure map unrolls from the centre, then the pin drops.
+    map: { unrollMs: 900, pinDelayMs: 650, pinMs: 520 },
+    // The wax seal presses onto the letter.
+    sealMs: 640,
+    // The gift box: the ribbon unties, then the lid lifts.
+    gift: { untieMs: 420, liftMs: 700, liftDelayMs: 260 },
+  },
+  // The quest log and the badge toasts (design §6). A toast stays `toastMs`, fading out over the
+  // last `toastLeaveMs`. The XP bar fills over `barMs`.
+  quest: { toastMs: 2800, toastLeaveMs: 320, barMs: 600 },
   familyEnterMs: 1800,
   progress: {
     levels: [0, 60, 180, 360, 600],
@@ -240,7 +280,9 @@ export const tuning = {
     phoneMaxPx: 768,
     // The camera path: stations spread along the book in a gentle S. The camera sits `lift` above
     // each station and backs off until a page of `frameWidth` by `frameHeight` fits the screen.
-    path: { length: 19.2, sway: 1.1, lift: 1.6, lookHeight: 1, minPullBack: 3.4, frameWidth: 2.2, frameHeight: 5 },
+    // The camera looks `lookHeight` above the page's foot, so the tallest page (Presente, with its
+    // QR) stands clear of the HUD at the top of a phone.
+    path: { length: 19.2, sway: 1.1, lift: 1.6, lookHeight: 1.3, minPullBack: 3.4, frameWidth: 2.2, frameHeight: 5 },
     // Until the cover opens, the camera waits on a wide view of the book, then swoops down to the first page.
     rig: {
       damping: 3,

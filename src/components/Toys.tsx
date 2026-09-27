@@ -69,14 +69,3 @@ export function ThunderBolt({ size = 36, className = '' }: ToyProps) {
     </svg>
   )
 }
-
-export function BowToy({ size = 34, className = '' }: ToyProps) {
-  return (
-    <svg className={`toy toy-bow ${className}`} viewBox="-18 -12 36 24" width={size} height={(size * 24) / 36} aria-hidden="true">
-      <path d="M0 0 L-15 -9 C -18 -3, -18 3, -15 9 Z" fill="var(--hot-pink)" />
-      <path d="M0 0 L15 -9 C 18 -3, 18 3, 15 9 Z" fill="var(--hot-pink)" />
-      <path d="M-2 2 L-7 11 M2 2 L7 11" stroke="var(--hot-pink)" strokeWidth={2.4} strokeLinecap="round" />
-      <circle r={3.4} fill="var(--deep-pink)" />
-    </svg>
-  )
-}

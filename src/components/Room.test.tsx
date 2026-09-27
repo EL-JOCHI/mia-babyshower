@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { battleCopy, copy, days, shared } from '../content'
+import { battleCopy, copy, days, gameCopy, shared } from '../content'
 import { FlatRoom } from './FlatRoom'
 import { cameraTargetFor } from '../logic/camera'
 import { computeLayout, landmarksFor } from '../logic/layout'
@@ -93,6 +93,105 @@ describe('US-1 Read my invitation by moving through the room', () => {
       .getAllByRole('button')
       .map((b) => b.textContent)
     expect(names).toEqual(['Inicio', 'La fecha', 'El lugar', 'Confirmar', 'El regalo', 'La familia'])
+  })
+})
+
+describe('US-15 Moving and reaching pages in the flat room (design §6)', () => {
+  it('reports the first move once, from the first arrow key, and never from Tab', () => {
+    const { onFirstMove } = renderRoom({ reducedMotion: true })
+    fireEvent.keyDown(window, { key: 'Tab' })
+    fireEvent.keyDown(window, { key: 'Escape' })
+    fireEvent.keyDown(window, { key: 'Shift' })
+    expect(onFirstMove).not.toHaveBeenCalled()
+    fireEvent.keyDown(window, { key: 'ArrowRight' })
+    fireEvent.keyDown(window, { key: 'ArrowDown' })
+    fireEvent.wheel(document.querySelector('.room-viewport')!, { deltaY: 40 })
+    expect(onFirstMove).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports the first move from a drag or the wheel too, but not from a signpost', () => {
+    const wheel = renderRoom({ reducedMotion: true })
+    fireEvent.click(signposts().getByRole('button', { name: 'La fecha' }))
+    expect(wheel.onFirstMove).not.toHaveBeenCalled()
+    fireEvent.wheel(document.querySelector('.room-viewport')!, { deltaY: 40 })
+    expect(wheel.onFirstMove).toHaveBeenCalledTimes(1)
+  })
+
+  describe('reaching a page', () => {
+    beforeEach(() => vi.useFakeTimers())
+    afterEach(() => vi.useRealTimers())
+
+    it('reports a page once the camera rests on it, with the pages that count', () => {
+      const { onEvent } = renderRoom({ reducedMotion: true })
+      fireEvent.click(signposts().getByRole('button', { name: 'La fecha' }))
+      expect(onEvent).not.toHaveBeenCalled()
+      advance(tuning.pages.settleMs + 10)
+      expect(onEvent).toHaveBeenCalledTimes(1)
+      expect(onEvent).toHaveBeenCalledWith({
+        type: 'reachedPage',
+        page: 'cuando',
+        pages: ['palabra', 'cuando', 'donde', 'confirmar', 'presente', 'familia'],
+      })
+    })
+
+    it('does not count a page the camera only passes', () => {
+      const { onEvent } = renderRoom({ reducedMotion: true })
+      fireEvent.click(signposts().getByRole('button', { name: 'La fecha' }))
+      advance(tuning.pages.settleMs / 2)
+      fireEvent.click(signposts().getByRole('button', { name: 'El lugar' }))
+      advance(tuning.pages.settleMs + 10)
+      expect(onEvent).toHaveBeenCalledTimes(1)
+      expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({ type: 'reachedPage', page: 'donde' }))
+    })
+  })
+
+  it('stamps a found page, and not the others', () => {
+    renderRoom({ progress: { pages: ['cuando'], badges: ['fecha'], xp: 30 } })
+    expect(within(landmark('cuando') as HTMLElement).getByText(gameCopy.pageFound)).toBeInTheDocument()
+    expect(within(landmark('donde') as HTMLElement).queryByText(gameCopy.pageFound)).not.toBeInTheDocument()
+  })
+
+  it('keeps the gift box closed and the map rolled until their pages are found', () => {
+    const view = renderRoom({ qrUrl: '/qr.png' })
+    expect(document.querySelector('.gift-box')).not.toHaveClass('is-open')
+    expect(document.querySelector('.treasure-map')).not.toHaveClass('is-unrolled')
+    // The facts stay reachable while the box is closed.
+    expect(screen.getByRole('img', { name: copy.qrAlt })).toBeInTheDocument()
+    expect(screen.getByText(shared.place)).toBeInTheDocument()
+    view.rerender(<FlatRoom {...view.props} progress={{ pages: ['donde', 'presente'], badges: [], xp: 0 }} />)
+    expect(document.querySelector('.gift-box')).toHaveClass('is-open')
+    expect(document.querySelector('.treasure-map')).toHaveClass('is-unrolled')
+  })
+
+  it('opens the gift box when something inside it takes focus', () => {
+    renderRoom({ qrUrl: '/qr.png' })
+    act(() => screen.getByRole('button', { name: copy.qrSave }).focus())
+    expect(document.querySelector('.gift-box')).toHaveClass('is-open')
+  })
+
+  it('shows the pending sentence inside the box when there is no QR', () => {
+    renderRoom({ qrUrl: undefined })
+    expect(document.querySelector('.gift-box')).toContainElement(screen.getByText(copy.qrPending))
+  })
+
+  it('reports Guardar QR and Confirmar por WhatsApp as progress events', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+    try {
+      const { onEvent } = renderRoom({ qrUrl: '/qr.png' })
+      fireEvent.click(screen.getByRole('button', { name: copy.qrSave }))
+      expect(onEvent).toHaveBeenCalledWith({ type: 'savedQr' })
+      fireEvent.click(screen.getByRole('link', { name: copy.confirm }))
+      expect(onEvent).toHaveBeenCalledWith({ type: 'confirmed' })
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('presses the wax seal once the invitation is sealed', () => {
+    const view = renderRoom()
+    expect(document.querySelector('.wax-seal')).not.toHaveClass('is-sealed')
+    view.rerender(<FlatRoom {...view.props} progress={{ pages: [], badges: ['sellada'], xp: 50 }} />)
+    expect(document.querySelector('.wax-seal')).toHaveClass('is-sealed')
   })
 })
 

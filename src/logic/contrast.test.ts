@@ -43,8 +43,15 @@ describe('theme contrast (US-2 AC4, design §3 Burton pink noir)', () => {
       ['accentText on field', t.accentText, t.field],
       ['accentText on surface', t.accentText, t.surface],
       ['buttonInk on buttonBg', t.buttonInk, t.buttonBg],
+      // The parchment pages and their stamp.
+      ['pageInk on page', t.pageInk, t.page],
+      ['pageAccentText on page', t.pageAccentText, t.page],
     ] as const
   }
+
+  it('never sets rose text on the parchment pages (design §3)', () => {
+    for (const name of ['dark', 'light'] as const) expect(themes[name].pageAccentText).not.toBe(tokens.rose)
+  })
 
   for (const name of ['dark', 'light'] as const) {
     it(`meets 4.5:1 for every wired-up text pair in the ${name} theme`, () => {

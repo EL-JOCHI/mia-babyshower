@@ -22,6 +22,10 @@ function cssVars(theme: ThemeTokens): string {
     `--button-ink:${theme.buttonInk}`,
     `--cat-body:${theme.catBody}`,
     `--cat-paper:${theme.catPaper}`,
+    `--page:${theme.page}`,
+    `--page-ink:${theme.pageInk}`,
+    `--page-accent-text:${theme.pageAccentText}`,
+    `--page-line:${theme.pageLine}`,
     // Burton pink noir (design §3).
     `--bone:${tokens.bone}`,
     `--rose:${tokens.rose}`,
@@ -29,6 +33,7 @@ function cssVars(theme: ThemeTokens): string {
     `--plum:${tokens.plum}`,
     `--candle:${tokens.candle}`,
     `--shadow:${tokens.shadow}`,
+    `--paper-white:${tokens.paperWhite}`,
     // Legacy aliases: components not yet ported to the new palette read these names.
     // A later task removes them once every component uses the variables above directly.
     `--hot-pink:${tokens.hotPink}`,

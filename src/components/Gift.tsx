@@ -1,12 +1,16 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { copy } from '../content'
 import { tuning } from '../tuning'
-import { BowToy } from './Toys'
+import { GiftBox } from './GiftBox'
 
 interface Props {
   qrUrl: string | undefined
+  // The gift box stands open (the page is found, or motion is reduced).
+  open: boolean
   tilting: boolean
   onQrTap: () => void
+  // Guardar QR was tapped (the QR guardado badge).
+  onSave: () => void
   nana?: ReactNode
 }
 
@@ -43,8 +47,9 @@ export async function saveQr(url: string, prefetched?: Blob | null): Promise<voi
   download(url)
 }
 
-// Presente (BR-6): presence first, then the QR, then the line that the guest chooses the amount.
-export function Gift({ qrUrl, tilting, onQrTap, nana }: Props) {
+// Presente (BR-6): presence first, then the QR in its gift box with Guardar QR below, then the
+// line that the guest chooses the amount.
+export function Gift({ qrUrl, open, tilting, onQrTap, onSave, nana }: Props) {
   const blob = useRef<Blob | null>(null)
 
   useEffect(() => {
@@ -61,32 +66,39 @@ export function Gift({ qrUrl, tilting, onQrTap, nana }: Props) {
     }
   }, [qrUrl])
 
+  const save = qrUrl ? (
+    <button
+      type="button"
+      className="button button-secondary"
+      onClick={() => {
+        // Share first, still inside the tap, as iOS requires; then count it.
+        void saveQr(qrUrl, blob.current)
+        onSave()
+      }}
+    >
+      {copy.qrSave}
+    </button>
+  ) : null
+
   return (
     <div className="gift">
-      <BowToy className="gift-bow" />
       <p className="gift-lead">{copy.giftLead}</p>
-      <div className="qr-block">
-        <div className="qr-perch">{nana}</div>
+      <GiftBox open={open} perch={nana} below={save}>
         {qrUrl ? (
-          <>
-            <figure className={`qr-plate${tilting ? ' is-tilting' : ''}`} data-no-drag onClick={onQrTap}>
-              <img
-                src={qrUrl}
-                alt={copy.qrAlt}
-                width={tuning.qr.minPx}
-                height={tuning.qr.minPx}
-                style={{ width: tuning.qr.minPx, height: tuning.qr.minPx }}
-                draggable={false}
-              />
-            </figure>
-            <button type="button" className="button button-secondary" onClick={() => void saveQr(qrUrl, blob.current)}>
-              {copy.qrSave}
-            </button>
-          </>
+          <figure className={`qr-plate${tilting ? ' is-tilting' : ''}`} data-no-drag onClick={onQrTap}>
+            <img
+              src={qrUrl}
+              alt={copy.qrAlt}
+              width={tuning.qr.minPx}
+              height={tuning.qr.minPx}
+              style={{ width: tuning.qr.minPx, height: tuning.qr.minPx }}
+              draggable={false}
+            />
+          </figure>
         ) : (
           <p className="qr-pending">{copy.qrPending}</p>
         )}
-      </div>
+      </GiftBox>
       <p className="gift-offer">{copy.giftOffer}</p>
     </div>
   )

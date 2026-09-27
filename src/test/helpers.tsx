@@ -4,6 +4,7 @@ import { FlatRoom } from '../components/FlatRoom'
 import type { CatId, DayId } from '../content'
 import type { BattleCat } from '../logic/battle'
 import { emptyCatState, type CatState } from '../logic/catState'
+import { emptyProgress, type Progress } from '../logic/progress'
 
 export const at = (iso: string) => Date.parse(iso)
 
@@ -21,11 +22,14 @@ interface RoomOptions {
   onChallenge?: (id: BattleCat) => void
   musicPlaying?: boolean
   qrUrl?: string
+  progress?: Progress
 }
 
 export function renderRoom(options: RoomOptions = {}) {
   const onGreet = options.onGreet ?? vi.fn()
   const onChallenge = options.onChallenge ?? vi.fn()
+  const onEvent = vi.fn()
+  const onFirstMove = vi.fn()
   const props = {
     day: options.day ?? ('sat' as DayId),
     now: options.now ?? beforeSatCutoff,
@@ -35,9 +39,12 @@ export function renderRoom(options: RoomOptions = {}) {
     onChallenge,
     musicPlaying: options.musicPlaying ?? false,
     qrUrl: options.qrUrl,
+    progress: options.progress ?? emptyProgress,
+    onEvent,
+    onFirstMove,
   }
   const view = render(<FlatRoom {...props} />)
-  return { ...view, onGreet, onChallenge, props }
+  return { ...view, onGreet, onChallenge, onEvent, onFirstMove, props }
 }
 
 // Put every cat in the middle of the viewport, so noticing can run in jsdom.

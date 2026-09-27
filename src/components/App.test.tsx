@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { battleCopy, copy, days, shared } from '../content'
+import { battleCopy, copy, days, gameCopy, shared } from '../content'
 import { storageKeys } from '../logic/storageKeys'
+import { whatsappUrl } from '../logic/whatsapp'
 import { tuning } from '../tuning'
 import { advance, at, beforeSatCutoff, catsInView, satCutoff, stubMedia } from '../test/helpers'
 import { App } from './App'
@@ -307,6 +308,124 @@ describe('US-14 The legendary battle and the card reward (design §6, §7)', () 
     fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
     expect(stored(storageKeys.cats).round).toEqual(['luz'])
     expect(localStorage.getItem(storageKeys.progress)).toBe(progress)
+  })
+})
+
+describe('US-15 The game layer: pages, badges, and XP (design §5, §6)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date', 'requestAnimationFrame', 'cancelAnimationFrame', 'performance'],
+    })
+    vi.setSystemTime(beforeSatCutoff)
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  const toast = () => screen.getByTestId('badge-toast')
+  // The camera glides to the page, then rests there long enough to count as arriving.
+  const arrive = () => {
+    advance(tuning.camera.glideMs + 50)
+    advance(tuning.pages.settleMs + 10)
+  }
+
+  it('counts Cuándo once the camera arrives from La fecha, with its badge and XP', () => {
+    render(<App search="?e=n4vk" />)
+    expect(screen.getByText(gameCopy.pages(0, 6))).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'La fecha' }))
+    arrive()
+    expect(screen.getByText(gameCopy.pages(1, 6))).toBeInTheDocument()
+    expect(toast()).toHaveTextContent(gameCopy.badges.fecha)
+    expect(toast()).toHaveTextContent(gameCopy.badgeXp(tuning.progress.badgeXp.fecha))
+    expect(stored(storageKeys.progress)).toEqual({ pages: ['cuando'], badges: ['fecha'], xp: tuning.progress.badgeXp.fecha })
+  })
+
+  it('counts three pages after the party', () => {
+    vi.setSystemTime(satCutoff)
+    render(<App search="?e=n4vk" />)
+    expect(screen.getByText(gameCopy.pages(0, 3))).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'La familia' }))
+    arrive()
+    expect(screen.getByText(gameCopy.pages(1, 3))).toBeInTheDocument()
+    expect(toast()).toHaveTextContent(gameCopy.badges.puerta)
+  })
+
+  it('seals the invitation from Confirmar por WhatsApp, and the link still opens WhatsApp at once', () => {
+    render(<App search="?e=n4vk" />)
+    const link = screen.getByRole('link', { name: copy.confirm })
+    // The click's default action (opening WhatsApp in a new tab) is never held back.
+    expect(fireEvent.click(link)).toBe(true)
+    expect(link).toHaveAttribute('href', whatsappUrl('sat'))
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(toast()).toHaveTextContent(gameCopy.badges.sellada)
+    expect(toast()).toHaveTextContent(gameCopy.badgeXp(tuning.progress.badgeXp.sellada))
+    expect(stored(storageKeys.progress).badges).toEqual(['sellada'])
+  })
+
+  it('earns QR guardado from Guardar QR', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+    render(<App search="?e=n4vk" qrUrl="/qr.png" />)
+    fireEvent.click(screen.getByRole('button', { name: copy.qrSave }))
+    expect(toast()).toHaveTextContent(gameCopy.badges.qrGuardado)
+    expect(toast()).toHaveTextContent(gameCopy.badgeXp(tuning.progress.badgeXp.qrGuardado))
+    expect(stored(storageKeys.progress).badges).toEqual(['qrGuardado'])
+  })
+
+  it('earns Abriste el cuento from the first arrow key, and not from Tab', () => {
+    render(<App search="?e=n4vk" />)
+    fireEvent.keyDown(window, { key: 'Tab' })
+    expect(screen.queryByTestId('badge-toast')).not.toBeInTheDocument()
+    expect(localStorage.getItem(storageKeys.progress)).toBeNull()
+    fireEvent.keyDown(window, { key: 'ArrowRight' })
+    expect(toast()).toHaveTextContent(gameCopy.badges.openBook)
+    expect(toast()).toHaveTextContent(gameCopy.badgeXp(tuning.progress.badgeXp.openBook))
+  })
+
+  it('shows one toast at a time, each for a while, with the level-up line when the level rises', () => {
+    localStorage.setItem(storageKeys.progress, JSON.stringify({ pages: [], badges: ['openBook'], xp: 50 }))
+    render(<App search="?e=n4vk" />)
+    expect(screen.getByText(gameCopy.level(1))).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('link', { name: copy.confirm }))
+    fireEvent.click(screen.getByRole('button', { name: 'La fecha' }))
+    arrive()
+    expect(screen.getAllByTestId('badge-toast')).toHaveLength(1)
+    expect(toast()).toHaveTextContent(gameCopy.badges.sellada)
+    expect(toast()).toHaveTextContent(gameCopy.levelUp(2))
+    expect(screen.getByText(gameCopy.level(2))).toBeInTheDocument()
+    advance(tuning.quest.toastMs)
+    expect(toast()).toHaveTextContent(gameCopy.badges.fecha)
+    expect(toast()).not.toHaveTextContent(gameCopy.levelUp(2))
+    advance(tuning.quest.toastMs)
+    expect(screen.queryByTestId('badge-toast')).not.toBeInTheDocument()
+  })
+
+  it('holds the badge toasts until the card has gone, and counts the cat in the quest log', () => {
+    catsInView()
+    render(<App search="?e=n4vk" />)
+    expect(screen.getByText(gameCopy.cats(0))).toBeInTheDocument()
+    advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    expect(screen.getByText(gameCopy.cats(1))).toBeInTheDocument()
+    expect(screen.getByTestId('card-reveal')).toBeInTheDocument()
+    expect(screen.queryByTestId('badge-toast')).not.toBeInTheDocument()
+    advance(tuning.greetingToastMs + 10)
+    expect(toast()).toHaveTextContent(gameCopy.badgeXp(tuning.progress.catXp.comun))
+  })
+
+  it('shows every object already open with reduced motion: the gift box with the QR, and the map', () => {
+    window.__prefersReducedMotion = true
+    render(<App search="?e=n4vk" qrUrl="/qr.png" />)
+    const box = document.querySelector<HTMLElement>('.gift-box')!
+    expect(box).toHaveClass('is-open')
+    expect(within(box).getByRole('img', { name: copy.qrAlt })).toBeInTheDocument()
+    expect(within(box).getByRole('button', { name: copy.qrSave })).toBeInTheDocument()
+    expect(document.querySelector('.treasure-map')).toHaveClass('is-unrolled')
+  })
+
+  it('shows no quest log on the gate', () => {
+    render(<App search="" />)
+    expect(screen.queryByText(gameCopy.pages(0, 6))).not.toBeInTheDocument()
   })
 })
 
