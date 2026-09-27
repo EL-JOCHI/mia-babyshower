@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { copy, days, shared } from './content'
-import { firstPaint, headMeta, openingScript, themeCss } from './headMeta'
-import { tuning } from './tuning'
+import { dioramaCss, firstPaint, headMeta, openingScript, themeCss } from './headMeta'
+import { cssColor, feelingColors, tokens, tuning } from './tuning'
 
 const siteUrl = 'https://el-jochi.github.io/mia-babyshower/'
 
@@ -45,6 +45,38 @@ describe('screenCss (design §9)', () => {
     expect(headMeta(siteUrl)).toContain(
       `:root{--ui-px:clamp(1px, calc(1px + (100vw - ${fromPx}px) * ${grow} / ${toPx - fromPx}), ${1 + grow}px)}`,
     )
+  })
+})
+
+describe('dioramaCss (spec §7 Level 3)', () => {
+  const css = dioramaCss()
+
+  it('emits one block of colors per mood and theme, from the attic looks', () => {
+    for (const mood of ['saturday', 'sunday'] as const) {
+      for (const theme of ['dark', 'light'] as const) {
+        const look = tuning.world.looks[mood][theme]
+        expect(css).toContain(
+          `:root[data-theme="${theme}"] [data-mood="${mood}"]{--diorama-sky-top:${cssColor(look.skyTop)};--diorama-sky-bottom:${cssColor(look.skyBottom)};`,
+        )
+        expect(css).toContain(`--diorama-orb:${cssColor(look.orb)};`)
+      }
+    }
+  })
+
+  it('places the moon or the sun where the 3D window has it, in the diorama window units', () => {
+    const look = tuning.world.looks.saturday.dark
+    const { windowRadius } = tuning.world.attic
+    const dx = Number(((look.orbAt[0] / windowRadius) * tuning.diorama.windowRadius).toFixed(2))
+    expect(css).toContain(`--diorama-orb-dx:${dx}px`)
+  })
+
+  it('is part of the head styles', () => {
+    expect(headMeta(siteUrl)).toContain(dioramaCss())
+  })
+
+  it('uses only the palette tokens and the feeling colors (no new colors)', () => {
+    const allowed = new Set([...Object.values(tokens), ...Object.values(feelingColors)].map((c) => c.toUpperCase()))
+    for (const hex of css.match(/#[0-9A-Fa-f]{6}/g) ?? []) expect(allowed.has(hex.toUpperCase()), hex).toBe(true)
   })
 })
 

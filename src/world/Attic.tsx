@@ -21,7 +21,7 @@ function createAttic() {
   const moon = new THREE.MeshBasicMaterial({ fog: false })
   const halo = new THREE.MeshBasicMaterial({
     transparent: true,
-    opacity: tuning.world.attic.moon.haloOpacity,
+    opacity: tuning.world.attic.orb.haloOpacity,
     depthWrite: false,
     fog: false,
   })
@@ -67,7 +67,7 @@ function applyPalette(parts: AtticParts, palette: WorldPalette) {
   paint(parts.floor, palette.floor)
   paint(parts.wall, palette.wood)
   paint(parts.beam, palette.beam)
-  paint(parts.sky, palette.sky)
+  paint(parts.sky, palette.skyBottom)
   paint(parts.moon, palette.orb)
   paint(parts.halo, palette.halo)
 }
@@ -94,7 +94,9 @@ export function Attic({ palette }: { palette: WorldPalette }) {
   useEffect(() => () => disposeAttic(parts), [parts])
   // Switching theme retints the attic in place.
   useLayoutEffect(() => applyPalette(parts, palette), [parts, palette])
-  const { wallZ, frontZ, halfWidth, ridge, eave, windowY, windowRadius, rafterGap, moon, skyScale } = tuning.world.attic
+  const { wallZ, frontZ, halfWidth, ridge, eave, windowY, windowRadius, rafterGap, orb, skyScale } = tuning.world.attic
+  const orbRadius = orb.radius * palette.orbSize
+  const [orbX, orbY] = palette.orbAt
   const midZ = (wallZ + frontZ) / 2
   const rafterZs: number[] = []
   for (let z = wallZ + rafterGap / 2; z < frontZ; z += rafterGap) rafterZs.push(z)
@@ -110,8 +112,8 @@ export function Attic({ palette }: { palette: WorldPalette }) {
         <mesh geometry={parts.barGeometry} material={parts.beam} rotation-z={Math.PI / 2} />
       </group>
       <mesh geometry={parts.discGeometry} material={parts.sky} position={[0, windowY, wallZ - 0.8]} scale={windowRadius * skyScale} />
-      <mesh geometry={parts.discGeometry} material={parts.halo} position={[moon.x, windowY + moon.y, wallZ - 0.7]} scale={moon.halo} />
-      <mesh geometry={parts.discGeometry} material={parts.moon} position={[moon.x, windowY + moon.y, wallZ - 0.6]} scale={moon.radius} />
+      <mesh geometry={parts.discGeometry} material={parts.halo} position={[orbX, windowY + orbY, wallZ - 0.7]} scale={orbRadius * orb.halo} />
+      <mesh geometry={parts.discGeometry} material={parts.moon} position={[orbX, windowY + orbY, wallZ - 0.6]} scale={orbRadius} />
 
       {/* Short knee walls close the gap under the eaves. */}
       {[-1, 1].map((side) => (

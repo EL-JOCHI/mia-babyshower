@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { days } from '../content'
 import { tuning } from '../tuning'
-import { shouldPreloadWorld, wantsBook } from './book'
+import { roomLevel, shouldPreloadWorld, wantsBackdrop, wantsBook } from './book'
 
 const tall = tuning.world.minHeightPx
 const guest = { reducedMotion: false, height: 844, webgl: () => true }
@@ -45,5 +45,49 @@ describe('preloading the book (design §2 Loading)', () => {
     expect(shouldPreloadWorld(`?e=${days.sat.code}`, { ...guest, reducedMotion: true })).toBe(false)
     expect(shouldPreloadWorld(`?e=${days.sat.code}`, { ...guest, webgl: () => false })).toBe(false)
     expect(shouldPreloadWorld(`?e=${days.sat.code}`, { ...guest, height: 390 })).toBe(false)
+  })
+})
+
+describe('three levels (spec §7)', () => {
+  const env = { reducedMotion: false, height: 844, webgl: () => true, bookGaveWay: false, failed: false, backdropReady: false }
+
+  it('gives the full book to a tall screen with motion allowed and WebGL', () => {
+    expect(roomLevel(env)).toBe('book')
+    expect(roomLevel({ ...env, height: tall })).toBe('book')
+  })
+
+  it('gives the diorama with reduced motion, without asking for WebGL', () => {
+    const webgl = vi.fn(() => true)
+    expect(roomLevel({ ...env, reducedMotion: true, webgl, backdropReady: true })).toBe('diorama')
+    expect(webgl).not.toHaveBeenCalled()
+  })
+
+  it('gives the diorama without WebGL', () => {
+    expect(roomLevel({ ...env, webgl: () => false, backdropReady: true })).toBe('diorama')
+  })
+
+  it('gives a short screen the live attic once it has arrived, and the diorama until then', () => {
+    expect(roomLevel({ ...env, height: 390 })).toBe('diorama')
+    expect(roomLevel({ ...env, height: 390, backdropReady: true })).toBe('backdrop')
+  })
+
+  it('gives the live attic after the book timed out or turned too short, once it has arrived', () => {
+    expect(roomLevel({ ...env, bookGaveWay: true })).toBe('diorama')
+    expect(roomLevel({ ...env, bookGaveWay: true, backdropReady: true })).toBe('backdrop')
+  })
+
+  it('gives the diorama for the rest of the visit after a lost context or an error', () => {
+    expect(roomLevel({ ...env, failed: true, backdropReady: true })).toBe('diorama')
+    expect(roomLevel({ ...env, height: 390, failed: true, backdropReady: true })).toBe('diorama')
+  })
+
+  it('loads the live attic only where it can show', () => {
+    const start = { reducedMotion: false, height: 390, webgl: () => true, bookGaveWay: false, failed: false }
+    expect(wantsBackdrop(start)).toBe(true)
+    expect(wantsBackdrop({ ...start, height: 844 })).toBe(false)
+    expect(wantsBackdrop({ ...start, height: 844, bookGaveWay: true })).toBe(true)
+    expect(wantsBackdrop({ ...start, failed: true })).toBe(false)
+    expect(wantsBackdrop({ ...start, reducedMotion: true })).toBe(false)
+    expect(wantsBackdrop({ ...start, webgl: () => false })).toBe(false)
   })
 })

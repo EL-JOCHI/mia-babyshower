@@ -9,7 +9,7 @@ import { bookQrPx } from '../logic/book'
 import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
 import { hasWebGL } from '../logic/webgl'
 import { tuning } from '../tuning'
-import { beforeSatCutoff, renderRoom } from '../test/helpers'
+import { beforeSatCutoff, beforeSunCutoff, renderRoom } from '../test/helpers'
 import { WorldRoom } from './WorldRoom'
 
 // jsdom has no WebGL. The world stands in as its pages in plain DOM: it gets ready, fails on
@@ -19,12 +19,14 @@ vi.mock('../world/World', () => ({
   default: function World({
     ids,
     content,
+    mood,
     theme,
     running,
     onReady,
   }: {
     ids: LandmarkId[]
     content: Record<LandmarkId, ReactNode>
+    mood: string
     theme: string
     running: boolean
     onReady: () => void
@@ -35,7 +37,7 @@ vi.mock('../world/World', () => ({
     }, [onReady])
     return createElement(
       'div',
-      { 'data-testid': 'world', 'data-theme': theme, 'data-running': String(running) },
+      { 'data-testid': 'world', 'data-mood': mood, 'data-theme': theme, 'data-running': String(running) },
       createElement('canvas', { key: 'canvas' }),
       ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id])),
     )
@@ -309,6 +311,15 @@ describe('the 3D book and its fallback (design §2)', () => {
       />,
     )
     expect(screen.getByTestId('world')).toHaveAttribute('data-theme', 'light')
+  })
+
+  it("hands the day's mood to the world: Saturday's night, Sunday's dusk (spec §3)", async () => {
+    world.mode = 'ready'
+    const saturday = renderWorldRoom()
+    expect(await screen.findByTestId('world')).toHaveAttribute('data-mood', 'saturday')
+    saturday.unmount()
+    renderWorldRoom({ day: 'sun', now: beforeSunCutoff })
+    expect(await screen.findByTestId('world')).toHaveAttribute('data-mood', 'sunday')
   })
 
   // Design §9: a page is never drawn below tuning.world.page.minScale, so a screen too short to

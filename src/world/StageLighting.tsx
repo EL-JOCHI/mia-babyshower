@@ -54,13 +54,13 @@ export function StageLighting({ path, viewRef, resources, palette, shadowRef }: 
     const key = moonLight.current
     if (key) {
       key.color.copy(palette.key)
-      key.intensity = THREE.MathUtils.lerp(palette.keyIntensity.boceto, palette.keyIntensity.luz, mix.light)
+      key.intensity = palette.keyIntensity
     }
     const ambient = sky.current
     if (ambient) {
       ambient.color.copy(palette.ambientSky)
       ambient.groundColor.copy(palette.ambientGround)
-      ambient.intensity = THREE.MathUtils.lerp(palette.ambient.boceto, palette.ambient.tinta, mix.ink)
+      ambient.intensity = palette.ambient
     }
 
     const t = state.clock.elapsedTime

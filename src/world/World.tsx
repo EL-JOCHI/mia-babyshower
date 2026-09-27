@@ -2,13 +2,13 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import type { LandmarkId } from '../logic/layout'
-import { tuning, type ThemeName } from '../tuning'
+import { tuning, type MoodId, type ThemeName } from '../tuning'
 import { Attic } from './Attic'
 import { Book } from './Book'
 import { buildPath } from './bookPath'
 import { CameraRig } from './CameraRig'
 import { Dust } from './Dust'
-import { palettes } from './palette'
+import { paletteFor } from './palette'
 import { useWorldResources } from './resources'
 import { StageLighting, type ShadowState } from './StageLighting'
 import { Station } from './Station'
@@ -18,7 +18,9 @@ export interface WorldProps {
   stations: Record<LandmarkId, number>
   progressRef: { readonly current: number }
   content: Record<LandmarkId, ReactNode>
-  // The same book by night (Oscuro) or by day (Claro). Switching retints the scene in place.
+  // Saturday's moonlit night or Sunday's golden dusk (spec §3), from the invite link.
+  mood: MoodId
+  // Claro or Oscuro: the mood's lighter or darker look. Switching retints the scene in place.
   theme: ThemeName
   // False while the cover is closed: it is opaque, so the world draws the frame it needs to get
   // ready and then waits, drawing again only when something changes (a resize, new props such as
@@ -34,8 +36,8 @@ export interface WorldProps {
 
 type SceneProps = Omit<WorldProps, 'onFail' | 'running'>
 
-function Scene({ ids, stations, progressRef, content, theme, awake, onReady }: SceneProps) {
-  const palette = palettes[theme]
+function Scene({ ids, stations, progressRef, content, mood, theme, awake, onReady }: SceneProps) {
+  const palette = paletteFor(mood, theme)
   const size = useThree((state) => state.size)
   const resources = useWorldResources()
   const aspect = size.width / Math.max(1, size.height)

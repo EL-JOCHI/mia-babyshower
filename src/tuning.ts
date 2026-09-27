@@ -15,28 +15,65 @@ export interface PieceSpec {
 // A color straight from the palette, or a mix: from one token toward another by an amount.
 export type ColorMix = string | readonly [from: string, to: string, amount: number]
 
-// How the 3D book looks under one theme (design §3): Oscuro is the moonlit attic, Claro the same
-// book by day.
+// Spec §3: the invite link picks the mood. Saturday is a moonlit night, Sunday a golden dusk.
+export type MoodId = 'saturday' | 'sunday'
+
+// How the attic looks in one mood and theme (spec §3). Claro is the lighter version of each mood,
+// Oscuro the darker. The 3D attic (src/world/palette.ts) and the paper diorama (src/headMeta.ts)
+// both read these.
 export interface WorldLook {
   fog: ColorMix
   wood: ColorMix
   floor: ColorMix
+  // The rafters and the window frame.
   beam: ColorMix
-  // The window's sky, the moon or sun in it, and its halo.
-  sky: ColorMix
+  // The sky behind the round window: a gradient from its top to the horizon.
+  skyTop: ColorMix
+  skyBottom: ColorMix
+  // The moon or the sun in the window: where it sits (world units from the window's centre, y up),
+  // its size (times tuning.world.attic.orb.radius), its color, and its halo.
+  orbKind: 'moon' | 'sun'
+  orbAt: readonly [x: number, y: number]
+  orbSize: number
   orb: ColorMix
   halo: ColorMix
   cloth: ColorMix
-  // The key light through the window, and the ambient light from above and below.
+  // The key light through the window and the ambient light from above and below. The attic is lit
+  // at these values on every page (spec §4): only the book's paper and the cats follow the stage.
   key: ColorMix
-  keyIntensity: { boceto: number; luz: number }
+  keyIntensity: number
   ambientSky: ColorMix
   ambientGround: ColorMix
-  ambient: { boceto: number; tinta: number }
+  ambient: number
+  // The beam of light from the window (the moonbeam, or the golden beam): unlit and additive.
+  shaft: ColorMix
+  shaftOpacity: number
+  // The window's stars (Saturday) or the fireflies (Sunday), and how bright the window's stars shine
+  // (0: none).
+  sparkle: ColorMix
+  stars: number
+  // What drifts in the air (spec §3 Motion rule): dust, or fireflies at Sunday's dusk.
+  motes: 'dust' | 'fireflies'
+  // How lit the lanterns (Sunday) and the crooked lamp are, 0 to 1. They glow by their own color only.
+  lanternGlow: number
+  lampGlow: number
   // Pencil paper is bone with no color at this lightness; candles warm it by `warmth`.
   sketchLightness: number
   warmth: number
   dust: ColorMix
+}
+
+// Spec §8 Device tiers: what a tier draws.
+export interface TierSettings {
+  // The pixel-ratio caps of the book and of level 2's live attic.
+  maxDpr: number
+  backdropMaxDpr: number
+  // The candle's real shadow map.
+  shadows: boolean
+  // The share of the stars, fireflies, and dust that are drawn.
+  countScale: number
+  // The speed of the ambient motion (the mobile, the lanterns, the stars, the fireflies).
+  motionScale: number
 }
 
 export interface GateGameConfig {
@@ -203,6 +240,18 @@ export const tuning = {
     dragThresholdPx: 6,
   },
   depth: { far: 0.25, mid: 1, near: 1.15 },
+  // Level 3 (spec §7): the paper diorama behind the flat room's cards. Its round window has radius
+  // `windowRadius` in the diorama's drawing units. Each layer slides by its rate times `travelPx`
+  // across the flat room's whole horizontal pan (reduced motion: no sliding). The window's stars
+  // twinkle over `twinkleMs`, `twinkleStaggerMs` apart; Sunday's lanterns sway over `swayMs`.
+  diorama: {
+    windowRadius: 40,
+    travelPx: 160,
+    rates: { wall: 0.2, rafters: 0.35, garland: 0.5, props: 0.65, floor: 0.85 },
+    twinkleMs: 2600,
+    twinkleStaggerMs: 330,
+    swayMs: 4800,
+  },
   eras: { color: 0.33, threeD: 0.66 },
   noticing: {
     zone: 0.6,
@@ -327,6 +376,19 @@ export const tuning = {
     fovPortrait: 58,
     fovLandscape: 42,
     maxDpr: 1.75,
+    // Level 2 (spec §7): the live attic behind the flat room's cards renders at this pixel ratio,
+    // and fades in over backdropFadeMs once it has drawn its first frame.
+    backdropMaxDpr: 1.25,
+    backdropFadeMs: 600,
+    // Spec §8 Device tiers: `lowMemoryGb` of memory or less, or `lowCores` cores or fewer, is a low
+    // device. The core count only counts where the browser also reports memory (Chromium); a
+    // browser without a memory reading (Safari, Firefox) counts as normal. Normal devices use maxDpr and
+    // backdropMaxDpr above, with shadows and full counts.
+    tiers: {
+      lowCores: 2,
+      lowMemoryGb: 2,
+      low: { maxDpr: 1.25, backdropMaxDpr: 1, shadows: false, countScale: 0.5, motionScale: 0.6 } satisfies TierSettings,
+    },
     // Below this width the screen counts as a phone: fewer dust motes.
     phoneMaxPx: 768,
     // A screen shorter than this cannot show the tallest page (Presente, with its QR) whole at
@@ -423,46 +485,137 @@ export const tuning = {
       swaySpeed: 0.05,
       box: { width: 28, bottom: 0.3, height: 6.5, back: -8, depth: 16 },
     },
-    // Oscuro: the moonlit attic. The moonlight is the moon's blue softened toward bone, so the
-    // paper reads as paper.
-    night: {
-      fog: tokens.plum,
-      wood: [tokens.ink, tokens.plum, 0.55],
-      floor: tokens.plum,
-      beam: tokens.ink,
-      sky: [tokens.ink, feelingColors.misha, 0.18],
-      orb: tokens.bone,
-      halo: feelingColors.misha,
-      cloth: [tokens.plum, tokens.deepRose, 0.35],
-      key: [feelingColors.misha, tokens.bone, 0.7],
-      keyIntensity: { boceto: 1.3, luz: 0.6 },
-      ambientSky: [feelingColors.misha, tokens.bone, 0.7],
-      ambientGround: tokens.plum,
-      ambient: { boceto: 0.25, tinta: 0.6 },
-      sketchLightness: 0.72,
-      warmth: 0.32,
-      dust: tokens.bone,
-    } satisfies WorldLook,
-    // Claro: the same book by day. Bone parchment and pale wood under a daylight window with the
-    // sun in it, ink lines, deep rose accents; the candles still warm the pages toward the door.
-    day: {
-      fog: tokens.bone,
-      wood: [tokens.bone, tokens.plum, 0.38],
-      floor: [tokens.bone, tokens.plum, 0.5],
-      beam: [tokens.plum, tokens.bone, 0.2],
-      sky: [feelingColors.misha, tokens.bone, 0.45],
-      orb: tokens.candle,
-      halo: tokens.candle,
-      cloth: tokens.deepRose,
-      key: tokens.bone,
-      keyIntensity: { boceto: 1.7, luz: 1.2 },
-      ambientSky: tokens.bone,
-      ambientGround: tokens.rose,
-      ambient: { boceto: 0.8, tinta: 1 },
-      sketchLightness: 0.86,
-      warmth: 0.25,
-      dust: tokens.candle,
-    } satisfies WorldLook,
+    // Spec §3: two moods, one attic, each in a lighter (Claro) and a darker (Oscuro) version. Every
+    // color is a mix of the palette tokens and the feeling colors.
+    looks: {
+      saturday: {
+        // Noche de luna, Oscuro: full night. A big moon with a halo, twinkling stars, and cool
+        // moonlight tinted toward Misha's blue.
+        dark: {
+          fog: tokens.plum,
+          wood: [tokens.ink, tokens.plum, 0.55],
+          floor: tokens.plum,
+          beam: tokens.ink,
+          skyTop: [tokens.ink, feelingColors.misha, 0.12],
+          skyBottom: [tokens.plum, feelingColors.misha, 0.3],
+          orbKind: 'moon',
+          orbAt: [0.5, 0.4],
+          orbSize: 1.25,
+          orb: tokens.bone,
+          halo: feelingColors.misha,
+          cloth: [tokens.plum, tokens.deepRose, 0.35],
+          key: [feelingColors.misha, tokens.bone, 0.55],
+          keyIntensity: 1,
+          ambientSky: [feelingColors.misha, tokens.bone, 0.7],
+          ambientGround: tokens.plum,
+          ambient: 0.5,
+          shaft: [feelingColors.misha, tokens.bone, 0.6],
+          shaftOpacity: 0.14,
+          sparkle: tokens.bone,
+          stars: 1,
+          motes: 'dust',
+          lanternGlow: 0,
+          lampGlow: 0,
+          sketchLightness: 0.72,
+          warmth: 0.32,
+          dust: tokens.bone,
+        },
+        // Noche de luna, Claro: blue hour. A deep blue sky with a rising moon; the attic reads clearly.
+        light: {
+          fog: [tokens.plum, feelingColors.misha, 0.4],
+          wood: [tokens.plum, tokens.bone, 0.3],
+          floor: [tokens.plum, tokens.bone, 0.2],
+          beam: [tokens.ink, tokens.plum, 0.6],
+          skyTop: [tokens.ink, feelingColors.misha, 0.45],
+          skyBottom: [feelingColors.misha, tokens.rose, 0.35],
+          orbKind: 'moon',
+          orbAt: [0.7, -0.35],
+          orbSize: 1,
+          orb: tokens.bone,
+          halo: [feelingColors.misha, tokens.bone, 0.5],
+          cloth: [tokens.plum, tokens.deepRose, 0.5],
+          key: [feelingColors.misha, tokens.bone, 0.65],
+          keyIntensity: 1.35,
+          ambientSky: [feelingColors.misha, tokens.bone, 0.55],
+          ambientGround: [tokens.plum, tokens.rose, 0.3],
+          ambient: 0.9,
+          shaft: [feelingColors.misha, tokens.bone, 0.75],
+          shaftOpacity: 0.1,
+          sparkle: tokens.bone,
+          stars: 0.45,
+          motes: 'dust',
+          lanternGlow: 0,
+          lampGlow: 0.7,
+          sketchLightness: 0.8,
+          warmth: 0.28,
+          dust: tokens.bone,
+        },
+      },
+      sunday: {
+        // Atardecer dorado, Oscuro: late dusk. The sun on the horizon, the sky going candle → rose →
+        // plum, the lanterns lit, and fireflies out.
+        dark: {
+          fog: [tokens.plum, tokens.deepRose, 0.25],
+          wood: [tokens.ink, tokens.plum, 0.7],
+          floor: [tokens.plum, tokens.deepRose, 0.15],
+          beam: tokens.ink,
+          skyTop: tokens.plum,
+          skyBottom: [tokens.candle, tokens.rose, 0.45],
+          orbKind: 'sun',
+          orbAt: [0.15, -1.05],
+          orbSize: 1.35,
+          orb: tokens.candle,
+          halo: [tokens.candle, tokens.rose, 0.5],
+          cloth: [tokens.plum, tokens.deepRose, 0.45],
+          key: [tokens.candle, tokens.rose, 0.4],
+          keyIntensity: 0.9,
+          ambientSky: [tokens.rose, tokens.bone, 0.5],
+          ambientGround: tokens.plum,
+          ambient: 0.55,
+          shaft: [tokens.candle, tokens.rose, 0.3],
+          shaftOpacity: 0.14,
+          sparkle: tokens.candle,
+          stars: 0,
+          motes: 'fireflies',
+          lanternGlow: 1,
+          lampGlow: 0,
+          sketchLightness: 0.74,
+          warmth: 0.36,
+          dust: tokens.candle,
+        },
+        // Atardecer dorado, Claro: golden afternoon. A warm sun in the window, and candle-gold light
+        // on the floor.
+        light: {
+          fog: [tokens.bone, tokens.candle, 0.2],
+          wood: [tokens.bone, tokens.plum, 0.38],
+          floor: [tokens.bone, tokens.plum, 0.5],
+          beam: [tokens.plum, tokens.bone, 0.2],
+          skyTop: [feelingColors.misha, tokens.bone, 0.45],
+          skyBottom: [tokens.candle, tokens.bone, 0.4],
+          orbKind: 'sun',
+          orbAt: [-0.45, 0.35],
+          orbSize: 1,
+          orb: tokens.candle,
+          halo: tokens.candle,
+          cloth: tokens.deepRose,
+          key: [tokens.candle, tokens.bone, 0.6],
+          keyIntensity: 1.5,
+          ambientSky: tokens.bone,
+          ambientGround: [tokens.rose, tokens.candle, 0.4],
+          ambient: 1,
+          shaft: tokens.candle,
+          shaftOpacity: 0.16,
+          sparkle: tokens.candle,
+          stars: 0,
+          motes: 'dust',
+          lanternGlow: 0.25,
+          lampGlow: 0.8,
+          sketchLightness: 0.86,
+          warmth: 0.25,
+          dust: tokens.candle,
+        },
+      },
+    } satisfies Record<MoodId, Record<ThemeName, WorldLook>>,
     // The canvas drawing of the paper: pencil passes, ink strokes (in SVG units), page grain, and
     // how dark the page border, gutter shadow, page edges, and floor seams are.
     art: {
@@ -500,8 +653,9 @@ export const tuning = {
       windowY: 6.4,
       windowRadius: 1.7,
       rafterGap: 4,
-      // The moon (or the sun, by day) sits a little up and to the right in the window, with a soft halo.
-      moon: { x: 0.5, y: 0.4, radius: 0.62, halo: 1.15, haloOpacity: 0.22 },
+      // The moon or the sun sits where the look puts it (WorldLook.orbAt), `radius` times the look's
+      // orbSize, with a soft halo `halo` times its radius (`sunHalo` for the sun, which is wider).
+      orb: { radius: 0.62, halo: 1.85, sunHalo: 2.4, haloOpacity: 0.22 },
       // The sky disc behind the window is this much wider than the window.
       skyScale: 1.3,
       roughness: { floor: 0.95, wall: 1, beam: 1 },

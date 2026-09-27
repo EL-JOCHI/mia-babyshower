@@ -5,7 +5,7 @@
 
 import { copy, days, type DayId } from './content.ts'
 import { storageKeys } from './logic/storageKeys.ts'
-import { themes, tokens, tuning, type ThemeName, type ThemeTokens } from './tuning.ts'
+import { cssColor, themes, tokens, tuning, type MoodId, type ThemeName, type ThemeTokens, type WorldLook } from './tuning.ts'
 
 function escapeAttr(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
@@ -55,6 +55,46 @@ export function themeCss(): string {
 export function screenCss(): string {
   const { fromPx, toPx, grow } = tuning.screen
   return `:root{--ui-px:clamp(1px, calc(1px + (100vw - ${fromPx}px) * ${grow} / ${toPx - fromPx}), ${1 + grow}px)}`
+}
+
+const round2 = (value: number) => Number(value.toFixed(2))
+
+// Spec §7 Level 3: the paper diorama's colors, one set per mood and theme, from the same looks as
+// the 3D attic (tuning.world.looks). The diorama carries data-mood and the root carries data-theme,
+// so switching theme recolors it in place. The moon or sun sits where the 3D window has it, in the
+// diorama window's units.
+function dioramaVars(look: WorldLook): string {
+  const { windowRadius, orb } = tuning.world.attic
+  const toDiorama = tuning.diorama.windowRadius / windowRadius
+  return [
+    `--diorama-sky-top:${cssColor(look.skyTop)}`,
+    `--diorama-sky-bottom:${cssColor(look.skyBottom)}`,
+    `--diorama-orb:${cssColor(look.orb)}`,
+    `--diorama-halo:${cssColor(look.halo)}`,
+    `--diorama-orb-dx:${round2(look.orbAt[0] * toDiorama)}px`,
+    `--diorama-orb-dy:${round2(-look.orbAt[1] * toDiorama)}px`,
+    `--diorama-orb-scale:${round2((orb.radius * look.orbSize) / windowRadius)}`,
+    `--diorama-wood:${cssColor(look.wood)}`,
+    `--diorama-floor:${cssColor(look.floor)}`,
+    `--diorama-beam:${cssColor(look.beam)}`,
+    `--diorama-cloth:${cssColor(look.cloth)}`,
+    `--diorama-fog:${cssColor(look.fog)}`,
+    `--diorama-shaft:${cssColor(look.shaft)}`,
+    `--diorama-shaft-opacity:${look.shaftOpacity}`,
+    `--diorama-sparkle:${cssColor(look.sparkle)}`,
+    `--diorama-stars:${look.stars}`,
+    `--diorama-lantern-glow:${look.lanternGlow}`,
+  ].join(';')
+}
+
+export function dioramaCss(): string {
+  const moods = Object.keys(tuning.world.looks) as MoodId[]
+  const names = Object.keys(themes) as ThemeName[]
+  return moods
+    .flatMap((mood) =>
+      names.map((theme) => `:root[data-theme="${theme}"] [data-mood="${mood}"]{${dioramaVars(tuning.world.looks[mood][theme])}}`),
+    )
+    .join('')
 }
 
 function prePaintThemeScript(): string {
@@ -121,7 +161,7 @@ export function headMeta(siteUrl: string): string {
     `<meta property="og:image:height" content="630" />`,
     `<meta property="og:image:alt" content="${title}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
-    `<style id="theme-tokens">${themeCss()}${screenCss()}</style>`,
+    `<style id="theme-tokens">${themeCss()}${screenCss()}${dioramaCss()}</style>`,
     `<script>${prePaintThemeScript()}${openingScript()}</script>`,
   ].join('\n    ')
 }

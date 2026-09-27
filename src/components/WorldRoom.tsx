@@ -21,6 +21,7 @@ import { bookQrPx, fitsBook, wantsBook } from '../logic/book'
 import type { CatState } from '../logic/catState'
 import { stageAt, type Stage } from '../logic/era'
 import { landmarksFor, type LandmarkId, type Point } from '../logic/layout'
+import { moodOfDay } from '../logic/mood'
 import { isPartyOver } from '../logic/party'
 import { nearestStation, stationProgress } from '../logic/path'
 import { countablePages, type Progress, type ProgressEvent } from '../logic/progress'
@@ -128,6 +129,7 @@ const BookPages = memo(function BookPages({
           stations={stations}
           progressRef={progressRef}
           content={content}
+          mood={moodOfDay[day]}
           theme={theme}
           running={running}
           awake={awake}

@@ -1,28 +1,39 @@
 import * as THREE from 'three'
-import { tokens, tuning, type ColorMix, type ThemeName, type WorldLook } from '../tuning'
+import { tokens, tuning, type ColorMix, type MoodId, type ThemeName, type WorldLook } from '../tuning'
 
-// Design §3: Oscuro is the moonlit attic, Claro the same book by day. Each theme's look, built once
-// from the palette tokens as ready colors, so switching theme only copies colors.
+// Spec §3: two moods, one attic. Each mood and theme's look, built once from the palette tokens as
+// ready colors, so switching theme only copies colors.
 export interface WorldPalette {
   fog: THREE.Color
   wood: THREE.Color
   floor: THREE.Color
   beam: THREE.Color
-  sky: THREE.Color
+  skyTop: THREE.Color
+  skyBottom: THREE.Color
+  orbKind: 'moon' | 'sun'
+  orbAt: readonly [number, number]
+  orbSize: number
   orb: THREE.Color
   halo: THREE.Color
   cloth: THREE.Color
   key: THREE.Color
-  keyIntensity: { boceto: number; luz: number }
+  keyIntensity: number
   ambientSky: THREE.Color
   ambientGround: THREE.Color
-  ambient: { boceto: number; tinta: number }
-  // The paper's tint for each stage: gray pencil paper, bone parchment, and bone warmed by candles.
+  ambient: number
+  shaft: THREE.Color
+  shaftOpacity: number
+  sparkle: THREE.Color
+  stars: number
+  motes: 'dust' | 'fireflies'
+  lanternGlow: number
+  lampGlow: number
+  // The book's paper tint for each stage: gray pencil paper, bone parchment, and bone warmed by candles.
   paper: { sketch: THREE.Color; bone: THREE.Color; warm: THREE.Color }
   dust: THREE.Color
 }
 
-function color(spec: ColorMix): THREE.Color {
+export function colorFrom(spec: ColorMix): THREE.Color {
   if (typeof spec === 'string') return new THREE.Color(spec)
   const [from, to, amount] = spec
   return new THREE.Color(from).lerp(new THREE.Color(to), amount)
@@ -33,31 +44,48 @@ function build(look: WorldLook): WorldPalette {
   const hsl = { h: 0, s: 0, l: 0 }
   bone.getHSL(hsl)
   return {
-    fog: color(look.fog),
-    wood: color(look.wood),
-    floor: color(look.floor),
-    beam: color(look.beam),
-    sky: color(look.sky),
-    orb: color(look.orb),
-    halo: color(look.halo),
-    cloth: color(look.cloth),
-    key: color(look.key),
+    fog: colorFrom(look.fog),
+    wood: colorFrom(look.wood),
+    floor: colorFrom(look.floor),
+    beam: colorFrom(look.beam),
+    skyTop: colorFrom(look.skyTop),
+    skyBottom: colorFrom(look.skyBottom),
+    orbKind: look.orbKind,
+    orbAt: look.orbAt,
+    orbSize: look.orbSize,
+    orb: colorFrom(look.orb),
+    halo: colorFrom(look.halo),
+    cloth: colorFrom(look.cloth),
+    key: colorFrom(look.key),
     keyIntensity: look.keyIntensity,
-    ambientSky: color(look.ambientSky),
-    ambientGround: color(look.ambientGround),
+    ambientSky: colorFrom(look.ambientSky),
+    ambientGround: colorFrom(look.ambientGround),
     ambient: look.ambient,
+    shaft: colorFrom(look.shaft),
+    shaftOpacity: look.shaftOpacity,
+    sparkle: colorFrom(look.sparkle),
+    stars: look.stars,
+    motes: look.motes,
+    lanternGlow: look.lanternGlow,
+    lampGlow: look.lampGlow,
     paper: {
       sketch: new THREE.Color().setHSL(hsl.h, 0, hsl.l * look.sketchLightness),
       bone,
       warm: bone.clone().lerp(new THREE.Color(tokens.candle), look.warmth),
     },
-    dust: color(look.dust),
+    dust: colorFrom(look.dust),
   }
 }
 
-export const palettes: Record<ThemeName, WorldPalette> = {
-  dark: build(tuning.world.night),
-  light: build(tuning.world.day),
+const { looks } = tuning.world
+
+export const palettes: Record<MoodId, Record<ThemeName, WorldPalette>> = {
+  saturday: { dark: build(looks.saturday.dark), light: build(looks.saturday.light) },
+  sunday: { dark: build(looks.sunday.dark), light: build(looks.sunday.light) },
+}
+
+export function paletteFor(mood: MoodId, theme: ThemeName): WorldPalette {
+  return palettes[mood][theme]
 }
 
 // Sets a material's color from the palette. Kept outside components, so retinting a shared
