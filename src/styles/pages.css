@@ -879,6 +879,15 @@
   opacity: 0;
 }
 
+/* Once open, the folded pieces are invisible but still hit-tested: the front's fold covers
+   Guardar QR. They let taps through to the QR and the button. */
+.gift-box.is-open .gift-bow,
+.gift-box.is-open .gift-ribbon,
+.gift-box.is-open .gift-box-lid,
+.gift-box.is-open .gift-box-front {
+  pointer-events: none;
+}
+
 .qr-plate {
   margin: 0;
   padding: 8px;

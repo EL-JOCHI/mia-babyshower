@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { saveQr } from './Gift'
+import pagesCss from '../styles/pages.css?raw'
 
 describe('US-4 AC4 Guardar QR', () => {
   beforeEach(() => {
@@ -48,5 +49,19 @@ describe('US-4 AC4 Guardar QR', () => {
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
     await saveQr('/qr.png')
     expect(click).not.toHaveBeenCalled()
+  })
+})
+
+// The open gift box's folded pieces are invisible but still hit-tested; the front's fold used to
+// cover Guardar QR, so a tap on the button landed on the box and saved nothing.
+describe('the open gift box lets taps through', () => {
+  const tapThrough = new Set(
+    [...pagesCss.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, , body]) => /pointer-events:\s*none/.test(body!))
+      .flatMap(([, selectors]) => selectors!.split(',').map((selector) => selector.trim())),
+  )
+
+  it.each(['.gift-box-front', '.gift-box-lid', '.gift-bow', '.gift-ribbon'])('%s', (piece) => {
+    expect(tapThrough).toContain(`.gift-box.is-open ${piece}`)
   })
 })
