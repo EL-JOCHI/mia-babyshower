@@ -682,8 +682,7 @@
     animation: act-startle 900ms ease-out;
   }
 
-  .is-wobbling .countdown-number,
-  .gate-count.is-wobbling {
+  .is-wobbling .countdown-number {
     display: inline-block;
     animation: wobble 520ms ease-in-out;
   }
@@ -1297,26 +1296,6 @@
     color: var(--accent-text);
   }
 
-  .gate-count {
-    position: absolute;
-    left: 50%;
-    top: 58%;
-    transform: translate(-50%, -50%);
-    font-family: var(--font-game);
-    font-size: clamp(64px, 22vw, 128px);
-    line-height: 1;
-    color: var(--accent);
-    text-shadow:
-      0 0 18px var(--accent),
-      6px 6px 0 color-mix(in srgb, var(--accent) 35%, transparent);
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .gate.is-finale .gate-count {
-    animation: finale-flash 1500ms ease-out;
-  }
-
   .gate-spot {
     position: absolute;
     transform: translate(-50%, -50%);
@@ -1333,6 +1312,12 @@
 
   .gate-spot-susto {
     animation: gate-wander-susto 13s ease-in-out infinite;
+  }
+
+  /* Susto is small and crouched low in her box (design §4: "Small, ears back"), so the default
+     Saludar placement covers her. Push it further below, clear of her drawing. */
+  .gate-spot-susto .saludar {
+    bottom: -38px;
   }
 
   .gate-toys .throwable {
@@ -1386,40 +1371,6 @@
   .toy-spot-pick {
     right: 44px;
     top: -30px;
-  }
-
-  .finale-burst {
-    position: absolute;
-    inset: -30px;
-    pointer-events: none;
-  }
-
-  .finale-burst .toy {
-    position: absolute;
-    animation: burst 1500ms ease-out both;
-  }
-
-  .burst-1 {
-    left: 0;
-    top: 10%;
-  }
-
-  .burst-2 {
-    right: 0;
-    top: 0;
-    animation-delay: 120ms !important;
-  }
-
-  .burst-3 {
-    left: 45%;
-    top: -20px;
-    animation-delay: 240ms !important;
-  }
-
-  .burst-4 {
-    right: 10%;
-    bottom: 0;
-    animation-delay: 360ms !important;
   }
 
   /* ---------- Stages (design §1: boceto, tinta, luz) ---------- */
@@ -2080,33 +2031,6 @@
   }
   50% {
     transform: translateY(-14px);
-  }
-}
-
-@keyframes burst {
-  0% {
-    opacity: 0;
-    transform: scale(0.2);
-  }
-  30% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.9) translateY(-24px);
-  }
-}
-
-@keyframes finale-flash {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  25% {
-    transform: translate(-50%, -50%) scale(1.25);
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
   }
 }
 

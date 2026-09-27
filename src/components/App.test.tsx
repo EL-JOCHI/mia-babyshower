@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { battleCopy, copy, days, gameCopy, shared } from '../content'
+import { battleCopy, copy, days, gameCopy, gateGameCopy, shared } from '../content'
 import { storageKeys } from '../logic/storageKeys'
 import { whatsappUrl } from '../logic/whatsapp'
 import { tuning } from '../tuning'
@@ -48,31 +48,40 @@ describe('US-8 Enter only with the link I was sent', () => {
   })
 })
 
-describe('US-10 Watch the gate loop', () => {
-  beforeEach(() => vi.useFakeTimers())
+describe('US-10 Play the gate game', () => {
+  beforeEach(() =>
+    vi.useFakeTimers({
+      toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'setTimeout', 'setInterval'],
+    }),
+  )
   afterEach(() => vi.useRealTimers())
 
-  it('counts from 9 toward 0 with cats present, then plays the finale and returns to 9 (AC1, AC2)', () => {
+  it('goes ready to playing to game over, with both sentences visible throughout, and cats present (AC1, AC2)', () => {
     render(<App search="" />)
-    const count = screen.getByTestId('gate-count')
-    expect(count).toHaveTextContent('9')
+    expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
+    expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Luz' })).toBeInTheDocument()
-    advance(tuning.gate.stepMs)
-    expect(count).toHaveTextContent('8')
-    for (let i = 0; i < 8; i++) advance(tuning.gate.stepMs)
-    expect(count).toHaveTextContent('0')
-    expect(screen.getByRole('main')).toHaveClass('is-finale')
-    advance(tuning.gate.finaleMs)
-    expect(screen.getByTestId('gate-count')).toHaveTextContent('9')
+
+    fireEvent.click(screen.getByRole('button', { name: gateGameCopy.start }))
+    expect(screen.getByText(gateGameCopy.seconds(tuning.gateGame.durationMs / 1000))).toBeInTheDocument()
+    expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
+    expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
+
+    for (let t = 0; t < tuning.gateGame.durationMs + 500; t += 50) advance(50)
+
+    expect(screen.getByText(gateGameCopy.over)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: copy.playAgain })).toBeInTheDocument()
+    expect(localStorage.getItem(storageKeys.gateBest)).not.toBeNull()
     expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
     expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
   })
 
-  it('shows the sentences and still cats, and runs no count, with reduced motion (AC3)', () => {
+  it('shows the sentences and still cats, with no start button, with reduced motion (AC3)', () => {
     window.__prefersReducedMotion = true
     render(<App search="" />)
-    expect(screen.queryByTestId('gate-count')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: gateGameCopy.start })).not.toBeInTheDocument()
     expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
+    expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
     for (const el of document.querySelectorAll('.cat')) expect(el).toHaveClass('is-still')
   })
 })

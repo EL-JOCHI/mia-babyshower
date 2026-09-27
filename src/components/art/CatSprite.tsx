@@ -1,4 +1,4 @@
-import { useId, type CSSProperties, type ReactNode } from 'react'
+import { memo, useId, type CSSProperties, type ReactNode } from 'react'
 import type { CatId } from '../../content'
 import type { Stage } from '../../logic/era'
 import { cssColor, feelingColors, tuning } from '../../tuning'
@@ -290,7 +290,16 @@ function Silhouette({ d }: { d: CatDrawing }) {
 // The seven cats (design §4), one family of paper cut-outs. The rig's parts are named groups
 // (.cat-body, .cat-head, .cat-ear-l, .cat-ear-r, .cat-lid, .cat-tail) that CSS moves on springs:
 // breathing, blinking, ear twitches, and a tail sway whose tip follows through.
-export function CatSprite({ id, stage, pose = 'playing', size, silhouette = false, boil = false }: Props) {
+// Memoized: the gate game's catcher and its reactions re-render every animation frame, but a
+// cat's own drawing only ever changes with its props.
+export const CatSprite = memo(function CatSprite({
+  id,
+  stage,
+  pose = 'playing',
+  size,
+  silhouette = false,
+  boil = false,
+}: Props) {
   const d = catDrawings[id]
   const uid = useId()
   const c = tuning.cats
@@ -335,4 +344,4 @@ export function CatSprite({ id, stage, pose = 'playing', size, silhouette = fals
       )}
     </svg>
   )
-}
+})

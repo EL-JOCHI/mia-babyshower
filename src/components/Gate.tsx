@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useRef, type CSSProperties } from 'react'
 import { copy, type CatId } from '../content'
 import { useActs, type ActId } from '../hooks/useActs'
 import { useNoticing } from '../hooks/useNoticing'
 import type { CatState } from '../logic/catState'
 import { tuning } from '../tuning'
 import { Cat } from './Cat'
+import { GateGame } from './GateGame'
 import { Throwable } from './Throwable'
-import { BoxToy, HeartToy, StarToy, ThunderBolt, YarnToy } from './Toys'
+import { BoxToy, HeartToy, YarnToy } from './Toys'
 
 interface Props {
   reducedMotion: boolean
@@ -21,29 +22,13 @@ const still = { current: { x: 0, y: 0 } } as const
 
 const spots: Partial<Record<CatId, CSSProperties>> = tuning.gate.spots
 
-// US-10: the count runs 9 → 0, one step a second. At 0 a short finale plays, then 9 again.
-export function useGateLoop(reducedMotion: boolean): number {
-  const { countFrom, stepMs, finaleMs } = tuning.gate
-  const [count, setCount] = useState<number>(countFrom)
-  useEffect(() => {
-    if (reducedMotion) return
-    const id = window.setTimeout(
-      () => setCount((c) => (c === 0 ? countFrom : c - 1)),
-      count === 0 ? finaleMs : stepMs,
-    )
-    return () => window.clearTimeout(id)
-  }, [count, countFrom, finaleMs, reducedMotion, stepMs])
-  return count
-}
-
-// §3 The guest gate: an arcade continue screen with none of the fighting. No date, no place,
-// no WhatsApp, no QR. There is no button that enters a party.
+// §3 The guest gate: a 30-second arcade mini-game (design §8), with none of the fighting. No date,
+// no place, no WhatsApp, no QR. There is no button that enters a party. The two sentences stay
+// visible above the game in every phase, and with reduced motion.
 export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) {
-  const count = useGateLoop(reducedMotion)
   const root = useRef<HTMLElement | null>(null)
   const noticing = useNoticing({ catIds: gateCats, container: root, cameraRef: still, musicPlaying })
-  const { active, play } = useActs({ available: gateActs, autonomous: !reducedMotion })
-  const finale = !reducedMotion && count === 0
+  const { active } = useActs({ available: gateActs, autonomous: !reducedMotion })
 
   const acting: Partial<Record<CatId, string>> = {
     luz: active.luzBat ? 'bat' : undefined,
@@ -52,22 +37,13 @@ export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) 
   }
 
   return (
-    <main ref={root} className={`gate era-color${finale ? ' is-finale' : ''}`}>
+    <main ref={root} className="gate era-color">
       <div className="gate-sentences">
         <p className="gate-sentence">{copy.gate[0]}</p>
         <p className="gate-sentence">{copy.gate[1]}</p>
       </div>
 
-      {!reducedMotion && (
-        <div
-          className={`gate-count${active.luzBat ? ' is-wobbling' : ''}`}
-          data-testid="gate-count"
-          aria-hidden="true"
-          onClick={() => play('luzBat')}
-        >
-          {count}
-        </div>
-      )}
+      <GateGame reducedMotion={reducedMotion} />
 
       <div className="gate-toys">
         <Throwable className="gate-yarn">
@@ -85,7 +61,7 @@ export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) 
         <div key={id} className={`gate-spot gate-spot-${id}`} style={spots[id]}>
           <Cat
             id={id}
-            stage="tinta"
+            stage="luz"
             noticing={Boolean(noticing[id])}
             inRound={catState.round.includes(id)}
             acting={acting[id]}
@@ -93,14 +69,6 @@ export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) 
             onGreet={onGreet}
             size={tuning.catSize.gate}
           />
-          {finale && (
-            <div className="finale-burst" aria-hidden="true">
-              <HeartToy className="burst-1" size={22} />
-              <StarToy className="burst-2" size={22} />
-              <ThunderBolt className="burst-3" size={26} />
-              <HeartToy className="burst-4" size={16} />
-            </div>
-          )}
         </div>
       ))}
     </main>

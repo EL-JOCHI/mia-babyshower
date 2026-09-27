@@ -52,6 +52,24 @@ export interface GateGameConfig {
   spawnMarginX: number
 }
 
+// The gate game's screen (design §8): the parts tuning.gateGame's pure logic does not cover, all
+// in Pixelify Sans (design §3).
+export interface GateScreenConfig {
+  // How far one arrow-key press nudges the catcher, as a share of the play field's width.
+  catcherStep: number
+  // Luz, the catcher, and the falling drops, in px at the room size.
+  catcherSize: number
+  dropSize: number
+  // Mimo and Susto's little reactions beside the field, in px.
+  sideCatSize: number
+  // The HUD's combo readout pulses for this long when the combo grows.
+  pulseMs: number
+  // Mimo cheers once the combo reaches this.
+  cheerCombo: number
+  cheerMs: number
+  startleMs: number
+}
+
 // Burton pink noir (design §3).
 export const tokens = {
   ink: '#140E14',
@@ -277,6 +295,7 @@ export const tuning = {
     catXp: { comun: 20, pocoComun: 40, legendario: 100 },
   },
   gateGame: { durationMs: 30000, spawnEveryMs: 650, fallPerS: 0.42, catchY: 0.86, catchRadius: 0.09, heartChance: 0.3, points: { yarn: 10, heart: 20 }, comboMax: 5, maxStepMs: 100, spawnMarginX: 0.06 } satisfies GateGameConfig,
+  gateScreen: { catcherStep: 0.06, catcherSize: 72, dropSize: 30, sideCatSize: 48, pulseMs: 420, cheerCombo: 3, cheerMs: 900, startleMs: 900 } satisfies GateScreenConfig,
   // The 3D pop-up book (design §1, §2, §9). Distances are world units; the floor is y = 0.
   world: {
     dragProgressPerViewport: 0.5,
