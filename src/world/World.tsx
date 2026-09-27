@@ -10,6 +10,7 @@ import { buildPath } from './bookPath'
 import { CameraRig } from './CameraRig'
 import { Dust } from './Dust'
 import { paletteFor } from './palette'
+import { Props } from './Props'
 import { useWorldResources } from './resources'
 import { StageLighting, type ShadowState } from './StageLighting'
 import { Station } from './Station'
@@ -61,6 +62,7 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
       <StageLighting path={path} viewRef={viewRef} resources={resources} palette={palette} shadowRef={shadowRef} />
       <Attic palette={palette} />
       <WindowSky palette={palette} tier={tier} />
+      <Props palette={palette} />
       <Book resources={resources} palette={palette} />
       {ids.map((id, i) => (
         <Station

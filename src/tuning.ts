@@ -76,6 +76,26 @@ export interface TierSettings {
   motionScale: number
 }
 
+// The lived-in attic's props (spec §5).
+export type PropName =
+  | 'crib'
+  | 'bookshelf'
+  | 'yarnBasket'
+  | 'rockingChair'
+  | 'trunks'
+  | 'lamp'
+  | 'catBed'
+  | 'scratchingPost'
+  | 'curtains'
+
+// Where a prop stands: [x, z] on the attic floor, turned `turn` radians about y, at `scale` times
+// the size its factory draws.
+export interface PropPlacement {
+  at: readonly [x: number, z: number]
+  turn: number
+  scale: number
+}
+
 export interface GateGameConfig {
   durationMs: number
   spawnEveryMs: number
@@ -488,6 +508,39 @@ export const tuning = {
     // Saturday's stars in the window (spec §3): `count` of them (about half on a low device), each
     // `size` to size + sizeRange across, twinkling between `min` and full size at `speed`.
     stars: { count: 40, size: 0.05, sizeRange: 0.05, min: 0.35, speed: 1.6 },
+    // Spec §5: the lived-in attic, shared by both moods. The props stand along the back wall, behind
+    // the book's far edge and clear of the camera's corridor at every station and glide
+    // (src/world/props/placement.test.ts); at level 2 they frame the view behind the cards. The
+    // books and yarn balls take their colors from the palette. Furniture wood is the floor's tone
+    // pulled toward the beams by `woodMix`. Ink edges are drawn where faces meet at more than
+    // `edgeAngle` degrees. Painted contact shadows lie `shadowLift` above the floor.
+    props: {
+      placements: {
+        crib: { at: [0, -8.2], turn: 0, scale: 1.5 },
+        bookshelf: { at: [-7.4, -9.35], turn: 0.03, scale: 1.3 },
+        yarnBasket: { at: [-3.8, -8.1], turn: 0.4, scale: 1.3 },
+        rockingChair: { at: [5.8, -7.9], turn: -0.55, scale: 1.4 },
+        trunks: { at: [-12.4, -7.6], turn: 0.35, scale: 1.3 },
+        lamp: { at: [3.2, -9.1], turn: 0, scale: 1.4 },
+        catBed: { at: [9.2, -8.5], turn: 0.25, scale: 1.3 },
+        scratchingPost: { at: [11.6, -7.6], turn: 0, scale: 1.3 },
+        curtains: { at: [0, -9.85], turn: 0, scale: 1 },
+      } satisfies Record<PropName, PropPlacement>,
+      books: 16,
+      yarnBalls: 5,
+      bookColors: [tokens.rose, tokens.deepRose, tokens.plum, tokens.candle, tokens.bone, feelingColors.misha, feelingColors.nana],
+      yarnColors: [tokens.rose, feelingColors.luz, feelingColors.susto, feelingColors.kira, tokens.bone],
+      woodMix: 0.35,
+      edgeAngle: 35,
+      inkOpacity: 0.55,
+      shadowOpacity: 0.35,
+      shadowLift: 0.012,
+    },
+    // Draw calls per frame (spec §8), as renderer.info.render.calls counts them. `bookAtRest` is what
+    // the book drew at rest in luz before this work (the attic, the book, its stations in view, and
+    // the dust); `attic` is the attic's own meshes and its window (sky, halo, moon or sun). The new
+    // props must fit in what is left.
+    budget: { book: 100, backdrop: 60, bookAtRest: 47, attic: 27, materials: 14 },
     // Spec §3: two moods, one attic, each in a lighter (Claro) and a darker (Oscuro) version. Every
     // color is a mix of the palette tokens and the feeling colors. The 3D attic mixes in linear light,
     // so a little of a light color goes a long way (and the window's sky blends the same way).
