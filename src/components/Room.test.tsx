@@ -151,16 +151,61 @@ describe('US-15 Moving and reaching pages in the flat room (design §6)', () => 
     expect(within(landmark('donde') as HTMLElement).queryByText(gameCopy.pageFound)).not.toBeInTheDocument()
   })
 
-  it('keeps the gift box closed and the map rolled until their pages are found', () => {
-    const view = renderRoom({ qrUrl: '/qr.png' })
-    expect(document.querySelector('.gift-box')).not.toHaveClass('is-open')
-    expect(document.querySelector('.treasure-map')).not.toHaveClass('is-unrolled')
-    // The facts stay reachable while the box is closed.
-    expect(screen.getByRole('img', { name: copy.qrAlt })).toBeInTheDocument()
-    expect(screen.getByText(shared.place)).toBeInTheDocument()
-    view.rerender(<FlatRoom {...view.props} progress={{ pages: ['donde', 'presente'], badges: [], xp: 0 }} />)
-    expect(document.querySelector('.gift-box')).toHaveClass('is-open')
-    expect(document.querySelector('.treasure-map')).toHaveClass('is-unrolled')
+  describe('the facts are never gated (design §10)', () => {
+    beforeEach(() => vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'setTimeout', 'clearTimeout'] }))
+    afterEach(() => vi.useRealTimers())
+
+    const glide = () => advance(tuning.camera.glideMs + 50)
+
+    it('opens the map and the gift box as soon as their pages come into view, before they are found', () => {
+      renderRoom({ qrUrl: '/qr.png' })
+      // Both pages start off screen, so their objects wait to play.
+      expect(document.querySelector('.treasure-map')).not.toHaveClass('is-unrolled')
+      expect(document.querySelector('.gift-box')).not.toHaveClass('is-open')
+      fireEvent.click(signposts().getByRole('button', { name: 'El lugar' }))
+      glide()
+      // The progress passed in has found nothing: the map is open because Dónde is in view.
+      expect(document.querySelector('.treasure-map')).toHaveClass('is-unrolled')
+      expect(document.querySelector('.gift-box')).not.toHaveClass('is-open')
+      fireEvent.click(signposts().getByRole('button', { name: 'El regalo' }))
+      glide()
+      expect(document.querySelector('.gift-box')).toHaveClass('is-open')
+      expect(within(document.querySelector<HTMLElement>('.gift-box')!).getByRole('img', { name: copy.qrAlt })).toBeInTheDocument()
+      // Once open, an object stays open: it plays once.
+      fireEvent.click(signposts().getByRole('button', { name: 'Inicio' }))
+      glide()
+      expect(document.querySelector('.treasure-map')).toHaveClass('is-unrolled')
+      expect(document.querySelector('.gift-box')).toHaveClass('is-open')
+    })
+
+    it('snaps to the nearest page when the wheel stops, and counts it', () => {
+      const { onEvent } = renderRoom()
+      fireEvent.wheel(document.querySelector('.room-viewport')!, { deltaX: 480, deltaY: 40 })
+      advance(tuning.pages.snapDelayMs + 10)
+      glide()
+      expectCameraOn('cuando')
+      advance(tuning.pages.settleMs + 10)
+      expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({ type: 'reachedPage', page: 'cuando' }))
+    })
+
+    it('snaps to the nearest page when a drag is released', () => {
+      renderRoom()
+      const surface = document.querySelector('.room-viewport')!
+      fireEvent.pointerDown(surface, { pointerId: 1, isPrimary: true, button: 0, clientX: 900, clientY: 400 })
+      fireEvent.pointerMove(surface, { pointerId: 1, clientX: 420, clientY: 360 })
+      fireEvent.pointerUp(surface, { pointerId: 1, clientX: 420, clientY: 360 })
+      glide()
+      expectCameraOn('cuando')
+    })
+
+    it('keeps the arrow keys stepping freely, with no snap', () => {
+      renderRoom()
+      const before = midTransform()
+      fireEvent.keyDown(window, { key: 'ArrowRight' })
+      advance(tuning.pages.snapDelayMs + tuning.camera.glideMs + 100)
+      expect(midTransform()).not.toBe(before)
+      expect(midTransform()).toBe(`translate3d(${-tuning.camera.arrowStepPx}px, ${before.match(/, (-?[\d.]+)px/)![1]}px, 0)`)
+    })
   })
 
   it('opens the gift box when something inside it takes focus', () => {

@@ -64,6 +64,8 @@ export const tokens = {
   shadow: '#140E14',
   // Fresh paper, lighter than the page: pinned notes, the letter, the QR plate.
   paperWhite: '#FFFFFF',
+  // Deep rose, deepened for text on aged parchment: 5.1:1 on the darkest page tint (pageShade).
+  pageRose: '#A3285A',
   // Legacy aliases: components not yet ported to the new palette read these names.
   // A later task removes them once every component uses the tokens above directly.
   hotPink: '#E08AAB',
@@ -88,8 +90,10 @@ export interface ThemeTokens {
   // The paper each cat is cut from (design §4).
   catPaper: string
   // The pop-up pages are parchment in both themes (design §3: bone parchment cards, rose never as
-  // text on bone): the paper, its ink, its accent text, and its hand-drawn inner line.
+  // text on bone): the paper, the darkest its aged edges get, its ink, its accent text, and its
+  // hand-drawn inner line.
   page: string
+  pageShade: string
   pageInk: string
   pageAccentText: string
   pageLine: string
@@ -108,8 +112,9 @@ export const themes: Record<ThemeName, ThemeTokens> = {
     catBody: tokens.ink,
     catPaper: tokens.bone,
     page: tokens.bone,
+    pageShade: '#E8DBC4',
     pageInk: tokens.ink,
-    pageAccentText: tokens.deepRose,
+    pageAccentText: tokens.pageRose,
     pageLine: 'rgba(60,31,61,0.45)',
   },
   light: {
@@ -124,8 +129,9 @@ export const themes: Record<ThemeName, ThemeTokens> = {
     catBody: '#111111',
     catPaper: '#FBF5EA',
     page: '#FBF5EA',
+    pageShade: tokens.bone,
     pageInk: tokens.ink,
-    pageAccentText: tokens.deepRose,
+    pageAccentText: tokens.pageRose,
     pageLine: 'rgba(60,31,61,0.4)',
   },
 }
@@ -241,7 +247,10 @@ export const tuning = {
   // within world.stationEps of its station in the book, or, in the flat room, when it is the page
   // nearest the camera and within `reachShare` of the screen of being centred. Gliding past a page
   // does not count. The stamp presses in over `stampMs`; the paper gives a "fwip" over `fwipMs`.
-  pages: { settleMs: 350, reachShare: 0.25, stampMs: 700, fwipMs: 560 },
+  // Once a drag is released, or `snapDelayMs` after the wheel stops, the view glides to the nearest
+  // page if it is within `snapShare` of the spacing between pages (both rooms; arrows and
+  // signposts are not snapped).
+  pages: { settleMs: 350, reachShare: 0.25, stampMs: 700, fwipMs: 560, snapDelayMs: 250, snapShare: 0.5 },
   // The themed objects on the pages (design §5).
   objects: {
     // The candle is whole `candleDays` before the party and burns down to `candleStub` of its

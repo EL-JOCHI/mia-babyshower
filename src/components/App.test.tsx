@@ -160,6 +160,7 @@ describe('US-9 Meet the cats and keep them', () => {
     expect(screen.getByRole('status')).toBeEmptyDOMElement()
   })
 
+  // Two whole battles in the full App: about 2 s alone, so it gets room on a busy machine.
   it('greets Misha and Kira as Legendario, each through a battle (AC3, AC4, design §7)', () => {
     window.__prefersReducedMotion = true
     vi.setSystemTime(beforeSatCutoff)
@@ -173,7 +174,7 @@ describe('US-9 Meet the cats and keep them', () => {
     winBattle('Kira')
     expect(screen.getByRole('status')).toHaveTextContent('Mira la puerta, y se queda cerca.')
     expect(stored(storageKeys.cats).caught).toEqual(['misha', 'kira'])
-  })
+  }, 15000)
 
   it('greets Mimo on the gate, where Bram never appears (AC5, AC7)', () => {
     catsInView()

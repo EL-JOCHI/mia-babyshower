@@ -23,6 +23,7 @@ function cssVars(theme: ThemeTokens): string {
     `--cat-body:${theme.catBody}`,
     `--cat-paper:${theme.catPaper}`,
     `--page:${theme.page}`,
+    `--page-shade:${theme.pageShade}`,
     `--page-ink:${theme.pageInk}`,
     `--page-accent-text:${theme.pageAccentText}`,
     `--page-line:${theme.pageLine}`,

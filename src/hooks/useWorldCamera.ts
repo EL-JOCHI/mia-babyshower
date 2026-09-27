@@ -42,6 +42,7 @@ const forwardKeys: Record<string, 1 | -1> = { ArrowRight: 1, ArrowDown: 1, Arrow
 export function useWorldCamera({ stations, reducedMotion, onMove }: Options): WorldCameraApi {
   const { glideMs, stationEps } = tuning.world
   const { dragThresholdPx } = tuning.camera
+  const { snapDelayMs, snapShare } = tuning.pages
   const [progress, setProgressState] = useState(0)
   const progressRef = useRef(0)
   // Where progress is heading: the glide target while gliding, otherwise where it is.
@@ -50,6 +51,7 @@ export function useWorldCamera({ stations, reducedMotion, onMove }: Options): Wo
   const pointers = useRef(new Set<number>())
   const suppressClick = useRef(false)
   const animation = useRef<number | null>(null)
+  const snapTimer = useRef<number | null>(null)
   const moved = useRef(onMove)
 
   useEffect(() => {
@@ -66,9 +68,12 @@ export function useWorldCamera({ stations, reducedMotion, onMove }: Options): Wo
     setProgressState(next)
   }, [])
 
+  // Stops a glide, and a snap waiting for the wheel to go idle.
   const stopGlide = useCallback(() => {
     if (animation.current !== null) cancelAnimationFrame(animation.current)
     animation.current = null
+    if (snapTimer.current !== null) window.clearTimeout(snapTimer.current)
+    snapTimer.current = null
   }, [])
 
   const moveTo = useCallback(
@@ -109,6 +114,19 @@ export function useWorldCamera({ stations, reducedMotion, onMove }: Options): Wo
     },
     [glideToProgress, stations],
   )
+
+  // Design §6: a drag or the wheel can come to rest anywhere, so the camera then glides to the
+  // nearest station, if it is within snapShare of the spacing between stations.
+  const snap = useCallback(() => {
+    if (order.length < 2) return
+    const at = progressRef.current
+    let nearest = order[0]![1]
+    for (const [, station] of order) if (Math.abs(station - at) < Math.abs(nearest - at)) nearest = station
+    let spacing = Infinity
+    for (let i = 1; i < order.length; i++) spacing = Math.min(spacing, order[i]![1] - order[i - 1]![1])
+    const distance = Math.abs(nearest - at)
+    if (distance > 0 && distance <= snapShare * spacing) glideToProgress(nearest)
+  }, [glideToProgress, order, snapShare])
 
   useEffect(() => stopGlide, [stopGlide])
 
@@ -177,13 +195,18 @@ export function useWorldCamera({ stations, reducedMotion, onMove }: Options): Wo
     [dragThresholdPx, moveTo],
   )
 
-  const endPointer = useCallback((e: PointerEvent<HTMLElement>) => {
-    pointers.current.delete(e.pointerId)
-    const d = drag.current
-    if (!d || d.pointerId !== e.pointerId) return
-    if (d.dragging) suppressClick.current = true
-    drag.current = null
-  }, [])
+  const endPointer = useCallback(
+    (e: PointerEvent<HTMLElement>) => {
+      pointers.current.delete(e.pointerId)
+      const d = drag.current
+      if (!d || d.pointerId !== e.pointerId) return
+      drag.current = null
+      if (!d.dragging) return
+      suppressClick.current = true
+      snap()
+    },
+    [snap],
+  )
 
   const onWheel = useCallback(
     (e: WheelEvent<HTMLElement>) => {
@@ -191,8 +214,9 @@ export function useWorldCamera({ stations, reducedMotion, onMove }: Options): Wo
       const scale = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1
       // Scrolling down or right reads on, like a finger dragging up or left.
       moveTo(progressFromDrag(progressRef.current, -e.deltaX * scale, -e.deltaY * scale, window.innerWidth))
+      snapTimer.current = window.setTimeout(snap, snapDelayMs)
     },
-    [moveTo],
+    [moveTo, snap, snapDelayMs],
   )
 
   const onClickCapture = useCallback((e: MouseEvent<HTMLElement>) => {

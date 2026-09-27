@@ -61,6 +61,27 @@ function pageInView(camera: Point, layout: Layout, ids: readonly LandmarkId[], v
   return best && best.dx <= reachShare * vw && best.dy <= reachShare * vh ? best.id : undefined
 }
 
+// The pages in view: a page is in view while its centre is on screen (design §5: its object opens).
+function pagesInView(camera: Point, layout: Layout, ids: readonly LandmarkId[], vw: number, vh: number): LandmarkId[] {
+  return ids.filter((id) => {
+    const { x, y } = layout.positions[id]
+    return x >= camera.x && x <= camera.x + vw && y >= camera.y && y <= camera.y + vh
+  })
+}
+
+// Where the camera settles after a drag or the wheel: the nearest page, if it is within
+// tuning.pages.snapShare of the spacing between pages.
+function snapTarget(camera: Point, layout: Layout, ids: readonly LandmarkId[], vw: number, vh: number): Point | null {
+  let best: { target: Point; distance: number } | null = null
+  for (const id of ids) {
+    const target = cameraTargetFor(layout.positions[id], layout, vw, vh)
+    const distance = Math.hypot(target.x - camera.x, target.y - camera.y)
+    if (!best || distance < best.distance) best = { target, distance }
+  }
+  const spacing = layout.roomWidth / Math.max(1, ids.length)
+  return best && best.distance > 0 && best.distance <= tuning.pages.snapShare * spacing ? best.target : null
+}
+
 function isOutside(el: HTMLElement): boolean {
   const r = el.getBoundingClientRect()
   // Without a layout (zero box) there is nothing to measure, so bring it into view anyway.
@@ -99,13 +120,15 @@ export function FlatRoom({
     hasMoved.current = true
     firstMove.current?.()
   }, [])
-  const cam = useCamera({ room: layout, vw, vh, reducedMotion, start, onMove })
+  const snapTo = useCallback((camera: Point) => snapTarget(camera, layout, ids, vw, vh), [layout, ids, vw, vh])
+  const cam = useCamera({ room: layout, vw, vh, reducedMotion, start, onMove, snapTo })
   const viewport = useRef<HTMLDivElement | null>(null)
   const keyboard = useKeyboardModality()
 
   const position = horizontalPosition(cam.camera.x, layout.roomWidth, vw)
   const stage = stageAt(position)
   const depth = reducedMotion ? { far: 1, mid: 1, near: 1 } : tuning.depth
+  const standing = pagesInView(cam.camera, layout, ids, vw, vh)
   const content = usePages({
     day,
     now,
@@ -119,6 +142,7 @@ export function FlatRoom({
     qrUrl,
     progress,
     onEvent,
+    standing,
     container: viewport,
     cameraRef: cam.cameraRef,
   })

@@ -346,6 +346,60 @@ describe('the 3D book and its fallback (design §2)', () => {
       })
     })
 
+    // A drag from the right edge that leaves progress at `to` (the book reads on as the finger goes left).
+    const dragTo = (to: number) => {
+      const from = window.innerWidth - 4
+      const x = from - (to / tuning.world.dragProgressPerViewport) * window.innerWidth
+      fireEvent.pointerDown(worldSurface(), { pointerId: 1, isPrimary: true, button: 0, clientX: from, clientY: 400 })
+      fireEvent.pointerMove(worldSurface(), { pointerId: 1, clientX: x, clientY: 400 })
+    }
+    const release = () => fireEvent.pointerUp(worldSurface(), { pointerId: 1 })
+
+    it('opens the map as soon as Dónde stands, before it counts as found (the facts are never gated)', async () => {
+      const onEvent = vi.fn()
+      renderWorldRoom({ onEvent })
+      await bookReady()
+      // Dónde is at 0.5: inside the pop-up range, outside the reach.
+      dragTo(0.5 - (tuning.world.stationEps + tuning.world.popUp.range) / 2)
+      expect(document.querySelector('.treasure-map')).toHaveClass('is-unrolled')
+      expect(document.querySelector('.gift-box')).not.toHaveClass('is-open')
+      expect(onEvent).not.toHaveBeenCalled()
+      release()
+    })
+
+    it('snaps to the nearest page after a drag, and then counts it', async () => {
+      const onEvent = vi.fn()
+      renderWorldRoom({ onEvent })
+      await bookReady()
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'setTimeout', 'clearTimeout'] })
+      // Just past the reach of Dónde (0.5), where it would never count on its own.
+      dragTo(0.5 - tuning.world.stationEps * 1.5)
+      release()
+      settle()
+      act(() => {
+        vi.advanceTimersByTime(tuning.pages.settleMs + 10)
+      })
+      expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({ type: 'reachedPage', page: 'donde' }))
+    })
+
+    it('snaps to the nearest page once the wheel goes idle', async () => {
+      const onEvent = vi.fn()
+      renderWorldRoom({ onEvent })
+      await bookReady()
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'setTimeout', 'clearTimeout'] })
+      // Scrolling down reads on: this wheel leaves progress just short of Palabra (1/6).
+      const deltaY = ((1 / 6 - tuning.world.stationEps * 1.5) / tuning.world.dragProgressPerViewport) * window.innerWidth
+      fireEvent.wheel(worldSurface(), { deltaY })
+      act(() => {
+        vi.advanceTimersByTime(tuning.pages.snapDelayMs + 10)
+      })
+      settle()
+      act(() => {
+        vi.advanceTimersByTime(tuning.pages.settleMs + 10)
+      })
+      expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({ type: 'reachedPage', page: 'palabra' }))
+    })
+
     it('glides to the page that keyboard focus enters (FR-11)', async () => {
       renderWorldRoom()
       await bookReady()

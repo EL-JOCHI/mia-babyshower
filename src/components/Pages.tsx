@@ -32,6 +32,9 @@ interface PagesInput {
   // Confirmar por WhatsApp and Guardar QR count toward the game layer (design §6).
   onEvent: (event: ProgressEvent) => void
   progress: Progress
+  // The pages standing, or in view, now: their objects open at once, found or not (design §10:
+  // the facts are never gated). Once open, an object stays open.
+  standing: readonly LandmarkId[]
   qrUrl: string | undefined
   // Reduced motion: every object is already open and settled.
   still: boolean
@@ -39,9 +42,22 @@ interface PagesInput {
 
 // Design §5: the facts, each on its pop-up page with its own object. Both rooms show these: the
 // flat room lays them out on its layers, the 3D book stands them up at its stations.
-export function Pages({ day, now, partyOver, acts, cats, onEvent, progress, qrUrl, still }: PagesInput): Record<LandmarkId, ReactNode> {
+export function Pages({
+  day,
+  now,
+  partyOver,
+  acts,
+  cats,
+  onEvent,
+  progress,
+  standing,
+  qrUrl,
+  still,
+}: PagesInput): Record<LandmarkId, ReactNode> {
   const { active, play } = acts
+  // Found (the stamp, the badge, the XP) and open (the object shows its fact) are separate.
   const found = (id: LandmarkId) => progress.pages.includes(id)
+  const open = (id: LandmarkId) => still || found(id) || standing.includes(id)
   const record = days[day]
 
   const tapCountdown = () => {
@@ -107,7 +123,7 @@ export function Pages({ day, now, partyOver, acts, cats, onEvent, progress, qrUr
     ),
     donde: (
       <PageCard id="donde" found={found('donde')}>
-        <TreasureMap unrolled={still || found('donde')}>
+        <TreasureMap unrolled={open('donde')}>
           <Location />
         </TreasureMap>
       </PageCard>
@@ -128,7 +144,7 @@ export function Pages({ day, now, partyOver, acts, cats, onEvent, progress, qrUr
       <PageCard id="presente" found={found('presente')}>
         <Gift
           qrUrl={qrUrl}
-          open={still || found('presente')}
+          open={open('presente')}
           tilting={Boolean(active.nanaSit)}
           onQrTap={() => play('nanaSit')}
           onSave={() => onEvent({ type: 'savedQr' })}
@@ -181,6 +197,7 @@ interface RoomPagesOptions {
   qrUrl: string | undefined
   progress: Progress
   onEvent: (event: ProgressEvent) => void
+  standing: readonly LandmarkId[]
   // Where the cats are measured for noticing, and the camera whose speed counts as rushing.
   container: RefObject<HTMLElement | null>
   cameraRef: { readonly current: Point }
@@ -201,6 +218,7 @@ export function usePages({
   qrUrl,
   progress,
   onEvent,
+  standing,
   container,
   cameraRef,
 }: RoomPagesOptions): Record<LandmarkId, ReactNode> {
@@ -234,5 +252,5 @@ export function usePages({
     </div>
   )
 
-  return Pages({ day, now, partyOver, acts, cats, onEvent, progress, qrUrl, still: reducedMotion })
+  return Pages({ day, now, partyOver, acts, cats, onEvent, progress, standing, qrUrl, still: reducedMotion })
 }

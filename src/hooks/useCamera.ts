@@ -17,6 +17,9 @@ interface Options {
   // Called whenever the guest moves the room: a drag, the wheel, or an arrow key. Glides (a
   // signpost, keyboard focus) are not the guest's own move.
   onMove?: () => void
+  // Where to settle after a drag is released or the wheel goes idle (the nearest page), or null to
+  // stay put. Arrow keys and glides are never snapped.
+  snapTo?: (camera: Point) => Point | null
 }
 
 interface DragState {
@@ -46,8 +49,9 @@ const interactive = 'button, a, input, select, textarea, [data-no-drag]'
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 
 // §4: one camera position, moved by drag, touch, wheel, arrow keys, signposts, and focus.
-export function useCamera({ room, vw, vh, reducedMotion, start, onMove }: Options): CameraApi {
+export function useCamera({ room, vw, vh, reducedMotion, start, onMove, snapTo }: Options): CameraApi {
   const { edgeMarginPx, glideMs, arrowStepPx, dragThresholdPx } = tuning.camera
+  const { snapDelayMs } = tuning.pages
   const [raw, setRaw] = useState<Point>(start)
   const camera = clampCamera(raw, room, vw, vh, edgeMarginPx)
 
@@ -58,16 +62,22 @@ export function useCamera({ room, vw, vh, reducedMotion, start, onMove }: Option
   const animation = useRef<number | null>(null)
   const limits = useRef({ room, vw, vh })
   const moved = useRef(onMove)
+  const snapTarget = useRef(snapTo)
+  const snapTimer = useRef<number | null>(null)
 
   useEffect(() => {
     cameraRef.current = camera
     limits.current = { room, vw, vh }
     moved.current = onMove
+    snapTarget.current = snapTo
   })
 
+  // Stops a glide, and a snap waiting for the wheel to go idle.
   const stopGlide = useCallback(() => {
     if (animation.current !== null) cancelAnimationFrame(animation.current)
     animation.current = null
+    if (snapTimer.current !== null) window.clearTimeout(snapTimer.current)
+    snapTimer.current = null
   }, [])
 
   const setCamera = useCallback(
@@ -110,6 +120,11 @@ export function useCamera({ room, vw, vh, reducedMotion, start, onMove }: Option
   )
 
   useEffect(() => stopGlide, [stopGlide])
+
+  const snap = useCallback(() => {
+    const target = snapTarget.current?.(cameraRef.current)
+    if (target) glideTo(target)
+  }, [glideTo])
 
   // Arrow keys move the camera, unless a dialog is open or the key belongs to a form field.
   useEffect(() => {
@@ -175,13 +190,18 @@ export function useCamera({ room, vw, vh, reducedMotion, start, onMove }: Option
     [dragThresholdPx, setCamera],
   )
 
-  const endPointer = useCallback((e: PointerEvent<HTMLElement>) => {
-    pointers.current.delete(e.pointerId)
-    const d = drag.current
-    if (!d || d.pointerId !== e.pointerId) return
-    if (d.dragging) suppressClick.current = true
-    drag.current = null
-  }, [])
+  const endPointer = useCallback(
+    (e: PointerEvent<HTMLElement>) => {
+      pointers.current.delete(e.pointerId)
+      const d = drag.current
+      if (!d || d.pointerId !== e.pointerId) return
+      drag.current = null
+      if (!d.dragging) return
+      suppressClick.current = true
+      snap()
+    },
+    [snap],
+  )
 
   const onWheel = useCallback(
     (e: WheelEvent<HTMLElement>) => {
@@ -194,8 +214,9 @@ export function useCamera({ room, vw, vh, reducedMotion, start, onMove }: Option
         dy = 0
       }
       moveBy(dx, dy)
+      snapTimer.current = window.setTimeout(snap, snapDelayMs)
     },
-    [moveBy],
+    [moveBy, snap, snapDelayMs],
   )
 
   const onClickCapture = useCallback((e: MouseEvent<HTMLElement>) => {

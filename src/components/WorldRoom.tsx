@@ -64,6 +64,7 @@ interface PagesProps {
   qrUrl: string | undefined
   progress: Progress
   onEvent: (event: ProgressEvent) => void
+  standing: readonly LandmarkId[]
   container: RefObject<HTMLElement | null>
   noticeCamera: { readonly current: Point }
   progressRef: { readonly current: number }
@@ -89,6 +90,7 @@ const BookPages = memo(function BookPages({
   qrUrl,
   progress,
   onEvent,
+  standing,
   container,
   noticeCamera,
   progressRef,
@@ -110,6 +112,7 @@ const BookPages = memo(function BookPages({
     qrUrl,
     progress,
     onEvent,
+    standing,
     container,
     cameraRef: noticeCamera,
   })
@@ -210,6 +213,12 @@ function BookRoom({
     if (!progress.pages.includes(page)) onEvent({ type: 'reachedPage', page, pages })
   })
 
+  // The pages standing now: within the pop-up range of the camera, the same range that stands a
+  // page up. Their objects open at once, found or not (the facts are never gated). Keyed by the ids,
+  // so the memoized pages re-render only when the set changes.
+  const standingKey = ids.filter((id) => Math.abs(cam.progress - stations[id]) <= tuning.world.popUp.range).join(',')
+  const standing = useMemo(() => (standingKey ? (standingKey.split(',') as LandmarkId[]) : []), [standingKey])
+
   // Any key opens the cover, so a keyboard never tabs into a closed book.
   useEffect(() => {
     if (moved) return
@@ -288,6 +297,7 @@ function BookRoom({
           qrUrl={qrUrl}
           progress={progress}
           onEvent={onEvent}
+          standing={standing}
           container={surface}
           noticeCamera={noticeCamera}
           progressRef={progressRef}

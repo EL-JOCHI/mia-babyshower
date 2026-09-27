@@ -2,7 +2,8 @@ import { useState, type CSSProperties, type ReactNode } from 'react'
 import { tuning } from '../tuning'
 
 interface Props {
-  // The page has been found, or motion is reduced: the box stands open.
+  // The page is standing or in view, found, or motion is reduced: the box stands open. Once open,
+  // it stays open, so it opens once.
   open: boolean
   // Who perches on the box (Nana).
   perch?: ReactNode
@@ -12,12 +13,12 @@ interface Props {
   below?: ReactNode
 }
 
-// Presente (design §5): a gift box. When the page is found, the ribbon unties, the lid lifts
-// away, and the front folds down flat like a pop-up, revealing the QR plate. A tap or keyboard
-// focus inside opens it too, so the QR is never hidden from someone already reaching for it.
+// Presente (design §5): a gift box. As soon as its page stands (or is in view), the ribbon unties,
+// the lid lifts away, and the front folds down flat like a pop-up, revealing the QR plate. A tap or
+// keyboard focus inside opens it too.
 export function GiftBox({ open, perch, children, below }: Props) {
-  const [opened, setOpened] = useState(false)
-  const isOpen = open || opened
+  const [isOpen, setOpen] = useState(open)
+  if (open && !isOpen) setOpen(true)
   const { untieMs, liftMs, liftDelayMs } = tuning.objects.gift
   const style = {
     '--untie-ms': `${untieMs}ms`,
@@ -28,8 +29,8 @@ export function GiftBox({ open, perch, children, below }: Props) {
     <div
       className={`gift-box${isOpen ? ' is-open' : ''}`}
       style={style}
-      onFocus={() => setOpened(true)}
-      onClick={() => setOpened(true)}
+      onFocus={() => setOpen(true)}
+      onClick={() => setOpen(true)}
     >
       <div className="qr-perch">{perch}</div>
       <div className="gift-box-art">

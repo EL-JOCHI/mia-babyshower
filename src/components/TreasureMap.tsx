@@ -2,19 +2,19 @@ import { useState, type CSSProperties, type ReactNode } from 'react'
 import { tuning } from '../tuning'
 
 interface Props {
-  // The page has been found, or motion is reduced: the map lies open.
+  // The page is standing or in view, found, or motion is reduced: the map lies open. Once open, it
+  // stays open, so it unrolls once.
   unrolled: boolean
   // The address and Ver en el mapa, written on the map.
   children: ReactNode
 }
 
-// Dónde (design §5): a treasure map. When the page is found, the parchment unrolls from the
-// centre (a clip-path), the two rolled ends slide out to the edges, and a pin drops on the spot.
-// A tap or keyboard focus inside also unrolls it, so the address and the link are never hidden
-// from someone who is already reading them.
+// Dónde (design §5): a treasure map. As soon as its page stands (or is in view), the parchment
+// unrolls from the centre (a clip-path), the two rolled ends slide out to the edges, and a pin drops
+// on the spot. A tap or keyboard focus inside also unrolls it.
 export function TreasureMap({ unrolled, children }: Props) {
-  const [opened, setOpened] = useState(false)
-  const open = unrolled || opened
+  const [open, setOpen] = useState(unrolled)
+  if (unrolled && !open) setOpen(true)
   const { unrollMs, pinDelayMs, pinMs } = tuning.objects.map
   const style = {
     '--unroll-ms': `${unrollMs}ms`,
@@ -25,8 +25,8 @@ export function TreasureMap({ unrolled, children }: Props) {
     <div
       className={`treasure-map${open ? ' is-unrolled' : ''}`}
       style={style}
-      onFocus={() => setOpened(true)}
-      onClick={() => setOpened(true)}
+      onFocus={() => setOpen(true)}
+      onClick={() => setOpen(true)}
     >
       <div className="map-sheet">
         <svg className="map-art" viewBox="0 0 300 220" preserveAspectRatio="none" aria-hidden="true" focusable="false">

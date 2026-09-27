@@ -34,13 +34,10 @@
   inset: 0;
   z-index: -1;
   border-radius: 3px;
+  /* The aged edges never get darker than --page-shade, which the contrast test holds the page's
+     text to. */
   background:
-    radial-gradient(
-      ellipse at 50% 42%,
-      transparent 52%,
-      color-mix(in oklab, var(--candle) 16%, transparent) 82%,
-      color-mix(in oklab, var(--plum) 26%, transparent)
-    ),
+    radial-gradient(ellipse at 50% 42%, transparent 50%, var(--page-shade)),
     var(--paper-grain),
     var(--page);
   background-size: auto, 220px 220px, auto;
@@ -61,8 +58,9 @@
 }
 
 .page-card.is-cover .page-paper {
+  /* The cover's edges darken toward the field at most, a pair the theme contrast test covers. */
   background:
-    radial-gradient(ellipse at 50% 42%, transparent 50%, color-mix(in oklab, var(--shadow) 30%, transparent)),
+    radial-gradient(ellipse at 50% 42%, transparent 50%, color-mix(in oklab, var(--field) 45%, transparent)),
     var(--paper-grain),
     var(--surface);
   background-size: auto, 220px 220px, auto;
