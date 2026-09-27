@@ -9,10 +9,12 @@
   --color-ink: var(--ink);
   --color-accent: var(--accent);
   /* Type (design §3): Mystery Quest for titles, Alegreya for reading text, Pixelify Sans
-     only on game screens (battle boxes, scores, XP, the gate game). */
-  --font-title: 'Mystery Quest', ui-serif, serif;
-  --font-read: 'Alegreya', ui-serif, serif;
-  --font-game: 'Pixelify Sans', ui-monospace, monospace;
+     only on game screens (battle boxes, scores, XP, the gate game). The fallbacks are the plain
+     generic families: the system UI faces (ui-serif) load lazily on Apple devices and made the
+     first paint of the cover wait on a phone-speed CPU (design §2 Loading, §12). */
+  --font-title: 'Mystery Quest', serif;
+  --font-read: 'Alegreya', serif;
+  --font-game: 'Pixelify Sans', monospace;
   /* Paper grain (design §3 Texture): a feTurbulence noise filter at 0.08 opacity, over the field. */
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
 }
@@ -81,7 +83,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 6px;
+    gap: calc(6 * var(--ui-px));
     pointer-events: none;
   }
 
@@ -98,13 +100,13 @@
   }
 
   .hud-button {
-    min-height: 36px;
-    padding: 6px 12px;
+    min-height: calc(36 * var(--ui-px));
+    padding: calc(6 * var(--ui-px)) calc(12 * var(--ui-px));
     border: 1.5px solid var(--line);
     border-radius: 999px;
     background: var(--field);
     color: var(--ink);
-    font-size: 14px;
+    font-size: calc(14 * var(--ui-px));
     font-weight: 600;
     line-height: 1;
   }
@@ -123,13 +125,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 44px;
-    padding: 10px 20px;
+    min-height: calc(44 * var(--ui-px));
+    padding: calc(10 * var(--ui-px)) calc(20 * var(--ui-px));
     border: 0;
     border-radius: 999px;
     background: var(--button-bg);
     color: var(--button-ink);
-    font-size: 16px;
+    font-size: calc(16 * var(--ui-px));
     font-weight: 700;
     text-decoration: none;
     box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent);
@@ -140,8 +142,8 @@
     color: var(--ink);
     border: 2px solid var(--accent);
     box-shadow: none;
-    min-height: 40px;
-    font-size: 15px;
+    min-height: calc(40 * var(--ui-px));
+    font-size: calc(15 * var(--ui-px));
   }
 
   .signposts {
@@ -159,7 +161,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 6px;
+    gap: calc(6 * var(--ui-px));
     margin: 0;
     padding: 0;
     list-style: none;
@@ -167,13 +169,13 @@
   }
 
   .signpost {
-    min-height: 36px;
-    padding: 6px 12px;
+    min-height: calc(36 * var(--ui-px));
+    padding: calc(6 * var(--ui-px)) calc(12 * var(--ui-px));
     border: 1.5px solid var(--line);
     border-radius: 999px;
     background: color-mix(in srgb, var(--field) 88%, transparent);
     color: var(--ink);
-    font-size: 14px;
+    font-size: calc(14 * var(--ui-px));
     font-weight: 600;
     backdrop-filter: blur(4px);
   }
@@ -606,13 +608,13 @@
     bottom: -18px;
     transform: translateX(-50%);
     z-index: 4;
-    min-height: 32px;
-    padding: 4px 12px;
+    min-height: calc(32 * var(--ui-px));
+    padding: calc(4 * var(--ui-px)) calc(12 * var(--ui-px));
     border: 0;
     border-radius: 999px;
     background: var(--button-bg);
     color: var(--button-ink);
-    font-size: 14px;
+    font-size: calc(14 * var(--ui-px));
     font-weight: 700;
     white-space: nowrap;
     box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 60%, transparent);
@@ -701,7 +703,7 @@
   }
 
   .collection-rarity {
-    font-size: 13px;
+    font-size: calc(13 * var(--ui-px));
     font-weight: 700;
     color: var(--accent-text);
     text-transform: uppercase;
@@ -722,7 +724,9 @@
 
   .card-reveal {
     position: relative;
-    width: min(72vw, clamp(250px, 10vw + 180px, 360px));
+    /* 250 px on a phone, 360 px on a desktop, then larger with the screen (design §9), always
+       short enough to fit the screen's height. */
+    width: min(72vw, calc(80dvh * 5 / 7), calc(clamp(250px, 10vw + 180px, 360px) + (var(--ui-px) - 1px) * 360));
     aspect-ratio: 5 / 7;
     pointer-events: auto;
     cursor: pointer;
@@ -776,7 +780,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 18px 16px 18px;
+    padding: calc(18 * var(--ui-px)) calc(16 * var(--ui-px)) calc(18 * var(--ui-px));
     background: var(--paper-grain), var(--bone);
     background-size: 220px 220px, auto;
     color: var(--shadow);
@@ -797,11 +801,11 @@
 
   .card-rarity {
     position: relative;
-    margin: 4px 0 0;
-    padding: 6px 14px 7px;
+    margin: calc(4 * var(--ui-px)) 0 0;
+    padding: calc(6 * var(--ui-px)) calc(14 * var(--ui-px)) calc(7 * var(--ui-px));
     background: var(--shadow);
     font-family: var(--font-game);
-    font-size: 22px;
+    font-size: calc(22 * var(--ui-px));
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.02em;
@@ -809,10 +813,13 @@
     box-shadow: 3px 3px 0 color-mix(in oklab, var(--feel) 60%, transparent);
   }
 
+  /* The art spans the card's width (the card centres its other lines), so the cat is drawn at a
+     share of the card and grows with it on a large screen. */
   .card-art {
     display: grid;
     flex: 1;
     place-items: center;
+    align-self: stretch;
     min-height: 0;
   }
 
@@ -825,13 +832,13 @@
   .card-name {
     margin: 0;
     font-family: var(--font-title);
-    font-size: 30px;
+    font-size: calc(30 * var(--ui-px));
     line-height: 1.1;
   }
 
   .card-line {
-    margin: 6px 4px 0;
-    font-size: 15px;
+    margin: calc(6 * var(--ui-px)) calc(4 * var(--ui-px)) 0;
+    font-size: calc(15 * var(--ui-px));
     line-height: 1.35;
   }
 
@@ -905,7 +912,7 @@
     position: absolute;
     z-index: 1;
     color: var(--candle);
-    font-size: 24px;
+    font-size: calc(24 * var(--ui-px));
     line-height: 1;
     text-shadow: 0 0 10px var(--candle);
     translate: -50% -50%;
@@ -925,8 +932,9 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: max(16px, env(safe-area-inset-top)) max(14px, calc((100vw - 760px) / 2)) max(16px, env(safe-area-inset-bottom));
+    gap: calc(12 * var(--ui-px));
+    /* One column, 760 px wide on a desktop and wider on a large screen (design §9). */
+    padding: max(16px, env(safe-area-inset-top)) max(14px, calc((100vw - 760 * var(--ui-px)) / 2)) max(16px, env(safe-area-inset-bottom));
     overflow: auto;
     background:
       radial-gradient(ellipse 70% 42% at 72% 30%, color-mix(in oklab, var(--feel) 26%, transparent), transparent 70%),
@@ -949,13 +957,13 @@
       'you you';
     align-content: center;
     align-items: center;
-    gap: 8px 12px;
+    gap: calc(8 * var(--ui-px)) calc(12 * var(--ui-px));
     min-height: 0;
   }
 
   .battle-status {
     position: relative;
-    padding: 10px 12px 12px;
+    padding: calc(10 * var(--ui-px)) calc(12 * var(--ui-px)) calc(12 * var(--ui-px));
     border: 3px solid var(--ink);
     border-radius: 4px 14px 4px 14px;
     background: color-mix(in oklab, var(--surface) 92%, transparent);
@@ -965,36 +973,36 @@
   .battle-status-cat {
     grid-area: foe;
     align-self: start;
-    margin-top: 32px;
+    margin-top: calc(32 * var(--ui-px));
   }
 
   .battle-status-you {
     grid-area: you;
     justify-self: end;
-    width: min(100%, 300px);
+    width: min(100%, calc(300 * var(--ui-px)));
   }
 
   .battle-status-head {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 4px 8px;
+    gap: calc(4 * var(--ui-px)) calc(8 * var(--ui-px));
   }
 
   .battle-name {
     margin: 0;
-    font-size: 20px;
+    font-size: calc(20 * var(--ui-px));
     font-weight: 600;
     line-height: 1.1;
   }
 
   .battle-plate {
     margin: 0;
-    padding: 3px 8px;
+    padding: calc(3 * var(--ui-px)) calc(8 * var(--ui-px));
     border-radius: 3px;
     background: var(--candle);
     color: var(--shadow);
-    font-size: 13px;
+    font-size: calc(13 * var(--ui-px));
     font-weight: 600;
     white-space: nowrap;
     box-shadow: 0 0 14px color-mix(in oklab, var(--candle) 60%, transparent);
@@ -1002,17 +1010,17 @@
 
   .battle-bar-row {
     display: grid;
-    gap: 4px;
-    margin-top: 8px;
+    gap: calc(4 * var(--ui-px));
+    margin-top: calc(8 * var(--ui-px));
   }
 
   .battle-bar-label {
-    font-size: 14px;
+    font-size: calc(14 * var(--ui-px));
     line-height: 1.2;
   }
 
   .battle-bar {
-    height: 12px;
+    height: calc(12 * var(--ui-px));
     padding: 2px;
     border: 2px solid var(--ink);
     border-radius: 3px;
@@ -1059,7 +1067,7 @@
 
   .battle-spot .cat-sprite {
     position: relative;
-    width: min(100%, clamp(160px, 32vh, 300px));
+    width: min(100%, clamp(160px, 32vh, calc(300 * var(--ui-px))));
     height: auto;
   }
 
@@ -1076,10 +1084,10 @@
 
   .battle-box {
     position: relative;
-    min-height: 92px;
-    padding: 14px 16px;
+    min-height: calc(92 * var(--ui-px));
+    padding: calc(14 * var(--ui-px)) calc(16 * var(--ui-px));
     background: var(--surface);
-    font-size: 18px;
+    font-size: calc(18 * var(--ui-px));
     line-height: 1.4;
     cursor: default;
   }
@@ -1105,19 +1113,19 @@
   .battle-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: calc(10 * var(--ui-px));
   }
 
   .battle-move,
   .battle-win {
-    min-height: 50px;
-    padding: 8px 12px;
+    min-height: calc(50 * var(--ui-px));
+    padding: calc(8 * var(--ui-px)) calc(12 * var(--ui-px));
     border: 3px solid var(--ink);
     border-radius: 6px;
     background: var(--surface);
     color: var(--ink);
     font-family: var(--font-game);
-    font-size: 18px;
+    font-size: calc(18 * var(--ui-px));
     font-weight: 600;
     text-align: left;
   }
@@ -1187,10 +1195,10 @@
   }
 
   .collection {
-    width: min(100%, 440px);
+    width: min(100%, calc(440 * var(--ui-px)));
     max-height: calc(100dvh - 32px);
     overflow: auto;
-    padding: 18px;
+    padding: calc(18 * var(--ui-px));
     border: 2px solid var(--accent);
     border-radius: 20px;
     background: var(--surface);
@@ -1202,13 +1210,13 @@
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 4px 10px;
+    gap: calc(4 * var(--ui-px)) calc(10 * var(--ui-px));
   }
 
   .collection-header h2 {
     margin: 0;
     font-family: var(--font-game);
-    font-size: 15px;
+    font-size: calc(15 * var(--ui-px));
     color: var(--accent-text);
   }
 
@@ -1219,15 +1227,15 @@
 
   .collection-count {
     display: flex;
-    gap: 10px;
-    font-size: 14px;
+    gap: calc(10 * var(--ui-px));
+    font-size: calc(14 * var(--ui-px));
     font-weight: 700;
   }
 
   .collection-list {
     display: grid;
-    gap: 10px;
-    margin: 14px 0 0;
+    gap: calc(10 * var(--ui-px));
+    margin: calc(14 * var(--ui-px)) 0 0;
     padding: 0;
     list-style: none;
   }
@@ -1235,26 +1243,26 @@
   .collection-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 10px;
+    gap: calc(12 * var(--ui-px));
+    padding: calc(8 * var(--ui-px)) calc(10 * var(--ui-px));
     border: 1.5px solid var(--line);
     border-radius: 14px;
   }
 
   .collection-name {
     font-weight: 700;
-    font-size: 16px;
+    font-size: calc(16 * var(--ui-px));
   }
 
   .collection-line {
-    font-size: 14px;
+    font-size: calc(14 * var(--ui-px));
     line-height: 1.35;
   }
 
   .collection-again {
     display: flex;
     width: 100%;
-    margin-top: 14px;
+    margin-top: calc(14 * var(--ui-px));
   }
 
   .button:disabled {
@@ -1276,8 +1284,8 @@
     top: 13%;
     left: 50%;
     transform: translateX(-50%);
-    width: min(88vw, 460px);
-    padding: 18px;
+    width: min(88vw, calc(460 * var(--ui-px)));
+    padding: calc(18 * var(--ui-px));
     border: 2px solid var(--line);
     border-radius: 18px;
     background: var(--surface);
@@ -1286,13 +1294,13 @@
   }
 
   .gate-sentence {
-    font-size: 19px;
+    font-size: calc(19 * var(--ui-px));
     font-weight: 600;
     line-height: 1.45;
   }
 
   .gate-sentence + .gate-sentence {
-    margin-top: 8px;
+    margin-top: calc(8 * var(--ui-px));
     color: var(--accent-text);
   }
 
@@ -1300,6 +1308,14 @@
     position: absolute;
     transform: translate(-50%, -50%);
     z-index: 2;
+  }
+
+  /* The gate's cats and the cats in Tus gatos grow with the screen too (design §9). --cat-size is
+     the size the component asked for (tuning.catSize). */
+  .gate .cat-sprite,
+  .collection .cat-sprite {
+    width: calc(var(--cat-size) * var(--ui-px));
+    height: calc(var(--cat-size) * var(--ui-px));
   }
 
   .gate-spot-luz {
@@ -1466,8 +1482,24 @@
     pointer-events: none;
   }
 
+  /* The first paint (design §2 Loading, src/headMeta.ts): until the app starts, index.html holds
+     the cover, the post-party cover, and the gate's sentences; the head script's data-opening
+     shows the one this link opens. */
+  .first-paint > * {
+    display: none;
+  }
+
+  :root[data-opening='day'] .first-paint-day,
+  :root[data-opening='over'] .first-paint-over {
+    display: grid;
+  }
+
+  :root[data-opening='gate'] .first-paint-gate {
+    display: block;
+  }
+
   .book-cover-inner {
-    max-width: 30rem;
+    max-width: calc(510 * var(--ui-px));
     text-align: center;
   }
 
@@ -1478,14 +1510,14 @@
   .cover-title {
     margin: 0;
     font-family: var(--font-title);
-    font-size: clamp(32px, 4vw + 20px, 56px);
+    font-size: clamp(32px, 4vw + 20px, calc(56 * var(--ui-px)));
     line-height: 1.15;
     color: var(--accent-text);
   }
 
   .cover-hero {
     margin-bottom: 0;
-    font-size: clamp(18px, 0.6vw + 16px, 22px);
+    font-size: clamp(18px, 0.6vw + 16px, calc(22 * var(--ui-px)));
     line-height: 1.5;
   }
 }

@@ -19,11 +19,13 @@ vi.mock('../world/World', () => ({
     ids,
     content,
     theme,
+    running,
     onReady,
   }: {
     ids: LandmarkId[]
     content: Record<LandmarkId, ReactNode>
     theme: string
+    running: boolean
     onReady: () => void
   }) {
     if (world.mode === 'fails') throw new Error('The world could not start')
@@ -32,7 +34,7 @@ vi.mock('../world/World', () => ({
     }, [onReady])
     return createElement(
       'div',
-      { 'data-testid': 'world', 'data-theme': theme },
+      { 'data-testid': 'world', 'data-theme': theme, 'data-running': String(running) },
       ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id])),
     )
   },
@@ -224,6 +226,18 @@ describe('the 3D book and its fallback (design §2)', () => {
     fireEvent.wheel(worldSurface(), { deltaY: 120 })
     expect(onFirstMove).toHaveBeenCalledTimes(1)
     expect(cover()).toHaveClass('is-opening')
+  })
+
+  // Performance (design §12): nothing draws behind the closed, opaque cover. The world draws the
+  // frame it needs to get ready, then waits, and runs from the moment the cover starts to open.
+  it('keeps the world waiting behind the closed cover, and runs it once the cover opens', async () => {
+    world.mode = 'ready'
+    renderWorldRoom()
+    await bookReady()
+    expect(screen.getByTestId('world')).toHaveAttribute('data-running', 'false')
+    fireEvent.wheel(worldSurface(), { deltaY: 120 })
+    expect(cover()).toHaveClass('is-opening')
+    expect(screen.getByTestId('world')).toHaveAttribute('data-running', 'true')
   })
 
   it('opens the cover on any key, so the keyboard never tabs into a closed book', async () => {

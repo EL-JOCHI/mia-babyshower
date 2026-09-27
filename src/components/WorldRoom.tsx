@@ -69,6 +69,7 @@ interface PagesProps {
   noticeCamera: { readonly current: Point }
   progressRef: { readonly current: number }
   theme: ThemeName
+  running: boolean
   awake: boolean
   onReady: () => void
   onFail: () => void
@@ -95,6 +96,7 @@ const BookPages = memo(function BookPages({
   noticeCamera,
   progressRef,
   theme,
+  running,
   awake,
   onReady,
   onFail,
@@ -125,6 +127,7 @@ const BookPages = memo(function BookPages({
           progressRef={progressRef}
           content={content}
           theme={theme}
+          running={running}
           awake={awake}
           onReady={onReady}
           onFail={onFail}
@@ -302,6 +305,7 @@ function BookRoom({
           noticeCamera={noticeCamera}
           progressRef={progressRef}
           theme={theme}
+          running={opening}
           awake={coverGone}
           onReady={onReady}
           onFail={onFail}

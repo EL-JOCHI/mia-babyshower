@@ -97,7 +97,7 @@ export function FamilyDoor({ scratching, still, onFrameTap }: Props) {
     <svg ref={ref} className={`family-door ${state}`} viewBox="0 0 320 250" aria-hidden="true" focusable="false">
       <defs>
         <radialGradient id="door-light" cx="50%" cy="60%" r="65%">
-          <stop offset="0%" style={{ stopColor: 'var(--paper)' }} />
+          <stop offset="0%" style={{ stopColor: 'var(--bone)' }} />
           <stop offset="45%" style={{ stopColor: 'var(--blush)' }} />
           <stop offset="100%" style={{ stopColor: 'var(--hot-pink)' }} />
         </radialGradient>
@@ -134,7 +134,7 @@ export function FamilyDoor({ scratching, still, onFrameTap }: Props) {
         strokeWidth={26}
         onClick={onFrameTap}
       />
-      <g className={`door-scratch${scratching ? ' is-visible' : ''}`} stroke="var(--paper)" strokeWidth={2} strokeLinecap="round">
+      <g className={`door-scratch${scratching ? ' is-visible' : ''}`} stroke="var(--bone)" strokeWidth={2} strokeLinecap="round">
         <path d="M58 150 l14 -12" />
         <path d="M58 158 l14 -12" />
         <path d="M58 166 l14 -12" />

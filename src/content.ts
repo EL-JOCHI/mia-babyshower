@@ -162,8 +162,8 @@ export const copy = {
   share: { title: 'Baby shower de Mia', description: 'Una invitación para invitados especiales.' },
 } as const
 
-// New Spanish copy (design §13). Later tasks wire these into the quest log, the legendary
-// battle, and the gate mini-game.
+// New Spanish copy (design §13): the pages and the game layer, the legendary battle, and the
+// gate mini-game (requirements §6).
 export const gameCopy = {
   pageFound: '¡Página encontrada!',
   pages: (n: number, total: number) => `Páginas ${n}/${total}`,

@@ -2,13 +2,13 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { loadEnv, type Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
-import { headMeta } from './src/headMeta.ts'
+import { firstPaint, headMeta } from './src/headMeta.ts'
 
 function headTags(siteUrl: string): Plugin {
   return {
     name: 'mia-head-tags',
     transformIndexHtml(html) {
-      return html.replace('<!--head-tags-->', headMeta(siteUrl))
+      return html.replace('<!--head-tags-->', headMeta(siteUrl)).replace('<!--first-paint-->', firstPaint())
     },
   }
 }
@@ -25,6 +25,9 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/test/setup.ts'],
       css: false,
       restoreMocks: true,
+      // Deploys run `npm test` on shared CI runners: a few whole-App tests (a 30 s gate round, two
+      // battles) take seconds of fake time and can pass 5 s on a slow or busy machine.
+      testTimeout: 20000,
     },
   }
 })

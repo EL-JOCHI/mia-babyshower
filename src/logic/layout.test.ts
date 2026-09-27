@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { tuning } from '../tuning'
 import { computeLayout, landmarksFor } from './layout'
+import { screenScale } from './screen'
 
 const t = tuning.room
 
@@ -42,10 +43,26 @@ describe('computeLayout (§4 room size, US-1 AC6)', () => {
       [390, 844],
       [768, 1024],
       [1440, 900],
+      [1920, 1080],
+      [2560, 1440],
     ] as const) {
       noOverlap(vw, vh, false)
       noOverlap(vw, vh, true)
     }
+  })
+
+  // Design §9: on a large screen the flat room's cards grow with the screen, up to the cap, and
+  // their content is drawn at the same scale.
+  it('grows the card and slot caps with the screen', () => {
+    for (const vw of [1440, 1920, 2560]) {
+      const layout = computeLayout(vw, 1000, landmarksFor(false))
+      const scale = screenScale(vw)
+      expect(layout.scale).toBeCloseTo(scale, 10)
+      expect(layout.cardWidth).toBeCloseTo(Math.min(t.cardVw * vw, t.cardMaxPx * scale), 5)
+      expect(layout.slot).toBeCloseTo(Math.min(t.slotVw * vw, t.slotMaxPx * scale), 5)
+    }
+    expect(computeLayout(2560, 1440, landmarksFor(false)).cardWidth).toBeCloseTo(t.cardMaxPx * (1 + tuning.screen.grow), 5)
+    expect(computeLayout(390, 844, landmarksFor(false)).scale).toBe(1)
   })
 
   it('never makes the room narrower than the minimum width', () => {

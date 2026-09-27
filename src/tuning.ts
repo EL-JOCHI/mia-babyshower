@@ -100,13 +100,6 @@ export const tokens = {
   paperWhite: '#FFFFFF',
   // Deep rose, deepened for text on aged parchment: 5.1:1 on the darkest page tint (pageShade).
   pageRose: '#A3285A',
-  // Legacy aliases: components not yet ported to the new palette read these names.
-  // A later task removes them once every component uses the tokens above directly.
-  hotPink: '#E08AAB',
-  deepPink: '#BB3267',
-  blush: '#F1E7D6',
-  paper: '#F1E7D6',
-  starYellow: '#F2B84B',
 } as const
 
 export type ThemeName = 'dark' | 'light'
@@ -190,6 +183,10 @@ export function cssColor(spec: ColorMix): string {
 }
 
 export const tuning = {
+  // Large screens (design §9): the HUD, dialogs, the gate, and the flat room's cards grow with the
+  // screen's width, from their phone size at `fromPx` to `1 + grow` times it at `toPx`, then stop.
+  // The 3D book needs none of this: its camera frames the pages for any screen.
+  screen: { fromPx: 390, toPx: 2560, grow: 0.4 },
   room: {
     slotVw: 0.85,
     slotMaxPx: 420,
@@ -354,7 +351,9 @@ export const tuning = {
     // A station's page is HTML: `cardPx` wide in a slot `slotPx` tall, drawn `cardWidth` world units wide.
     // It fades in between `fadeFrom` and `fadeTo` of the way up, so a page lying flat far away is not a sliver.
     page: { cardPx: 320, slotPx: 640, cardWidth: 1.8, lift: 0.04, zIndexRange: [100, 0], fadeFrom: 0.2, fadeTo: 0.7 },
-    popUp: { range: 0.18, stiffness: 70, damping: 9, stagger: 0.12 },
+    // A piece that turns less than `stillEps` of its fold in a frame counts as still: the candle's
+    // shadow map is redrawn only while some piece moves.
+    popUp: { range: 0.18, stiffness: 70, damping: 9, stagger: 0.12, stillEps: 0.0001 },
     // The paper pieces that pop up around each page: x across the page, z toward the camera
     // (the page stands at z = 0), and height in world units.
     pieces: {

@@ -202,7 +202,7 @@ export function FlatRoom({
           style={{ ...layer(depth.mid), width: layout.roomWidth, height: layout.roomHeight }}
         >
           {ids.map((id) => (
-            <Landmark key={id} id={id} at={layout.positions[id]} width={layout.cardWidth}>
+            <Landmark key={id} id={id} at={layout.positions[id]} width={layout.cardWidth} scale={layout.scale}>
               {content[id]}
             </Landmark>
           ))}

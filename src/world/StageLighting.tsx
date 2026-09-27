@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef, type RefObject } from 'react'
+import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { tokens, tuning } from '../tuning'
 import type { BookPath } from './bookPath'
@@ -7,11 +7,19 @@ import type { WorldPalette } from './palette'
 import { applyStageMix, type WorldResources } from './resources'
 import { createStageMix, writeStageMix } from './stageMix'
 
+export interface ShadowState {
+  drawn: boolean
+  stale: boolean
+}
+
 interface Props {
   path: BookPath
   viewRef: RefObject<{ progress: number }>
   resources: WorldResources
   palette: WorldPalette
+  // The candle's shadow map: whether it has been drawn yet, and whether a paper piece has moved
+  // since (Station marks it stale).
+  shadowRef: RefObject<ShadowState>
 }
 
 const mix = createStageMix()
@@ -19,12 +27,11 @@ const mix = createStageMix()
 // Design §1 Evolution: boceto has the window's light only (cool moonlight by night, soft daylight
 // by day) and gray paper; tinta adds ink outlines and shadows from below (plum by night, rose by
 // day); luz lights the candles (one casts shadows) and warms the paper toward the door.
-export function StageLighting({ path, viewRef, resources, palette }: Props) {
+export function StageLighting({ path, viewRef, resources, palette, shadowRef }: Props) {
   const { moonFrom, candleAt, candleOffset, doorOffset, candleDistance, shadowMapPx } = tuning.world.light
   const moonLight = useRef<THREE.DirectionalLight>(null)
   const sky = useRef<THREE.HemisphereLight>(null)
   const candles = useRef<(THREE.PointLight | null)[]>([])
-  const shadowDrawn = useRef(false)
 
   // Candles stand beside the path; the last one waits behind the family door.
   const spots = useMemo(
@@ -35,6 +42,11 @@ export function StageLighting({ path, viewRef, resources, palette }: Props) {
       }),
     [candleAt, candleOffset, doorOffset, path],
   )
+
+  // A new path (the screen changed shape) moves the candles and the pages: redraw the shadows.
+  useEffect(() => {
+    shadowRef.current.stale = true
+  }, [spots, shadowRef])
 
   useFrame((state) => {
     writeStageMix(viewRef.current.progress, mix)
@@ -61,10 +73,17 @@ export function StageLighting({ path, viewRef, resources, palette }: Props) {
 
     applyStageMix(resources, mix, palette)
 
-    // Only the lit candles cast shadows, so the shadow map is redrawn only once they are lit. It
-    // is drawn once at the start so the shadow texture exists before then.
-    state.gl.shadowMap.needsUpdate = mix.light > 0.001 || !shadowDrawn.current
-    shadowDrawn.current = true
+    // One candle casts shadows (six passes, a point light's cube). The light stands still and only
+    // the paper pieces cast, so the map is redrawn only after a piece has moved, and only while
+    // the candles are lit; the first frame draws it so the texture exists. A settled book in luz
+    // redraws nothing.
+    const shadow = shadowRef.current
+    const draw = !shadow.drawn || (shadow.stale && mix.light > 0.001)
+    state.gl.shadowMap.needsUpdate = draw
+    if (draw) {
+      shadow.drawn = true
+      shadow.stale = false
+    }
   })
 
   return (

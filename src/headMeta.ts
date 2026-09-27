@@ -1,13 +1,18 @@
 // Builds the <head> tags that must exist before any script runs: the share preview (BR-23),
-// the theme tokens as CSS variables (BR-21), and the pre-paint theme choice (US-2).
-// The Vite config injects this into index.html, so the copy and colors keep one source.
+// the theme tokens as CSS variables (BR-21), the pre-paint theme choice (US-2), and the opening
+// the first paint shows. Also builds that first paint, the HTML inside #root until the app starts.
+// The Vite config injects both into index.html, so the copy and colors keep one source.
 
-import { copy } from './content.ts'
+import { copy, days, type DayId } from './content.ts'
 import { storageKeys } from './logic/storageKeys.ts'
-import { themes, tokens, type ThemeName, type ThemeTokens } from './tuning.ts'
+import { themes, tokens, tuning, type ThemeName, type ThemeTokens } from './tuning.ts'
 
 function escapeAttr(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+}
+
+function escapeText(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 }
 
 function cssVars(theme: ThemeTokens): string {
@@ -35,13 +40,6 @@ function cssVars(theme: ThemeTokens): string {
     `--candle:${tokens.candle}`,
     `--shadow:${tokens.shadow}`,
     `--paper-white:${tokens.paperWhite}`,
-    // Legacy aliases: components not yet ported to the new palette read these names.
-    // A later task removes them once every component uses the variables above directly.
-    `--hot-pink:${tokens.hotPink}`,
-    `--deep-pink:${tokens.deepPink}`,
-    `--blush:${tokens.blush}`,
-    `--paper:${tokens.paper}`,
-    `--star-yellow:${tokens.starYellow}`,
   ].join(';')
 }
 
@@ -50,11 +48,56 @@ export function themeCss(): string {
   return names.map((name) => `:root[data-theme="${name}"]{${cssVars(themes[name])}}`).join('')
 }
 
+// Design §9: --ui-px is one CSS pixel on a phone and grows with the screen's width up to
+// 1 + grow pixels at tuning.screen.toPx, then stops: the same ramp as screenScale. The HUD, the
+// dialogs, and the gate size themselves in it; the pages (in the book, or zoomed in the flat room)
+// reset it to 1px.
+export function screenCss(): string {
+  const { fromPx, toPx, grow } = tuning.screen
+  return `:root{--ui-px:clamp(1px, calc(1px + (100vw - ${fromPx}px) * ${grow} / ${toPx - fromPx}), ${1 + grow}px)}`
+}
+
 function prePaintThemeScript(): string {
   return (
     `(function(){var t;try{t=localStorage.getItem(${JSON.stringify(storageKeys.theme)})}catch(e){}` +
     `if(t!=="dark"&&t!=="light"){try{t=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"}catch(e){t="dark"}}` +
     `document.documentElement.setAttribute("data-theme",t)})();`
+  )
+}
+
+// Design §2 Loading: which first paint to show, before any module loads. It reads the code the
+// way resolveInvite does (the first `e`, trimmed, any case) and the day's cutoff the way
+// isPartyOver does, from the same content module: `day` (the cover), `over` (the post-party
+// cover), or `gate`. The app replaces the first paint as soon as it starts.
+export function openingScript(): string {
+  const checks = (Object.keys(days) as DayId[])
+    .map((id) => `if(e===${JSON.stringify(days[id].code)})o=${Date.parse(days[id].overFrom)};`)
+    .join('')
+  return (
+    `(function(){var e="",o=null;try{e=(new URLSearchParams(location.search).get("e")||"").trim().toLowerCase()}catch(x){}` +
+    checks +
+    `document.documentElement.setAttribute("data-opening",o===null?"gate":Date.now()>=o?"over":"day")})();`
+  )
+}
+
+// The first paint (design §2 Loading): the book cover in HTML, readable as soon as the page and
+// its stylesheet arrive, with the same markup the app draws, so the app takes over in place. The
+// head's data-opening shows one of the three (src/index.css). No date and no place (BR-10).
+export function firstPaint(): string {
+  const cover = (name: string, lines: string) =>
+    `<div class="book-cover first-paint-${name}"><div class="book-cover-inner">` +
+    `<p class="cover-title">${escapeText(copy.title)}</p>${lines}` +
+    `<p class="move-hint">${escapeText(copy.moveHint)}</p></div></div>`
+  return (
+    `<div class="app first-paint">` +
+    cover('day', `<p class="cover-hero">${escapeText(copy.hero)}</p>`) +
+    cover(
+      'over',
+      `<p class="cover-hero">${escapeText(copy.postPartyHero)}</p><p class="cover-hero relive">${escapeText(copy.relive)}</p>`,
+    ) +
+    `<div class="gate first-paint-gate"><div class="gate-sentences">` +
+    copy.gate.map((line) => `<p class="gate-sentence">${escapeText(line)}</p>`).join('') +
+    `</div></div></div>`
   )
 }
 
@@ -78,7 +121,7 @@ export function headMeta(siteUrl: string): string {
     `<meta property="og:image:height" content="630" />`,
     `<meta property="og:image:alt" content="${title}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
-    `<style id="theme-tokens">${themeCss()}</style>`,
-    `<script>${prePaintThemeScript()}</script>`,
+    `<style id="theme-tokens">${themeCss()}${screenCss()}</style>`,
+    `<script>${prePaintThemeScript()}${openingScript()}</script>`,
   ].join('\n    ')
 }

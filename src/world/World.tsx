@@ -10,7 +10,7 @@ import { CameraRig } from './CameraRig'
 import { Dust } from './Dust'
 import { palettes } from './palette'
 import { useWorldResources } from './resources'
-import { StageLighting } from './StageLighting'
+import { StageLighting, type ShadowState } from './StageLighting'
 import { Station } from './Station'
 
 export interface WorldProps {
@@ -20,6 +20,11 @@ export interface WorldProps {
   content: Record<LandmarkId, ReactNode>
   // The same book by night (Oscuro) or by day (Claro). Switching retints the scene in place.
   theme: ThemeName
+  // False while the cover is closed: it is opaque, so the world draws the frame it needs to get
+  // ready and then waits, drawing again only when something changes (a resize, new props such as
+  // the ticking countdown on a page), never every frame. It runs from the moment the cover starts
+  // to open.
+  running: boolean
   // False until the cover has swung open: the camera waits on a wide view of the book and the pages
   // lie flat, so the guest sees the whole book before the camera swoops down to the first page.
   awake: boolean
@@ -27,7 +32,7 @@ export interface WorldProps {
   onFail: (error: unknown) => void
 }
 
-type SceneProps = Omit<WorldProps, 'onFail'>
+type SceneProps = Omit<WorldProps, 'onFail' | 'running'>
 
 function Scene({ ids, stations, progressRef, content, theme, awake, onReady }: SceneProps) {
   const palette = palettes[theme]
@@ -36,13 +41,15 @@ function Scene({ ids, stations, progressRef, content, theme, awake, onReady }: S
   const aspect = size.width / Math.max(1, size.height)
   const path = useMemo(() => buildPath(ids.map((id) => stations[id]), aspect), [ids, stations, aspect])
   const viewRef = useRef({ progress: 0 })
+  // Marked stale by a station while its paper folds, so the candle's shadow map is redrawn only then.
+  const shadowRef = useRef<ShadowState>({ drawn: false, stale: true })
   const { fog, phoneMaxPx, dust } = tuning.world
 
   return (
     <>
       <fog attach="fog" args={[palette.fog, fog.near, fog.far]} />
       <CameraRig path={path} progressRef={progressRef} viewRef={viewRef} awake={awake} onReady={onReady} />
-      <StageLighting path={path} viewRef={viewRef} resources={resources} palette={palette} />
+      <StageLighting path={path} viewRef={viewRef} resources={resources} palette={palette} shadowRef={shadowRef} />
       <Attic palette={palette} />
       <Book resources={resources} palette={palette} />
       {ids.map((id, i) => (
@@ -54,6 +61,7 @@ function Scene({ ids, stations, progressRef, content, theme, awake, onReady }: S
           viewRef={viewRef}
           awake={awake}
           resources={resources}
+          shadowRef={shadowRef}
         >
           {content[id]}
         </Station>
@@ -65,7 +73,7 @@ function Scene({ ids, stations, progressRef, content, theme, awake, onReady }: S
 
 // Design §2: the 3D world, loaded as its own chunk behind the HTML cover. The pages inside it are
 // the landmarks' real HTML. If the renderer cannot start, the room falls back to the flat room.
-export default function World({ onFail, ...props }: WorldProps) {
+export default function World({ onFail, running, ...props }: WorldProps) {
   const [createRenderer] = useState(() => (defaults: THREE.WebGLRendererParameters) => {
     try {
       return new THREE.WebGLRenderer({ ...defaults, powerPreference: 'low-power' })
@@ -79,12 +87,13 @@ export default function World({ onFail, ...props }: WorldProps) {
     <Canvas
       className="world-canvas"
       dpr={[1, tuning.world.maxDpr]}
+      frameloop={running ? 'always' : 'demand'}
       gl={createRenderer}
       flat
       shadows="percentage"
       camera={{ fov: tuning.world.fovPortrait, near: tuning.world.rig.near, far: tuning.world.rig.far }}
       onCreated={({ gl }) => {
-        // The stage lighting redraws the shadow map only while the candles are lit.
+        // The stage lighting redraws the shadow map itself, only when the paper that casts it moves.
         gl.shadowMap.autoUpdate = false
       }}
     >

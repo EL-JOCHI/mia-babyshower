@@ -311,6 +311,8 @@ export const CatSprite = memo(function CatSprite({
     '--pencil': pencil,
     '--mimo-body': cssColor(c.mimoBody),
     '--glow': `${(c.glowPx * size) / tuning.catSize.room}px`,
+    // The size asked for, so a screen that grows its HUD can grow the cat with it (design §9).
+    '--cat-size': size,
     '--turn': `${d.head.turn}deg`,
     '--breath': `${c.breathMs}ms`,
     '--blink': `${c.blinkMs[id]}ms`,

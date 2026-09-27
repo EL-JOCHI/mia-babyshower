@@ -34,7 +34,7 @@ export function PickToy({ size = 24, className = '' }: ToyProps) {
   return (
     <svg className={`toy toy-pick ${className}`} viewBox="0 0 20 22" width={size} height={size} aria-hidden="true">
       <path d="M10 21 C 4 15, 1 9, 2 5 C 3 1, 17 1, 18 5 C 19 9, 16 15, 10 21 Z" fill="var(--deep-pink)" />
-      <path d="M6 6 C 8 5, 12 5, 14 6" stroke="var(--paper)" strokeWidth={1} fill="none" opacity={0.7} />
+      <path d="M6 6 C 8 5, 12 5, 14 6" stroke="var(--bone)" strokeWidth={1} fill="none" opacity={0.7} />
     </svg>
   )
 }
@@ -43,9 +43,9 @@ export function YarnToy({ size = 40, className = '' }: ToyProps) {
   return (
     <svg className={`toy toy-yarn ${className}`} viewBox="0 0 40 40" width={size} height={size} aria-hidden="true">
       <circle cx={18} cy={20} r={14} fill="var(--hot-pink)" />
-      <path d="M7 14 C 14 18, 24 18, 30 12" stroke="var(--paper)" strokeWidth={1.4} fill="none" opacity={0.7} />
-      <path d="M5 22 C 14 26, 24 26, 32 20" stroke="var(--paper)" strokeWidth={1.4} fill="none" opacity={0.7} />
-      <path d="M10 31 C 12 20, 22 10, 26 8" stroke="var(--paper)" strokeWidth={1.4} fill="none" opacity={0.7} />
+      <path d="M7 14 C 14 18, 24 18, 30 12" stroke="var(--bone)" strokeWidth={1.4} fill="none" opacity={0.7} />
+      <path d="M5 22 C 14 26, 24 26, 32 20" stroke="var(--bone)" strokeWidth={1.4} fill="none" opacity={0.7} />
+      <path d="M10 31 C 12 20, 22 10, 26 8" stroke="var(--bone)" strokeWidth={1.4} fill="none" opacity={0.7} />
       <path d="M31 27 C 36 30, 38 34, 36 38" stroke="var(--hot-pink)" strokeWidth={1.6} fill="none" />
     </svg>
   )

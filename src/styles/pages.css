@@ -4,6 +4,9 @@
 /* ---------- The page and its paper ---------- */
 /* In the flat room a landmark is centred on its layout position; in the book it stands in its slot. */
 .landmark {
+  /* Pages are drawn at their page size: in the book the camera frames them for the screen, and in
+     the flat room the card is zoomed by layout.scale (design §9). The HUD's growing pixel stops here. */
+  --ui-px: 1px;
   position: absolute;
   transform: translate(-50%, -50%);
   box-sizing: border-box;
@@ -150,13 +153,22 @@
 }
 
 .move-hint {
-  font-size: 14px;
+  font-size: calc(14 * var(--ui-px));
   font-weight: 600;
   letter-spacing: 0.02em;
 }
 
+/* A hand-drawn arrow rather than a "→" glyph: none of the page's fonts has one, and the system
+   font search for it held back the cover's first paint on a phone-speed CPU (design §2 Loading). */
 .move-hint::after {
-  content: ' →';
+  content: '';
+  display: inline-block;
+  width: 1.4em;
+  height: 0.7em;
+  margin-left: 0.35em;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 12'%3E%3Cpath d='M1.5 6.4C7 5.6 13 6.3 21 5.9M15.5 1.6 21.8 6l-6 4.4' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 /* ---------- Palabra: an illuminated manuscript page ---------- */

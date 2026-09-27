@@ -7,11 +7,11 @@
 .quest-log {
   display: grid;
   flex: 0 1 auto;
-  gap: 4px;
+  gap: calc(4 * var(--ui-px));
   min-width: 0;
-  max-width: 16rem;
+  max-width: calc(272 * var(--ui-px));
   margin-right: auto;
-  padding: 6px 10px 7px;
+  padding: calc(6 * var(--ui-px)) calc(10 * var(--ui-px)) calc(7 * var(--ui-px));
   border: 2px solid var(--ink);
   border-radius: 6px;
   background: color-mix(in srgb, var(--field) 90%, transparent);
@@ -20,7 +20,7 @@
     0 0 0 3.5px var(--accent);
   color: var(--ink);
   font-family: var(--font-game);
-  font-size: 12px;
+  font-size: calc(12 * var(--ui-px));
   line-height: 1.2;
   backdrop-filter: blur(4px);
   transition: opacity 200ms ease;
@@ -44,18 +44,18 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 6px;
+  gap: 0 calc(6 * var(--ui-px));
 }
 
 .quest-level-number {
-  font-size: 13px;
+  font-size: calc(13 * var(--ui-px));
   font-weight: 600;
   color: var(--accent-text);
 }
 
 .quest-bar {
   position: relative;
-  height: 8px;
+  height: calc(8 * var(--ui-px));
   overflow: hidden;
   border: 1.5px solid var(--ink);
   border-radius: 2px;
@@ -74,7 +74,7 @@
 .quest-counts {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 8px;
+  gap: 0 calc(8 * var(--ui-px));
 }
 
 .quest-xp {
@@ -96,10 +96,10 @@
 .badge-toast {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 11rem;
-  max-width: min(300px, calc(100vw - 150px));
-  padding: 8px 16px 9px 12px;
+  gap: calc(10 * var(--ui-px));
+  min-width: calc(187 * var(--ui-px));
+  max-width: min(calc(300 * var(--ui-px)), calc(100vw - calc(150 * var(--ui-px))));
+  padding: calc(8 * var(--ui-px)) calc(16 * var(--ui-px)) calc(9 * var(--ui-px)) calc(12 * var(--ui-px));
   border: 2px solid var(--ink);
   border-radius: 6px;
   background: var(--surface);
@@ -125,7 +125,7 @@
 }
 
 .badge-toast-icon {
-  font-size: 24px;
+  font-size: calc(24 * var(--ui-px));
   line-height: 1;
   color: var(--accent-text);
 }
@@ -136,21 +136,21 @@
 
 .badge-toast-name {
   font-family: var(--font-title);
-  font-size: 18px;
+  font-size: calc(18 * var(--ui-px));
   line-height: 1.2;
 }
 
 .badge-toast-xp {
   font-family: var(--font-game);
-  font-size: 15px;
+  font-size: calc(15 * var(--ui-px));
   font-weight: 600;
   color: var(--accent-text);
 }
 
 .badge-toast-level {
-  margin-top: 2px;
+  margin-top: calc(2 * var(--ui-px));
   font-family: var(--font-game);
-  font-size: 14px;
+  font-size: calc(14 * var(--ui-px));
   font-weight: 600;
 }
 
@@ -186,8 +186,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  width: min(92vw, 420px);
+  gap: calc(10 * var(--ui-px));
+  width: min(92vw, calc(420 * var(--ui-px)));
   transform: translateX(-50%);
 }
 
@@ -197,8 +197,8 @@
 
 .gate-game-hud {
   display: flex;
-  gap: 14px;
-  padding: 5px 14px 6px;
+  gap: calc(14 * var(--ui-px));
+  padding: calc(5 * var(--ui-px)) calc(14 * var(--ui-px)) calc(6 * var(--ui-px));
   border: 2px solid var(--ink);
   border-radius: 6px;
   background: color-mix(in srgb, var(--field) 90%, transparent);
@@ -207,7 +207,7 @@
     0 0 0 3.5px var(--accent);
   color: var(--ink);
   font-family: var(--font-game);
-  font-size: 13px;
+  font-size: calc(13 * var(--ui-px));
 }
 
 .gate-game-hud p {
@@ -221,8 +221,8 @@
 
 .gate-game-field {
   position: relative;
-  width: min(88vw, 380px);
-  height: min(40vh, 300px);
+  width: min(88vw, calc(380 * var(--ui-px)));
+  height: min(40vh, calc(300 * var(--ui-px)));
   border: 2px solid var(--line);
   border-radius: 16px;
   background: color-mix(in srgb, var(--accent) 10%, transparent);
@@ -267,8 +267,8 @@
 
 .gate-game-over {
   display: grid;
-  gap: 6px;
-  padding: 18px 26px;
+  gap: calc(6 * var(--ui-px));
+  padding: calc(18 * var(--ui-px)) calc(26 * var(--ui-px));
   border: 2px solid var(--ink);
   border-radius: 10px;
   background: var(--surface);
@@ -280,7 +280,7 @@
 }
 
 .gate-game-over-title {
-  font-size: 16px;
+  font-size: calc(16 * var(--ui-px));
 }
 
 .gate-game-over-score,

@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import type { LandmarkId } from '../logic/layout'
 import { tuning, type PieceSpec } from '../tuning'
 import type { WorldResources } from './resources'
+import type { ShadowState } from './StageLighting'
 
 interface Props {
   id: LandmarkId
@@ -15,6 +16,8 @@ interface Props {
   // Nothing pops up until the cover opens.
   awake: boolean
   resources: WorldResources
+  // The paper pieces cast the candle's shadow: moving one makes the shadow map stale.
+  shadowRef: RefObject<ShadowState>
   children: ReactNode
 }
 
@@ -66,7 +69,7 @@ function PaperPiece({
 // the camera arrives, with a springy overshoot, and lie flat again once it moves on. The page is
 // the landmark's real HTML, placed in 3D, so text stays sharp and keyboards and screen readers
 // reach everything.
-export function Station({ id, at, anchor, viewRef, awake, resources, children }: Props) {
+export function Station({ id, at, anchor, viewRef, awake, resources, shadowRef, children }: Props) {
   const pieces: readonly PieceSpec[] = tuning.world.pieces[id]
   const { cardPx, slotPx, cardWidth, lift, zIndexRange } = tuning.world.page
   const unitsPerPx = cardWidth / cardPx
@@ -77,19 +80,24 @@ export function Station({ id, at, anchor, viewRef, awake, resources, children }:
   const springs = useRef({ angle: new Float32Array(pieces.length + 1), velocity: new Float32Array(pieces.length + 1) })
 
   useFrame((_, delta) => {
-    const { range, stiffness, damping, stagger } = tuning.world.popUp
+    const { range, stiffness, damping, stagger, stillEps } = tuning.world.popUp
     const dt = Math.min(delta, 1 / 30)
     const target = awake && Math.abs(viewRef.current.progress - at) < range ? 1 : 0
     const { angle, velocity } = springs.current
     const count = angle.length
+    let piecesMoved = false
     for (let i = 0; i < count; i++) {
       // Pieces further back rise a little later.
       const k = stiffness * (1 - (stagger * i) / count)
-      velocity[i]! += (k * (target - angle[i]!) - damping * velocity[i]!) * dt
+      const before = angle[i]!
+      velocity[i]! += (k * (target - before) - damping * velocity[i]!) * dt
       angle[i]! += velocity[i]! * dt
+      // The page (the last hinge) casts no shadow; the paper pieces do.
+      if (i < count - 1 && Math.abs(angle[i]! - before) > stillEps) piecesMoved = true
       const hinge = hinges.current[i]
       if (hinge) hinge.rotation.x = flat * (1 - angle[i]!)
     }
+    if (piecesMoved) shadowRef.current.stale = true
     // A page lying flat far away would show as a sliver, so it fades out as it folds down. It stays
     // in the DOM and focusable: focus brings the camera, and the page rises again.
     const page = slot.current
