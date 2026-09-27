@@ -92,17 +92,40 @@ The first deploy takes a few minutes. After that, the site is at `https://el-joc
 
 ## 5. 🔍 Check before sending the links
 
-Do this on real phones, not only on a computer.
+Do this on real phones, not only on a computer: at least one iPhone and one mid-range Android, over mobile data (Wi-Fi off). Clear the site's data between runs if you want to see a first visit again.
 
-- [ ] **Gate:** the bare address shows the two sentences and the count. No date, no place, no WhatsApp, no QR.
-- [ ] **Saturday link:** `sábado 17 de octubre de 2026`, `16:00`, the countdown, the address, and `Ver en el mapa` opens the right pin.
-- [ ] **Sunday link:** `domingo 18 de octubre de 2026`, and nowhere "17 de octubre".
-- [ ] **Confirmar por WhatsApp** opens a chat with **+591 76632451** and the message for that day.
-- [ ] **Drag** moves the room with one finger, and **pinch** still zooms.
-- [ ] **Signposts** glide to each landmark, and the family walks in at the door.
-- [ ] **Cats:** wait near Luz and `Saludar` appears. Greet her; reload; she is still in **Tus gatos**.
-- [ ] **Browsers:** iPhone Safari, Android Chrome, and the link opened from **inside WhatsApp**.
-- [ ] **Themes:** `Oscuro` and `Claro` both read well.
+**The links**
+
+- [ ] **Gate** (the bare address): the two sentences, `Toca para jugar`, and the cats below. No date, no place, no WhatsApp, no QR, no quest log.
+- [ ] **Gate game:** `Toca para jugar` starts 30 seconds of catching yarn and hearts with Luz. At the end: the score, `Tu mejor puntaje`, and `Jugar otra vez`. The two sentences stay on screen.
+- [ ] **Saturday link:** the book's cover shows at once (the title, the hero line, `Muévete para explorar`). A drag or a signpost swings it open and the camera swoops down into the book.
+- [ ] **Sunday link:** the same, dated `domingo 18 de octubre de 2026`, and nowhere "17 de octubre".
+
+**The facts, without playing** (use only the signposts)
+
+- [ ] `La fecha`: `sábado 17 de octubre de 2026` (Sunday: `domingo 18 de octubre de 2026`), `16:00`, and the countdown.
+- [ ] `El lugar`: the address, and `Ver en el mapa` opens the right pin.
+- [ ] `Confirmar`: `Confirmar por WhatsApp` opens a chat with **+591 76632451** and the message for that day.
+- [ ] `El regalo`: the QR on its plate and `Guardar QR`, which shares or saves the image. The QR image is yours to add at `src/assets/qr.png` (section 7). Until then guests see `El QR estará aquí pronto.` instead.
+- [ ] Every page reads without pinching, and its buttons are easy to tap.
+
+**Playing**
+
+- [ ] **Moving:** a drag moves through the book and comes to rest on the nearest page, a signpost glides to its page, and pinch still zooms. `La familia` glides to the lit door, and the family walks in.
+- [ ] **A cat and its card:** wait near a cat until `Saludar` appears, and tap it. Her card flips in, and she is in **Tus gatos**. Reload: she is still there.
+- [ ] **The battle:** at the door, Misha or Kira offers `¡A jugar!`. The moves work. `Huir` leaves with `Te fuiste sin hacer ruido.` and the cat offers `¡A jugar!` again. Winning adds the cat.
+- [ ] **Quest log and badges:** resting on a new page stamps `¡Página encontrada!` and raises `Páginas`; badge toasts show one at a time with their XP, and the XP bar fills. A page you only glide past counts nothing, and neither does a tap made while the cover is still closed.
+- [ ] **Claro and Oscuro** both read well, in the book and on the gate. **Music** (only once `src/assets/audio/ambience.mp3` is added) starts and stops.
+
+**Fallbacks and real conditions**
+
+- [ ] **Reduced motion** (iPhone: Settings → Accessibility → Motion → Reduce Motion; Android: Settings → Accessibility → Remove animations): the link opens the flat room, with every page and no 3D book. The gate shows no game.
+- [ ] **Mid-range Android over mobile data:** the cover shows at once, and the book opens within about 6 seconds. If it doesn't, the flat room takes over by itself, on the page you were heading to.
+- [ ] **WhatsApp's in-app browser**, on iPhone and on Android: open both links from a WhatsApp chat. Every page reads without pinching.
+- [ ] **Landscape:** turn the phone sideways on `El lugar`. The flat room takes over on the same page, with the address and `Ver en el mapa` at full size, and stays for the rest of the visit.
+- [ ] **Back from WhatsApp:** tap `Confirmar por WhatsApp`, then come back to the invitation. It is still on `Confirmar`, either in the book or, if the phone dropped the 3D view while you were away, in the flat room. Everything still works. (If the phone reloaded the page instead, it starts again at the cover; cats and badges are kept.)
+- [ ] **The preview card** in WhatsApp (below).
+- [ ] **Scan the QR** from a second phone, straight off the screen. Also save it with `Guardar QR` and open it from your bank app's "scan from gallery".
 
 ### 📣 The WhatsApp preview card
 
@@ -127,7 +150,7 @@ Never send the bare address, and never send one group the other group's link.
 
 ## 7. 🖼️ Adding the QR and the music later
 
-The links never change, so guests see updates on their next visit.
+The links never change, so guests see updates on their next visit. Until the QR is added, `El regalo` shows `El QR estará aquí pronto.` and no `Guardar QR`; without the music file there is no music control.
 
 | What | Put it at | Notes |
 | --- | --- | --- |

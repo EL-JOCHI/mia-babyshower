@@ -54,13 +54,13 @@ At midnight after each party (Bolivia time), that page changes. The address, the
 - Keyboard and screen-reader friendly. Every word is real HTML, even inside the 3D book. Focusing a control brings it into view.
 - Pinch zoom always works.
 - Text meets WCAG 2.2 AA contrast in both themes.
-- With **reduced motion**, guests get the **flat room**: the same pages with no canvas, no roaming cats, no line boil, no battle wipe, and no gate game. The flat room also takes over when WebGL can't start or the book doesn't load in time.
+- With **reduced motion**, guests get the **flat room**: the same pages with no canvas, no roaming cats, no line boil, no battle wipe, and no gate game. The flat room also takes over when WebGL can't start, the book doesn't load in time, the browser drops the book's WebGL context (for example on the way back from WhatsApp), or the screen is too short for readable pages (under 640 px tall, such as a phone held sideways). It opens on the page the guest was on.
 - Large screens: the HUD, dialogs, and cards grow with the screen up to 2560 px wide.
 
 ### ⚡ Performance
 
 - The first paint is the book's cover, in `index.html` itself: readable before any script runs.
-- The 3D book (Three.js, React Three Fiber, drei) is its own lazy chunk, loaded behind the cover.
+- The 3D book (Three.js, React Three Fiber, drei) is its own lazy chunk, loaded behind the cover. Guests who will get it start fetching it as soon as the page's script runs.
 - The book renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. The pixel ratio is capped at 1.75, one candle casts shadows, and its shadow map is redrawn only while paper moves.
 
 ---

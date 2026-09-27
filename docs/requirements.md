@@ -225,7 +225,7 @@ Misha and Kira answer a noticing guest with `¡A jugar!` instead of `Saludar` (d
 A light layer of play over the facts (design §6). It never gates a fact: every page can be reached at any time, by moving, by signpost, or by keyboard.
 
 - **The quest log** is on screen on an invitation, compact, top left (a badge toast takes its place for a moment): `Nivel {n}` with the level's title, an XP bar that fills from the level's floor toward the next level, `{n} XP`, `Páginas {n}/{total}`, and `Gatos {n}/7`. `total` is 6 while the party is current (every page but Llegada) and 3 after it. `Gatos` counts the cats ever met. The gate has no quest log.
-- **Pages found.** A page counts as found once the camera comes to rest on it (the cover never counts); gliding past a page does not count. The first time, the paper gives a little "fwip" and a stamp presses in: `¡Página encontrada!`. A page found on an earlier visit keeps its stamp.
+- **Pages found.** A page counts as found once the camera comes to rest on it (the cover never counts), and in the book only once the cover has opened; gliding past a page does not count. The first time, the paper gives a little "fwip" and a stamp presses in: `¡Página encontrada!`. A page found on an earlier visit keeps its stamp.
 - **Levels**, from the XP so far:
 
 | XP from | Level | Title |
@@ -240,7 +240,7 @@ A light layer of play over the facts (design §6). It never gates a fact: every 
 
 | Badge | When | XP |
 | --- | --- | --- |
-| Abriste el cuento | The guest's first move: a drag, the wheel, or an arrow key. Other keys and the signposts open the cover but do not count. | 10 |
+| Abriste el cuento | The guest's first move: a drag, the wheel, or an arrow key. Other keys and the signposts open the cover but do not count, and neither does a move made while the book is still loading behind its cover. | 10 |
 | La palabra | Palabra found | 20 |
 | Guardaste la fecha | Cuándo found | 30 |
 | Encontraste el lugar | Dónde found | 30 |
@@ -320,15 +320,16 @@ The viewport height is `100dvh`, so the collapsing mobile address bar does not j
 
 The invitation is a Three.js diorama drawn with React Three Fiber (design §2): the attic, the open book, the pop-up paper pieces, moonlight and candles, fog, and drifting dust. Every card, cat, button, and piece of text is real HTML placed on the pages in 3D, so text stays sharp and keyboards and screen readers reach everything.
 
-- **The cover first.** The first paint is the book's cover in HTML, in `index.html` itself, before any script has loaded: the title, the hero line (or, after the party, the post-party lines), and `Muévete para explorar`. On the gate the first paint is the two gate sentences instead. The 3D book streams in behind the cover, as its own chunk.
-- **Opening.** The cover swings open like a book once the book is ready and the guest moves: a drag, the wheel, an arrow key, any other key, or a signpost. Until then the camera waits on a wide view of the whole book and the pages lie flat. The book renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. Once open, the camera swoops down to the first page.
+- **The cover first.** The first paint is the book's cover in HTML, in `index.html` itself, before any script has loaded: the title, the hero line (or, after the party, the post-party lines), and `Muévete para explorar`. On the gate the first paint is the two gate sentences instead. The 3D book streams in behind the cover, as its own chunk. A guest who will get the book (a day link, motion allowed, WebGL, a screen tall enough) starts fetching that chunk as soon as the page's script runs, before the first render; the gate, reduced motion, and screens without WebGL or too short for the book never fetch it.
+- **Opening.** The cover swings open like a book once the book is ready and the guest moves: a drag, the wheel, an arrow key, any other key, or a signpost. Until then the camera waits on a wide view of the whole book and the pages lie flat, and nothing counts: no page is found or stands, and a move earns nothing. A signpost tapped while the book is still loading still sets where the camera is heading. The book renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. Once open, the camera swoops down to the first page.
 - **The path.** The camera follows a smooth curve through the book, one point per page, evenly spaced. Progress along it runs from `0` (Llegada) to `1` (Familia).
 - **Moving.** A drag in either direction moves along the path (a left or up drag moves forward; one screen of drag is half the book). The wheel moves too. When a drag is released, or shortly after the wheel stops, the camera glides to the nearest page if it is within half the spacing between pages. The arrow keys glide to the next page (right or down) or the previous one (left or up). A signpost glides to its page. Keyboard focus inside a page glides the camera to that page.
 - **Pop-up.** As the camera arrives, a page and its paper pieces fold up out of the book with a springy overshoot, and they lie flat again once it moves on. A page lying flat far away fades out, but stays in the document and focusable: focus brings the camera, and the page rises again.
 - **Depth.** A small pointer tilt adds depth.
-- **Framing.** The camera's field of view and distance adapt to the screen's shape, so a page always fits, and a wide screen shows more of the book instead of stretching it.
+- **Framing.** The camera's field of view and distance adapt to the screen's shape, so a page always fits, and a wide screen shows more of the book instead of stretching it. The camera never backs off so far that a page at rest is drawn below 90% of its design size: on a short screen the pop-up pieces around the page crop instead. The camera looks level at the page, from the height that centres the tallest page (Presente) between the HUD and the signposts of a phone. In the book the QR is drawn at 245 px, so a page at its smallest still shows it at 220 px.
+- **Short screens.** A screen shorter than 640 px (a phone held sideways, the smallest phones with their browser toolbars) cannot show the tallest page whole at that size, so it gets the flat room. The height is checked when the page loads and whenever the screen is resized: a book that turns too short hands over to the flat room, on the page the guest was on, for the rest of the visit.
 - **Claro.** The same book by day: bone parchment and pale wood under a daylight window, ink lines, deep rose accents. Switching the theme retints the book in place.
-- **Facts are never gated.** If the book cannot start, fails, or has not drawn its first frame after 6 seconds, the flat room takes over (see *When motion or WebGL is unavailable*).
+- **Facts are never gated.** If the book cannot start, fails, has not drawn its first frame after 6 seconds, or loses its WebGL context, the flat room takes over (see *When motion or WebGL is unavailable*).
 
 ### The flat room
 
@@ -404,7 +405,7 @@ One track, provided later by the hosts, loops quietly under the gate and under t
 
 `prefers-reduced-motion: reduce` gives the flat room, with no canvas. Every layer moves at the camera's speed, so there is no depth. Cats are still pictures, with no line boil. They do not roam, scratch in a loop, or throw things on their own. A tap on the countdown or the QR may play one small settle, then stop. `Saludar` still works, with the same noticing rules, and so does the battle, with no wipe. Signposts jump to their landmark instead of gliding. Every page's object is already open. The stage still follows the camera position. The gate shows no game.
 
-If WebGL cannot start, if the book fails after it starts loading, or if it has not drawn its first frame within 6 seconds, the flat room takes over, with no canvas and every landmark that belongs at that clock. With motion allowed, that flat room keeps its depth layers and its roaming cats.
+If WebGL cannot start, if the book fails after it starts loading, if it has not drawn its first frame within 6 seconds, if the browser drops its WebGL context (mobile browsers do this, most often while the guest is away in WhatsApp after `Confirmar por WhatsApp`), or if the screen is or turns shorter than 640 px, the flat room takes over, with no canvas and every landmark that belongs at that clock. It opens on the page the guest was on, or was heading to (the page nearest the camera's target), not on Llegada, and it stays for the rest of the visit. An open dialog (**Tus gatos**, a card, the battle) stays open through the change. With motion allowed, that flat room keeps its depth layers and its roaming cats.
 
 ### Coming back
 
@@ -669,7 +670,7 @@ A guest can switch between dark and light, and the browser remembers.
 
 **Acceptance scenarios:**
 
-1. **Given** the QR image is present, **When** the guest can see Presente, **Then** that image is visible on a white plate, at least the minimum QR size from the tuning module (220 CSS pixels), with the alternative text from section 6.
+1. **Given** the QR image is present, **When** the guest can see Presente, **Then** that image is visible on a white plate, at least the minimum QR size from the tuning module (220 CSS pixels) on screen, with the alternative text from section 6. In the book it is drawn larger, so a page at its smallest scale still shows it at that size.
 2. **Given** the QR file is missing, **When** Presente renders, **Then** it shows `El QR estará aquí pronto.` and no broken image and no generated code.
 3. **Given** Presente, **When** it renders, **Then** it shows the gift lead and offer, and it does not name an amount, a bank, or an account.
 4. **Given** the QR image is present, **When** the guest activates `Guardar QR`, **Then** the browser shares that image file if it can, and otherwise downloads it. No bank URI is opened.
@@ -709,10 +710,12 @@ The book starts as a sketch, becomes ink, and ends in light. It is a 3D book whe
 1. **Given** the default thresholds and position `0`, `0.32`, `0.33`, `0.65`, `0.66`, and `1`, **When** the stage is resolved, **Then** the results are boceto, boceto, tinta, tinta, luz, and luz.
 2. **Given** WebGL and motion allowed, **When** an invitation loads, **Then** the cover shows the title and the hero line at once, and the book loads behind it.
 3. **Given** the book is ready and the cover closed, **When** nothing has moved yet, **Then** the world renders only on demand behind the cover; **When** the guest drags, uses the wheel, or presses any key, **Then** the cover opens and the world runs continuously. Only a drag, the wheel, or an arrow key counts as the first move.
-4. **Given** the book fails to start, or has not drawn its first frame within the load timeout, **When** that happens, **Then** the flat room takes over, with every landmark that belongs at that clock and no cover.
-5. **Given** reduced motion, or no WebGL, **When** an invitation loads, **Then** no canvas is mounted and every landmark that belongs at that clock is present as text. With reduced motion every layer moves at the camera's speed.
-6. **Given** the opening view, **When** it paints, **Then** `Muévete para explorar` is visible.
-7. **Given** the book, **When** the guest switches between Oscuro and Claro, **Then** the book takes the new theme without a reload.
+4. **Given** the book fails to start, has not drawn its first frame within the load timeout, or loses its WebGL context, **When** that happens, **Then** the flat room takes over, with every landmark that belongs at that clock and no cover, on the page the guest was on or heading to.
+5. **Given** the book is still loading behind its cover, **When** the guest taps a signpost or moves, **Then** no page is found and nothing is earned; if the book then fails, the flat room opens on that signpost's page.
+6. **Given** a screen shorter than 640 px, **When** an invitation loads, **Then** the flat room shows and the book is not fetched; **Given** the book on a taller screen, **When** the screen turns shorter than 640 px, **Then** the flat room takes over on the current page. On a screen tall enough, a page at rest is drawn at 90% of its design size or more.
+7. **Given** reduced motion, or no WebGL, **When** an invitation loads, **Then** no canvas is mounted and every landmark that belongs at that clock is present as text. With reduced motion every layer moves at the camera's speed.
+8. **Given** the opening view, **When** it paints, **Then** `Muévete para explorar` is visible.
+9. **Given** the book, **When** the guest switches between Oscuro and Claro, **Then** the book takes the new theme without a reload.
 
 ### US-8 — Enter only with the link I was sent (P1, R1)
 
@@ -831,7 +834,7 @@ The game layer in section 3. It never gates a fact.
 2. **Given** the camera glides to Cuándo from `La fecha` and rests there, **When** it has rested, **Then** the quest log reads `Páginas 1/6`, a toast shows `Guardaste la fecha` and `+30 XP`, the page is stamped `¡Página encontrada!`, and `mia-progress` is `{ pages: ["cuando"], badges: ["fecha"], xp: 30 }`. A page the camera only passes is not counted.
 3. **Given** a clock at or after the cutoff, **When** the guest reaches Familia, **Then** the quest log counts out of 3 and the toast shows `Llegaste a la puerta`.
 4. **Given** an invitation, **When** the guest activates `Confirmar por WhatsApp`, **Then** WhatsApp still opens at once, the wax seal presses, and `Invitación sellada` (`+50 XP`) is earned. **When** the guest activates `Guardar QR`, **Then** `QR guardado` (`+20 XP`) is earned.
-5. **Given** an invitation, **When** the guest presses Tab, **Then** nothing is earned; **When** the guest presses an arrow key, drags, or uses the wheel, **Then** `Abriste el cuento` (`+10 XP`) is earned once. A signpost earns nothing.
+5. **Given** an invitation, **When** the guest presses Tab, **Then** nothing is earned; **When** the guest presses an arrow key, drags, or uses the wheel once the book is ready, **Then** `Abriste el cuento` (`+10 XP`) is earned once. A signpost earns nothing, and so does a move while the book is still loading.
 6. **Given** several awards at once, **When** they show, **Then** one toast shows at a time, each for the toast time, and the award that raised the level adds `¡Subiste a nivel {n}!`.
 7. **Given** a first greeting, **When** the card shows, **Then** the cat's XP and `Tu primer gato` are stored, `Gatos 1/7` shows, and the toasts wait until the card has gone. A cat met before, greeted again in a new round, adds no XP.
 8. **Given** progress, **When** a badge's event happens again, **Then** it is not earned twice. Every page that counts found earns `Cuento completo`; the seventh cat earns `Todos los gatos`.
@@ -869,7 +872,7 @@ The gate game's rules (section 3, *The guest gate*).
 - **BR-10.** No screen shows both dates. Nothing links to the other code. The gate shows neither date.
 - **BR-11.** The place line, the city, the map, the confirm control, the gift copy, the QR, `Guardar QR`, the countdown, and the `El lugar`, `Confirmar`, and `El regalo` signposts render only while `now` is strictly before that day's cutoff. They are omitted together. From the cutoff on, the page is in the party-over state.
 - **BR-12.** Progress along the book (or, in the flat room, horizontal camera position) maps to the three stages: boceto, tinta, and luz. Landmark text is HTML in every stage. It is not gated on greeting a cat, on reaching a stage, on finding a page, or on a badge; the pages' objects open as soon as their page is in view.
-- **BR-13.** The 3D book, roaming, line boil, the battle's wipe, the depth layers, and the gate game yield to `prefers-reduced-motion`: the guest gets the flat room with no canvas, and the gate shows no game. The book also yields to a failed WebGL start, a failure after it starts loading, and a first frame that has not come within the load timeout. The pages, the camera, the words, the greets, the battle, and the cat list do not.
+- **BR-13.** The 3D book, roaming, line boil, the battle's wipe, the depth layers, and the gate game yield to `prefers-reduced-motion`: the guest gets the flat room with no canvas, and the gate shows no game. The book also yields to a failed WebGL start, a failure after it starts loading, a first frame that has not come within the load timeout, a lost WebGL context, and a screen shorter than 640 px; the flat room then opens on the guest's page. The pages, the camera, the words, the greets, the battle, and the cat list do not.
 - **BR-14.** The cat state is `{ caught: string[], round: string[], rounds: number }` under one `localStorage` key. An id is appended to `caught` once, in first-greet order, and to `round` once per round. Ids come only from the seven in section 3. On load, unknown ids, duplicates, and unreadable data are dropped.
 - **BR-15.** `Saludar` is offered only for a cat that is present on that page, noticing the guest, and not in the current round. Loading the page does not greet anyone. Misha and Kira are present only on an invitation, at the family door.
 - **BR-16.** The site collects no analytics and sets no tracking cookies. The only `localStorage` keys are:
@@ -1049,6 +1052,9 @@ Every value below is a starting value, chosen by judgment before the first build
 | Book | Pixel ratio cap | `1.75` |
 | Book | Cover swing | `900ms` |
 | Book | Load timeout before the flat room takes over | `6000ms` |
+| Book | Smallest page scale at rest | `0.9` of the design size |
+| Book | Camera height and look height above a page's foot | `1.6`, `1.6` world units |
+| Book | Shortest screen for the book | `640px` tall |
 | Noticing | Middle area of the viewport | `60%` |
 | Noticing | Camera counts as still below | `40 px/s` |
 | Noticing | Wait: Común, Poco común, Legendario | `500ms`, `1500ms`, `2500ms` |
@@ -1074,7 +1080,7 @@ Every value below is a starting value, chosen by judgment before the first build
 | Gate game | Combo cap | `×5` |
 | Gate game | Largest time step | `100ms` |
 | Gate game | Mimo cheers from | combo `×3` |
-| QR | Minimum size | `220px` |
+| QR | Minimum size | `220px` (drawn at `245px` in the book, so a page at its smallest scale shows `220px`) |
 | Colors | Theme tokens | Section 16 |
 | Colors | Feeling colors | Section 5 |
 
@@ -1091,12 +1097,12 @@ Every value below is a starting value, chosen by judgment before the first build
 | US-4, FR-7, BR-5, BR-6 | One shared QR | Image or pending sentence; no QR library |
 | US-5, FR-5, FR-15, FR-21, BR-11 | Party current, then over | Map href before the cutoff; address, confirm, QR, countdown, and their signposts absent after it; switch without reload |
 | US-6, FR-4, BR-8 | Countdown math | Fake timers against each start instant; no countdown after the cutoff |
-| US-7, FR-9, FR-25, BR-12, BR-13 | Sketch, ink, then light, in a book that never gates the facts | Stage from position; the cover first, the world waiting behind it; the flat room when the world fails or stalls, with no canvas with reduced motion or without WebGL; the first paint in `index.html` picks the cover, the post-party cover, or the gate sentences |
+| US-7, FR-9, FR-25, BR-12, BR-13 | Sketch, ink, then light, in a book that never gates the facts | Stage from position; the cover first, the world waiting behind it; the flat room when the world fails, stalls, loses its WebGL context, or the screen turns too short, on the guest's page; the flat room with no canvas with reduced motion, without WebGL, or on a short screen; the page scale floor and the book's QR size; the preload decision; the first paint in `index.html` picks the cover, the post-party cover, or the gate sentences |
 | US-9, FR-16, FR-19, BR-14, BR-15 | Cats persist and stay distinct | Greet once per round; noticing waits; bad stored data dropped; Misha and Kira are `Legendario` and absent from the gate; lines hidden until greeted |
 | US-13, FR-21, BR-22 | Relive the party | Post-party lines; `Jugar otra vez` empties the round and keeps `caught`; absent before the cutoff and on the gate |
 | US-11, FR-18, BR-19 | Ambience waits for a yes | No control without a file; paused until activated; starts at the first gesture on a later visit; refused playback shows `Activar música` |
 | US-14, FR-23, BR-24 | A battle nobody loses | Moves, the fixed answer order, the floor at 1, the win and its card, `Huir` saves nothing, Escape, one dialog at a time, the live region |
-| US-15, FR-24, BR-25 | Pages, badges, XP, and levels | A page counts once the camera rests on it; badges once; cat XP once; levels; toasts one at a time; junk progress dropped; objects open before a page is found |
+| US-15, FR-24, BR-25 | Pages, badges, XP, and levels | A page counts once the camera rests on it, and in the book only once the cover is open; nothing counts before the book is ready; badges once; cat XP once; levels; toasts one at a time; junk progress dropped; objects open before a page is found |
 | US-16, BR-26 | The gate game's rules | Catch and combo, the miss, the time-step clamp, the best score and the record, the seed, the stored best |
 | BR-16 | Storage can fail, and only five keys | The page renders when `localStorage` throws; the keys are `mia-cats`, `mia-theme`, `mia-music`, `mia-progress`, and `mia-gate-best` |
 | FR-20, BR-21, FR-10 | One tuning source, and large screens | Tests import values from the tuning module; the screen growth and the flat room's growing card caps; the head's growing pixel matches the tuning |
@@ -1123,7 +1129,7 @@ Manual checks, on real phones, before each release:
 - **SC-5.** Confirm opens WhatsApp to `59176632451` with that day's message, in one tap.
 - **SC-6.** Greeting a cat adds that cat, with a different line and a rarity, and that cat is still there after a reload and on the other link.
 - **SC-7.** The end of an invitation shows dad, mom, Miguelito, and Mia as shadows, told apart by curly or straight hair, with Misha and Kira happy beside them. The gate does not show that door.
-- **SC-8.** With reduced motion, without WebGL, or when the book fails or stalls, the flat room shows every landmark that belongs at that clock, and a greet still saves.
+- **SC-8.** With reduced motion, without WebGL, on a screen shorter than 640 px, or when the book fails, stalls, or loses its WebGL context, the flat room shows every landmark that belongs at that clock, and a greet still saves.
 - **SC-9.** On a phone, a finger can move through the book (and the flat room both across and down), and a mouse can do the same on a computer.
 - **SC-10.** `npm test` and `vite preview` pass on Node 26 for `/`, `/?e=n4vk`, and `/?e=q8lm` before any GitHub setup.
 - **SC-11.** After the party, a guest can press `Jugar otra vez` and meet every cat again, and the cats met before stay in **Tus gatos**.
