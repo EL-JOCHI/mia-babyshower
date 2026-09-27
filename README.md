@@ -1,6 +1,6 @@
 # 🐾 Baby shower de Mia
 
-An interactive web invitation for Mia's baby shower 👶💖. It is a small room full of cats: it starts as pixels, turns to color, and ends as a simple 3D world. Guests explore the room to find the date, the place, the RSVP, and the gift QR. Along the way they meet seven cats 🐱. At the far end, the family walks in through a lit door. 🚪✨
+An interactive web invitation for Mia's baby shower 👶💖. It is a **moonlit pop-up storybook in a cat's attic** 📖🌙: a 3D book whose pages pop up as guests travel through it. It starts as a pencil sketch, turns to ink, and ends in candlelight. Guests find the date, the place, the RSVP, and the gift QR on its pages. Along the way they meet seven hand-drawn cats 🐱, collect their cards, and play with the two legendary ones. At the end, the family walks in through a lit door. 🚪✨
 
 > **Source of truth:** [`docs/requirements.md`](docs/requirements.md). Every behavior, string, and rule comes from there.
 
@@ -16,42 +16,52 @@ The shower is split across two days. Each group of guests receives its own link:
 | 🗓️ `https://el-jochi.github.io/mia-babyshower/?e=q8lm` | Sunday 18 October 2026, 16:00 |
 | 🚧 Anything else (including the bare address) | The guest gate |
 
-The **guest gate** is an arcade-style continue screen. It says the invitation is for special guests and must be opened with the link they were sent. It never shows the date, the place, WhatsApp, or the QR. The gate is a courtesy, not a secret: the site is public.
+The **guest gate** says the invitation is for special guests and must be opened with the link they were sent, with a 30-second arcade game under it 🕹️. It never shows the date, the place, WhatsApp, or the QR. The gate is a courtesy, not a secret: the site is public.
 
 ---
 
 ## ✨ What guests can do
 
-- 🧭 **Explore the room.** Drag with a finger or mouse, use the wheel or arrow keys, or tap a signpost (`Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`).
-- 🕹️ **Travel through three eras.** Pixels → color → a simple Three.js 3D scene with a stroller, a crown, hearts, stars, and a guitar pick 🎸.
-- ⏳ **Watch the countdown** to the party.
-- 📍 **Open the map** and 💬 **confirm on WhatsApp**, with a message that names their day.
-- 🎁 **See the gift QR** and save it with `Guardar QR`: it shares the image, or downloads it if sharing isn't available.
-- 🐱 **Meet seven cats.** Each has a feeling, a rarity, and a line you only learn after greeting them. Wait near a cat and `Saludar` appears. Greeted cats are kept in **Tus gatos** on that browser.
+- 📖 **Travel through a 3D pop-up book.** The cover opens on the first move. Drag, use the wheel or the arrow keys, or tap a signpost (`Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`). Each page folds up out of the book as the camera arrives.
+- ✏️ **Sketch → ink → light.** The book starts as a pencil sketch (boceto), gains ink (tinta), and ends lit by candles (luz) near the family door.
+- 🌗 **Day or night.** `Oscuro` is the moonlit attic; `Claro` is the same book by day.
+- ⏳ **Watch the countdown** on a melting candle with flip-card digits.
+- 📍 **Unroll a treasure map** and 💬 **confirm on WhatsApp** with a wax seal, with a message that names their day.
+- 🎁 **Open a gift box** to see the QR, and save it with `Guardar QR`: it shares the image, or downloads it if sharing isn't available.
+- 🐱 **Meet seven cats.** Original Burton-style paper cats with rigs and a hand-drawn "line boil". Each has a feeling color, a rarity, and a line you only learn after greeting them. Wait near a cat and `Saludar` appears. Every greeting flips in a **collectible card**. Greeted cats are kept in **Tus gatos** on that browser.
+- ⚔️ **Play with the legends.** Misha and Kira answer with `¡A jugar!`: a playful Pokémon-style battle with yarn, cuddles, and purrs. Nobody can lose.
+- 🏅 **Quest log, badges, and XP.** Pages found, cats met, levels from `Visitante curioso` to `Leyenda de la casa`, and eleven badges, each earned once.
+- 🕹️ **Gate game.** On the gate, catch yarn and hearts with Luz for 30 seconds, build a combo, and beat your best score.
 - 🐾 **Play.** Tap the countdown, the verse, the QR, the door, or a toy and a cat reacts.
-- 🌗 **Choose a theme**: `Oscuro` or `Claro`.
 - 🎵 **Turn on music**, once the hosts add a track.
 
-| Cat | Feeling | Rarity |
-| --- | --- | --- |
-| 🩷 Luz | Alegría | Común |
-| 🌸 Mimo | Ternura | Común |
-| 👀 Susto | Temor | Poco común |
-| ⚡ Bram | Ímpetu | Poco común |
-| 👑 Nana | Delicadeza | Poco común |
-| 💜 Misha | Calma | Legendario |
-| ⭐ Kira | Asombro | Legendario |
+| Cat | Feeling | Color | Rarity |
+| --- | --- | --- | --- |
+| ☀️ Luz | Alegría | sunny gold | Común |
+| 🌸 Mimo | Ternura | rose | Común |
+| 👀 Susto | Temor | violet | Poco común |
+| ⚡ Bram | Ímpetu | ember | Poco común |
+| 👑 Nana | Delicadeza | mint | Poco común |
+| 🌙 Misha | Calma | moon blue | Legendario |
+| ⭐ Kira | Asombro | star teal | Legendario |
 
 ### 🌙 After the party
 
-At midnight after each party (Bolivia time), that page changes. The address, the map, the confirm button, the QR, and the countdown go away. The page thanks the guest, and `Jugar otra vez` lets them meet the cats again. The room, the cats, and the door stay.
+At midnight after each party (Bolivia time), that page changes. The address, the map, the confirm button, the QR, and the countdown go away. The page thanks the guest, and `Jugar otra vez` lets them meet the cats again (XP and badges stay). The book, the cats, and the door stay.
 
 ### ♿ Accessibility
 
-- Keyboard and screen-reader friendly. Focusing a control brings it into view.
+- Keyboard and screen-reader friendly. Every word is real HTML, even inside the 3D book. Focusing a control brings it into view.
 - Pinch zoom always works.
 - Text meets WCAG 2.2 AA contrast in both themes.
-- With **reduced motion**, the room stays but depth, roaming cats, the 3D canvas, and the gate count are switched off.
+- With **reduced motion**, guests get the **flat room**: the same pages with no canvas, no roaming cats, no line boil, no battle wipe, and no gate game. The flat room also takes over when WebGL can't start or the book doesn't load in time.
+- Large screens: the HUD, dialogs, and cards grow with the screen up to 2560 px wide.
+
+### ⚡ Performance
+
+- The first paint is the book's cover, in `index.html` itself: readable before any script runs.
+- The 3D book (Three.js, React Three Fiber, drei) is its own lazy chunk, loaded behind the cover.
+- Nothing is drawn behind the closed cover, the pixel ratio is capped at 1.75, one candle casts shadows, and its shadow map is redrawn only while paper moves.
 
 ---
 
@@ -90,8 +100,8 @@ Then open:
 
 Two files hold everything you're likely to adjust. Components read them, so a change there never needs a component change.
 
-- 🎚️ **`src/tuning.ts`**: every number and color. Room and card sizes, camera glide time, parallax speeds, era thresholds (pixel → color → 3D), how long each cat takes to notice you, gate count timing, QR size, theme colors, and each cat's accent color.
-- 📝 **`src/content.ts`**: every guest-facing string (Spanish), the dates and times, the address, the map link, the WhatsApp number and messages, and the cats' names, feelings, rarities, and lines. Keep it in sync with §6 of the spec.
+- 🎚️ **`src/tuning.ts`**: every number and color. The palette and the feeling colors, the 3D book (camera path, pop-up springs, lights, fog, dust, paper pieces), the stage thresholds (boceto → tinta → luz), how long each cat takes to notice you, the cats' rig timings, the battle's numbers, XP and levels, the gate game, large-screen growth, room and card sizes, and the QR size.
+- 📝 **`src/content.ts`**: every guest-facing string (Spanish), the dates and times, the address, the map link, the WhatsApp number and messages, the cats' names, feelings, rarities, and lines, and the game, battle, and gate-game copy. Keep it in sync with §6 of the spec.
 
 💡 **Preview the after-party look:** temporarily set Saturday's `overFrom` in `src/content.ts` to a past date, then open `?e=n4vk`. Don't commit that change.
 
@@ -118,12 +128,15 @@ Both are detected at build time. Add the file, commit, and push.
 src/
   content.ts        📝 copy and facts (the content module)
   tuning.ts         🎚️ numbers and colors (the tuning module)
-  headMeta.ts       🔗 share preview, theme variables, pre-paint theme (injected into index.html)
+  headMeta.ts       🔗 share preview, theme variables, pre-paint theme, and the first-paint cover (injected into index.html)
   assets.ts         🖼️ detects the QR and music files
-  logic/            🧠 pure functions + tests: invite code, party over, countdown, layout, camera, era, noticing, cats
-  hooks/            🪝 clock, theme, camera, noticing, acts, music, cat state
-  components/       🧩 Gate, Room, Landmark, Countdown, Location, Confirmation, Gift, Collection, Cat, FamilyDoor, …
-  scene/Scene3D.tsx 🧊 the lazy Three.js far layer
+  index.css         🎨 tokens, fonts, HUD, dialogs, battle, gate, the book's cover
+  styles/           🎨 pages.css (the pop-up pages and their objects), game.css (quest log, toasts, gate game)
+  logic/            🧠 pure functions + tests: invite code, party over, countdown, layout, screen scale, stages, path, noticing, cats, battle, progress, gate game
+  hooks/            🪝 clock, theme, camera, world camera, noticing, acts, music, cat state, progress, gate best
+  components/       🧩 App, WorldRoom, FlatRoom, Pages, PageCard, CandleCountdown, TreasureMap, WaxSealConfirm, GiftBox, Gate, GateGame, Battle, CardReveal, QuestLog, BadgeToasts, Collection, Cat, FamilyDoor, …
+    art/            🐈‍⬛ CatSprite (the seven rigged cats), InkDefs (line boil, paper edge), cats/ (one drawing per cat)
+  world/            🧊 the lazy 3D book: World, CameraRig, Station (pop-up pages), Book, Attic, StageLighting, Dust, palettes, paper textures
 public/
   og-image.jpg      📣 WhatsApp preview (1200×630)
   favicon.svg       🐱
@@ -132,15 +145,16 @@ docs/
   stack-and-resources.md  🧱 versions and assets
   publishing.md           🚀 how to put it online
   requirements-review.md  🔍 spec review and host decisions
+  superpowers/            🗺️ the redesign's design doc and plans
 ```
 
 ---
 
 ## 🧱 Tech stack
 
-⚛️ React 19 · ⚡ Vite 8 · 🟦 TypeScript 6 (strict) · 🎨 Tailwind CSS 4 · 🧊 Three.js + React Three Fiber (loaded only near the 3D era) · ✅ Vitest + Testing Library · 🔤 Press Start 2P + Source Sans 3 (self-hosted, OFL).
+⚛️ React 19 · ⚡ Vite 8 · 🟦 TypeScript 6 (strict) · 🎨 Tailwind CSS 4 · 🧊 Three.js + React Three Fiber + drei (a lazy chunk behind the cover) · ✅ Vitest + Testing Library · 🔤 Mystery Quest, Alegreya, and Pixelify Sans (self-hosted, OFL).
 
-No router, no state library, no animation library, no game engine, no analytics. The only storage is three `localStorage` keys on the guest's own browser: `mia-cats`, `mia-theme`, and `mia-music`.
+No router, no state library, no animation library, no game engine, no analytics. The only storage is five `localStorage` keys on the guest's own browser: `mia-cats`, `mia-theme`, `mia-music`, `mia-progress`, and `mia-gate-best`.
 
 ---
 
