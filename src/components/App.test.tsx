@@ -67,13 +67,29 @@ describe('US-10 Play the gate game', () => {
     expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
     expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
 
-    for (let t = 0; t < tuning.gateGame.durationMs + 500; t += 50) advance(50)
+    for (let t = 0; t < tuning.gateGame.durationMs + 500; t += 1000) advance(1000)
 
     expect(screen.getByText(gateGameCopy.over)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: copy.playAgain })).toBeInTheDocument()
     expect(localStorage.getItem(storageKeys.gateBest)).not.toBeNull()
     expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
     expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
+  })
+
+  it('hides the roaming, greetable Luz while a round plays (she is the catcher); she is back after game over', () => {
+    render(<App search="" />)
+    expect(screen.getByRole('img', { name: 'Luz' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: gateGameCopy.start }))
+    expect(screen.queryByRole('img', { name: 'Luz' })).not.toBeInTheDocument()
+    expect(document.querySelector('[data-cat-id="luz"]')).toBeNull()
+    expect(screen.getByRole('img', { name: 'Mimo' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Susto' })).toBeInTheDocument()
+
+    for (let t = 0; t < tuning.gateGame.durationMs + 500; t += 1000) advance(1000)
+
+    expect(screen.getByText(gateGameCopy.over)).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Luz' })).toBeInTheDocument()
   })
 
   it('shows the sentences and still cats, with no start button, with reduced motion (AC3)', () => {

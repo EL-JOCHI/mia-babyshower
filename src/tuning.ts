@@ -68,6 +68,22 @@ export interface GateScreenConfig {
   cheerCombo: number
   cheerMs: number
   startleMs: number
+  // How long the catcher takes to slide to a new x (a CSS transition, not the game's own tick).
+  catcherTransitionMs: number
+  // The panel (start button, HUD, field, result panel) paints above every roaming gate cat and its
+  // Saludar pill (`.gate-spot`'s z-index is 2; `.saludar`'s is 4 — see src/index.css), whatever
+  // they're doing.
+  panelZIndex: number
+  // Where the three gate cats rest, clear of the panel's footprint (a share of the screen), at
+  // every width the design checks (390, 360, 768, 1440). `wanderMarginPx` is the largest excursion
+  // any of their `gate-wander-*` keyframes (src/index.css) adds on top of a spot, so the margin
+  // between a spot and the panel can be checked with the roam included.
+  catSpots: Partial<Record<CatId, { left: string; top: string }>>
+  wanderMarginPx: number
+  // The gate's camera never moves (it has none), so the usual noticing zone — sized for a guest
+  // scrolling a cat into view — would keep these footer-dwelling cats from ever being noticed.
+  // A near-whole-screen zone here instead (tuning.noticing.zone stays as it is everywhere else).
+  noticeZone: number
 }
 
 // Burton pink noir (design §3).
@@ -200,17 +216,6 @@ export const tuning = {
     lingerMs: 1000,
     tickMs: 100,
   },
-  gate: {
-    countFrom: 9,
-    stepMs: 1000,
-    finaleMs: 1500,
-    // Where the three gate cats rest, as a share of the screen.
-    spots: {
-      luz: { left: '26%', top: '58%' },
-      mimo: { left: '80%', top: '34%' },
-      susto: { left: '70%', top: '70%' },
-    },
-  },
   catSize: { room: 64, qr: 56, door: 68, gate: 72, collection: 56, card: 176, battle: 176 },
   // The cats (design §4): one family of paper cut-outs, drawn in pencil (boceto), then ink (tinta),
   // then light (luz). Line widths and offsets are in the drawing's units (a 120 by 120 box).
@@ -295,7 +300,28 @@ export const tuning = {
     catXp: { comun: 20, pocoComun: 40, legendario: 100 },
   },
   gateGame: { durationMs: 30000, spawnEveryMs: 650, fallPerS: 0.42, catchY: 0.86, catchRadius: 0.09, heartChance: 0.3, points: { yarn: 10, heart: 20 }, comboMax: 5, maxStepMs: 100, spawnMarginX: 0.06 } satisfies GateGameConfig,
-  gateScreen: { catcherStep: 0.06, catcherSize: 72, dropSize: 30, sideCatSize: 48, pulseMs: 420, cheerCombo: 3, cheerMs: 900, startleMs: 900 } satisfies GateScreenConfig,
+  gateScreen: {
+    catcherStep: 0.06,
+    catcherSize: 72,
+    dropSize: 30,
+    sideCatSize: 48,
+    pulseMs: 420,
+    cheerCombo: 3,
+    cheerMs: 900,
+    startleMs: 900,
+    catcherTransitionMs: 60,
+    panelZIndex: 10,
+    // The panel is tallest while playing (HUD + field): its footprint reaches about 75%–80% of the
+    // screen's height on the narrowest phones the design checks. These spots rest below that, with
+    // `wanderMarginPx` of roaming room to spare.
+    catSpots: {
+      luz: { left: '18%', top: '94%' },
+      mimo: { left: '50%', top: '93%' },
+      susto: { left: '82%', top: '94%' },
+    },
+    wanderMarginPx: 44,
+    noticeZone: 0.94,
+  } satisfies GateScreenConfig,
   // The 3D pop-up book (design §1, §2, §9). Distances are world units; the floor is y = 0.
   world: {
     dragProgressPerViewport: 0.5,

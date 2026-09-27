@@ -16,12 +16,17 @@ import { HeartToy, YarnToy } from './Toys'
 
 interface Props {
   reducedMotion: boolean
+  // The gate's roaming, greetable Luz steps aside while she's the catcher (called on every phase
+  // change; not called at all with reduced motion, since the game never mounts).
+  onPlayingChange?: (playing: boolean) => void
 }
+
+type PlayProps = Pick<Props, 'onPlayingChange'>
 
 // The gate arcade game (design §8): 30 seconds, Luz moving to catch yarn and hearts. Mimo cheers on
 // a big combo; Susto startles on a miss. The score/time show but only the game-over result is
 // announced, once, to a screen reader.
-function GateGamePlay() {
+function GateGamePlay({ onPlayingChange }: PlayProps) {
   const { best, saveBest } = useGateBest()
   const [game, setGame] = useState<GameState>(() => newGame(best))
   const gameRef = useRef(game)
@@ -63,6 +68,10 @@ function GateGamePlay() {
     },
     [],
   )
+
+  useEffect(() => {
+    onPlayingChange?.(game.phase === 'playing')
+  }, [game.phase, onPlayingChange])
 
   // The game loop: a requestAnimationFrame tick over the pure logic in gateGame.ts. It pauses while
   // the tab is hidden, and stops scheduling once the round is over.
@@ -129,6 +138,8 @@ function GateGamePlay() {
     '--pulse-ms': `${tuning.gateScreen.pulseMs}ms`,
     '--cheer-ms': `${tuning.gateScreen.cheerMs}ms`,
     '--startle-ms': `${tuning.gateScreen.startleMs}ms`,
+    '--catcher-ms': `${tuning.gateScreen.catcherTransitionMs}ms`,
+    '--panel-z': tuning.gateScreen.panelZIndex,
   } as CSSProperties
 
   const overText =
@@ -202,6 +213,6 @@ function GateGamePlay() {
 }
 
 // §3/§8 Reduced motion: no falling objects at all, and no way to start the game.
-export function GateGame({ reducedMotion }: Props) {
-  return reducedMotion ? null : <GateGamePlay />
+export function GateGame({ reducedMotion, onPlayingChange }: Props) {
+  return reducedMotion ? null : <GateGamePlay onPlayingChange={onPlayingChange} />
 }

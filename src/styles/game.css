@@ -174,12 +174,15 @@
 
 /* ---------- The gate arcade game (design §8) ---------- */
 /* Below the sentences, whatever their height (§8's sentences stay on screen in every phase).
-   `top` is a percentage of .gate's height (unlike padding, which would read against its width). */
+   `top` is a percentage of .gate's height (unlike padding, which would read against its width).
+   `--panel-z` (tuning.gateScreen.panelZIndex) is above `.gate-spot` (index.css, z-index: 2) and
+   `.saludar` (index.css, z-index: 4, but scoped to its own .gate-spot's stacking context) — the
+   panel and everything in it always paints over every roaming gate cat and its Saludar pill. */
 .gate-game {
   position: absolute;
   left: 50%;
   top: 34%;
-  z-index: 3;
+  z-index: var(--panel-z);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -237,7 +240,7 @@
 .gate-game-catcher {
   position: absolute;
   transform: translate(-50%, -50%);
-  transition: left 60ms linear;
+  transition: left var(--catcher-ms) linear;
 }
 
 .gate-game-side {

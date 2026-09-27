@@ -22,4 +22,13 @@ describe('Gate game (spec §8)', () => {
     render(<GateGame reducedMotion />)
     expect(screen.queryByRole('button', { name: gateGameCopy.start })).not.toBeInTheDocument()
   })
+
+  it('paints the panel above the roaming cats and their Saludar pills (z-index)', () => {
+    render(<GateGame reducedMotion={false} />)
+    const panel = document.querySelector('.gate-game') as HTMLElement
+    const panelZ = Number(panel.style.getPropertyValue('--panel-z'))
+    // .saludar and .gate-spot's z-index values, from src/index.css.
+    expect(panelZ).toBeGreaterThan(4)
+    expect(panelZ).toBe(tuning.gateScreen.panelZIndex)
+  })
 })

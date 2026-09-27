@@ -9,6 +9,9 @@ interface Options {
   container: RefObject<HTMLElement | null>
   cameraRef: { readonly current: Point }
   musicPlaying: boolean
+  // How much of the screen counts as "in view" (design §3). Defaults to tuning.noticing.zone; the
+  // gate's camera never moves, so its cats pass a much wider zone instead (tuning.gateScreen.noticeZone).
+  zone?: number
 }
 
 type Noticing = Partial<Record<CatId, boolean>>
@@ -21,18 +24,19 @@ function inZone(rect: DOMRect, vw: number, vh: number, zone: number): boolean {
 }
 
 // §3 Noticing, run on a steady tick. Each cat's element carries data-cat-id.
-export function useNoticing({ catIds, container, cameraRef, musicPlaying }: Options): Noticing {
+export function useNoticing({ catIds, container, cameraRef, musicPlaying, zone }: Options): Noticing {
   const [noticing, setNoticing] = useState<Noticing>({})
   const timers = useRef<Partial<Record<CatId, NoticeTimer>>>({})
   const music = useRef(musicPlaying)
   const key = catIds.join(',')
+  const activeZone = zone ?? tuning.noticing.zone
 
   useEffect(() => {
     music.current = musicPlaying
   }, [musicPlaying])
 
   useEffect(() => {
-    const { tickMs, zone } = tuning.noticing
+    const { tickMs } = tuning.noticing
     const ids = key ? (key.split(',') as CatId[]) : []
     let last = cameraRef.current
 
@@ -53,7 +57,7 @@ export function useNoticing({ catIds, container, cameraRef, musicPlaying }: Opti
       let changed = false
       for (const catId of ids) {
         const el = found.get(catId)
-        const within = el ? inZone(el.getBoundingClientRect(), window.innerWidth, window.innerHeight, zone) : false
+        const within = el ? inZone(el.getBoundingClientRect(), window.innerWidth, window.innerHeight, activeZone) : false
         const prev = timers.current[catId] ?? idleNotice
         const timer = stepNotice(prev, { catId, inZone: within, speed, musicPlaying: music.current }, dt)
         timers.current[catId] = timer
@@ -63,7 +67,7 @@ export function useNoticing({ catIds, container, cameraRef, musicPlaying }: Opti
       if (changed) setNoticing(next)
     }, tickMs)
     return () => window.clearInterval(id)
-  }, [key, container, cameraRef])
+  }, [key, container, cameraRef, activeZone])
 
   return noticing
 }

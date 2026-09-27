@@ -1314,10 +1314,12 @@
     animation: gate-wander-susto 13s ease-in-out infinite;
   }
 
-  /* Susto is small and crouched low in her box (design §4: "Small, ears back"), so the default
-     Saludar placement covers her. Push it further below, clear of her drawing. */
-  .gate-spot-susto .saludar {
-    bottom: -38px;
+  /* The gate cats now rest in a footer band clear of the game panel (tuning.gateScreen.catSpots),
+     with the panel above and the viewport's bottom edge below. Saludar pops up over the cat's own
+     head, like the door and top-edge perches, instead of below where there's no room to spare. */
+  .gate-spot .saludar {
+    top: -20px;
+    bottom: auto;
   }
 
   .gate-toys .throwable {
