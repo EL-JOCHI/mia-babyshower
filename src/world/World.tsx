@@ -1,6 +1,7 @@
 import { Canvas, useThree } from '@react-three/fiber'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
+import type { DeviceTier } from '../logic/deviceTier'
 import type { LandmarkId } from '../logic/layout'
 import { tuning, type MoodId, type ThemeName } from '../tuning'
 import { Attic } from './Attic'
@@ -12,6 +13,7 @@ import { paletteFor } from './palette'
 import { useWorldResources } from './resources'
 import { StageLighting, type ShadowState } from './StageLighting'
 import { Station } from './Station'
+import { WindowSky } from './WindowSky'
 
 export interface WorldProps {
   ids: readonly LandmarkId[]
@@ -22,6 +24,8 @@ export interface WorldProps {
   mood: MoodId
   // Claro or Oscuro: the mood's lighter or darker look. Switching retints the scene in place.
   theme: ThemeName
+  // Spec §8 Device tiers: a low device draws about half the stars, fireflies, and dust.
+  tier: DeviceTier
   // False while the cover is closed: it is opaque, so the world draws the frame it needs to get
   // ready and then waits, drawing again only when something changes (a resize, new props such as
   // the ticking countdown on a page), never every frame. It runs from the moment the cover starts
@@ -36,7 +40,7 @@ export interface WorldProps {
 
 type SceneProps = Omit<WorldProps, 'onFail' | 'running'>
 
-function Scene({ ids, stations, progressRef, content, mood, theme, awake, onReady }: SceneProps) {
+function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, onReady }: SceneProps) {
   const palette = paletteFor(mood, theme)
   const size = useThree((state) => state.size)
   const resources = useWorldResources()
@@ -56,6 +60,7 @@ function Scene({ ids, stations, progressRef, content, mood, theme, awake, onRead
       <CameraRig path={path} progressRef={progressRef} viewRef={viewRef} awake={awake} onReady={onReady} />
       <StageLighting path={path} viewRef={viewRef} resources={resources} palette={palette} shadowRef={shadowRef} />
       <Attic palette={palette} />
+      <WindowSky palette={palette} tier={tier} />
       <Book resources={resources} palette={palette} />
       {ids.map((id, i) => (
         <Station

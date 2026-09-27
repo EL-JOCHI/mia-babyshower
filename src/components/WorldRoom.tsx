@@ -19,6 +19,7 @@ import { useWorldCamera } from '../hooks/useWorldCamera'
 import type { BattleCat } from '../logic/battle'
 import { bookQrPx, fitsBook, wantsBook } from '../logic/book'
 import type { CatState } from '../logic/catState'
+import { deviceTier, type DeviceTier } from '../logic/deviceTier'
 import { stageAt, type Stage } from '../logic/era'
 import { landmarksFor, type LandmarkId, type Point } from '../logic/layout'
 import { moodOfDay } from '../logic/mood'
@@ -35,7 +36,7 @@ import { Signposts } from './Signposts'
 const World = lazy(loadWorld)
 
 interface Props extends RoomProps {
-  // The world is the same book by night (Oscuro) and by day (Claro), design §3.
+  // The world is a mood per day (spec §3); the theme picks its lighter (Claro) or darker (Oscuro) look.
   theme: ThemeName
 }
 
@@ -72,6 +73,7 @@ interface PagesProps {
   noticeCamera: { readonly current: Point }
   progressRef: { readonly current: number }
   theme: ThemeName
+  tier: DeviceTier
   running: boolean
   awake: boolean
   onReady: () => void
@@ -99,6 +101,7 @@ const BookPages = memo(function BookPages({
   noticeCamera,
   progressRef,
   theme,
+  tier,
   running,
   awake,
   onReady,
@@ -131,6 +134,7 @@ const BookPages = memo(function BookPages({
           content={content}
           mood={moodOfDay[day]}
           theme={theme}
+          tier={tier}
           running={running}
           awake={awake}
           onReady={onReady}
@@ -177,9 +181,10 @@ function BookRoom({
   progress,
   onEvent,
   theme,
+  tier,
   onFirstMove,
   onFail,
-}: Props & { onFail: (page: LandmarkId) => void }) {
+}: Props & { tier: DeviceTier; onFail: (page: LandmarkId) => void }) {
   const partyOver = isPartyOver(day, now)
   const ids = useMemo(() => landmarksFor(partyOver), [partyOver])
   const pages = useMemo(() => countablePages(ids), [ids])
@@ -345,6 +350,7 @@ function BookRoom({
           noticeCamera={noticeCamera}
           progressRef={progressRef}
           theme={theme}
+          tier={tier}
           running={opening}
           awake={coverGone}
           onReady={onReady}
@@ -364,6 +370,7 @@ export function WorldRoom(props: Props) {
   const [fallback, setFallback] = useState<LandmarkId | null>(null)
   // The screen's height at start. From then on the book itself watches it.
   const [height] = useState(() => window.innerHeight)
+  const [tier] = useState(() => deviceTier(navigator))
   if (fallback !== null || !wantsBook({ reducedMotion: props.reducedMotion, height, webgl: hasWebGL })) {
     return (
       <FlatRoom
@@ -382,5 +389,5 @@ export function WorldRoom(props: Props) {
       />
     )
   }
-  return <BookRoom {...props} onFail={setFallback} />
+  return <BookRoom {...props} tier={tier} onFail={setFallback} />
 }

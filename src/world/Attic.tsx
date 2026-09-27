@@ -5,26 +5,19 @@ import { paint, type WorldPalette } from './palette'
 import { floorTexture } from './paperTextures'
 
 // Design §1: a cat's attic. Floorboards, a gable wall with a round window, and a slanted roof with
-// rafters. By night the moon is in the window; by day the sun (design §3). Nothing here moves.
+// rafters. What the window shows (the sky, the moon or the sun, the stars) is WindowSky's (spec §3).
+// Nothing here moves.
 
 function createAttic() {
   const { wallZ, frontZ, halfWidth, ridge, eave, windowY, windowRadius, roughness } = tuning.world.attic
   const depth = frontZ - wallZ
 
-  // Colors come from the theme's palette once mounted (see applyPalette).
+  // Colors come from the look's palette once mounted (see applyPalette).
   const floorMap = floorTexture()
   floorMap.repeat.set(halfWidth / 3, depth / 3)
   const floor = new THREE.MeshStandardMaterial({ map: floorMap, roughness: roughness.floor })
   const wall = new THREE.MeshStandardMaterial({ roughness: roughness.wall, side: THREE.DoubleSide })
   const beam = new THREE.MeshStandardMaterial({ roughness: roughness.beam })
-  const sky = new THREE.MeshBasicMaterial({ fog: false })
-  const moon = new THREE.MeshBasicMaterial({ fog: false })
-  const halo = new THREE.MeshBasicMaterial({
-    transparent: true,
-    opacity: tuning.world.attic.orb.haloOpacity,
-    depthWrite: false,
-    fog: false,
-  })
 
   const gable = new THREE.Shape()
   gable.moveTo(-halfWidth, 0)
@@ -39,19 +32,15 @@ function createAttic() {
 
   const slope = Math.hypot(halfWidth, ridge - eave)
   return {
-    materials: [floor, wall, beam, sky, moon, halo],
+    materials: [floor, wall, beam],
     textures: [floorMap],
     floor,
     wall,
     beam,
-    sky,
-    moon,
-    halo,
     floorGeometry: new THREE.PlaneGeometry(halfWidth * 2, depth),
     gableGeometry: new THREE.ShapeGeometry(gable, 32),
     frameGeometry: new THREE.TorusGeometry(windowRadius, 0.14, 8, 48),
     barGeometry: new THREE.BoxGeometry(windowRadius * 2, 0.1, 0.12),
-    discGeometry: new THREE.CircleGeometry(1, 40),
     roofGeometry: new THREE.PlaneGeometry(slope, depth),
     kneeGeometry: new THREE.PlaneGeometry(depth, eave),
     rafterGeometry: new THREE.BoxGeometry(slope, 0.28, 0.32),
@@ -67,9 +56,6 @@ function applyPalette(parts: AtticParts, palette: WorldPalette) {
   paint(parts.floor, palette.floor)
   paint(parts.wall, palette.wood)
   paint(parts.beam, palette.beam)
-  paint(parts.sky, palette.skyBottom)
-  paint(parts.moon, palette.orb)
-  paint(parts.halo, palette.halo)
 }
 
 function disposeAttic(parts: AtticParts) {
@@ -80,7 +66,6 @@ function disposeAttic(parts: AtticParts) {
     parts.gableGeometry,
     parts.frameGeometry,
     parts.barGeometry,
-    parts.discGeometry,
     parts.roofGeometry,
     parts.kneeGeometry,
     parts.rafterGeometry,
@@ -94,9 +79,7 @@ export function Attic({ palette }: { palette: WorldPalette }) {
   useEffect(() => () => disposeAttic(parts), [parts])
   // Switching theme retints the attic in place.
   useLayoutEffect(() => applyPalette(parts, palette), [parts, palette])
-  const { wallZ, frontZ, halfWidth, ridge, eave, windowY, windowRadius, rafterGap, orb, skyScale } = tuning.world.attic
-  const orbRadius = orb.radius * palette.orbSize
-  const [orbX, orbY] = palette.orbAt
+  const { wallZ, frontZ, halfWidth, ridge, eave, windowY, rafterGap } = tuning.world.attic
   const midZ = (wallZ + frontZ) / 2
   const rafterZs: number[] = []
   for (let z = wallZ + rafterGap / 2; z < frontZ; z += rafterGap) rafterZs.push(z)
@@ -111,9 +94,6 @@ export function Attic({ palette }: { palette: WorldPalette }) {
         <mesh geometry={parts.barGeometry} material={parts.beam} />
         <mesh geometry={parts.barGeometry} material={parts.beam} rotation-z={Math.PI / 2} />
       </group>
-      <mesh geometry={parts.discGeometry} material={parts.sky} position={[0, windowY, wallZ - 0.8]} scale={windowRadius * skyScale} />
-      <mesh geometry={parts.discGeometry} material={parts.halo} position={[orbX, windowY + orbY, wallZ - 0.7]} scale={orbRadius * orb.halo} />
-      <mesh geometry={parts.discGeometry} material={parts.moon} position={[orbX, windowY + orbY, wallZ - 0.6]} scale={orbRadius} />
 
       {/* Short knee walls close the gap under the eaves. */}
       {[-1, 1].map((side) => (

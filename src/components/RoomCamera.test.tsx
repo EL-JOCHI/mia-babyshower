@@ -14,13 +14,14 @@ import { WorldRoom } from './WorldRoom'
 
 // jsdom has no WebGL. The world stands in as its pages in plain DOM: it gets ready, fails on
 // purpose, or stalls and never draws a first frame.
-const world = vi.hoisted(() => ({ mode: 'fails' as 'fails' | 'ready' | 'stalls' }))
+const world = vi.hoisted(() => ({ mode: 'fails' as 'fails' | 'ready' | 'stalls', mounts: 0 }))
 vi.mock('../world/World', () => ({
   default: function World({
     ids,
     content,
     mood,
     theme,
+    tier,
     running,
     onReady,
   }: {
@@ -28,16 +29,20 @@ vi.mock('../world/World', () => ({
     content: Record<LandmarkId, ReactNode>
     mood: string
     theme: string
+    tier: string
     running: boolean
     onReady: () => void
   }) {
     if (world.mode === 'fails') throw new Error('The world could not start')
     useEffect(() => {
+      world.mounts += 1
+    }, [])
+    useEffect(() => {
       if (world.mode === 'ready') onReady()
     }, [onReady])
     return createElement(
       'div',
-      { 'data-testid': 'world', 'data-mood': mood, 'data-theme': theme, 'data-running': String(running) },
+      { 'data-testid': 'world', 'data-mood': mood, 'data-theme': theme, 'data-tier': tier, 'data-running': String(running) },
       createElement('canvas', { key: 'canvas' }),
       ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id])),
     )
@@ -169,8 +174,8 @@ describe('the flat room (design §2 fallback)', () => {
   })
 })
 
-function renderWorldRoom(props: Partial<ComponentProps<typeof WorldRoom>> = {}) {
-  return render(
+function worldRoom(props: Partial<ComponentProps<typeof WorldRoom>> = {}) {
+  return (
     <WorldRoom
       day="sat"
       now={beforeSatCutoff}
@@ -184,8 +189,12 @@ function renderWorldRoom(props: Partial<ComponentProps<typeof WorldRoom>> = {}) 
       onEvent={vi.fn()}
       theme="dark"
       {...props}
-    />,
+    />
   )
+}
+
+function renderWorldRoom(props: Partial<ComponentProps<typeof WorldRoom>> = {}) {
+  return render(worldRoom(props))
 }
 
 const cover = () => document.querySelector('.book-cover')
@@ -207,6 +216,7 @@ function setScreenHeight(height: number) {
 describe('the 3D book and its fallback (design §2)', () => {
   beforeEach(() => {
     world.mode = 'fails'
+    world.mounts = 0
     vi.mocked(hasWebGL).mockReturnValue(true)
   })
   afterEach(() => setScreenHeight(jsdomHeight))
@@ -320,6 +330,33 @@ describe('the 3D book and its fallback (design §2)', () => {
     saturday.unmount()
     renderWorldRoom({ day: 'sun', now: beforeSunCutoff })
     expect(await screen.findByTestId('world')).toHaveAttribute('data-mood', 'sunday')
+  })
+
+  it('hands the device tier to the world (spec §8)', async () => {
+    world.mode = 'ready'
+    Object.defineProperty(navigator, 'hardwareConcurrency', { configurable: true, value: 8 })
+    try {
+      renderWorldRoom()
+      expect(await screen.findByTestId('world')).toHaveAttribute('data-tier', 'normal')
+    } finally {
+      delete (navigator as { hardwareConcurrency?: number }).hardwareConcurrency
+    }
+  })
+
+  // Review Focus 2: the guest switches theme at level 1. This guards the swap: it passes before and
+  // after this task, and must keep passing.
+  it('swaps the light and dark looks in place: no remount, and no flash of the cover (Review Focus 2)', async () => {
+    world.mode = 'ready'
+    const view = renderWorldRoom({ day: 'sun', now: beforeSunCutoff, theme: 'dark' })
+    await bookReady()
+    const node = screen.getByTestId('world')
+    view.rerender(worldRoom({ day: 'sun', now: beforeSunCutoff, theme: 'light' }))
+    expect(screen.getByTestId('world')).toBe(node)
+    expect(node).toHaveAttribute('data-theme', 'light')
+    expect(node).toHaveAttribute('data-mood', 'sunday')
+    expect(world.mounts).toBe(1)
+    expect(cover()).toHaveAttribute('aria-hidden', 'true')
+    expect(cover()).not.toHaveClass('is-opening')
   })
 
   // Design §9: a page is never drawn below tuning.world.page.minScale, so a screen too short to

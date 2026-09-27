@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { tokens, tuning } from '../tuning'
 import type { BookPath } from './bookPath'
+import { candleBrightness, candleFlicker } from './lighting'
+import { MoodLights } from './MoodLights'
 import type { WorldPalette } from './palette'
 import { applyStageMix, type WorldResources } from './resources'
 import { createStageMix, writeStageMix } from './stageMix'
@@ -24,13 +26,11 @@ interface Props {
 
 const mix = createStageMix()
 
-// Design §1 Evolution: boceto has the window's light only (cool moonlight by night, soft daylight
-// by day) and gray paper; tinta adds ink outlines and shadows from below (plum by night, rose by
-// day); luz lights the candles (one casts shadows) and warms the paper toward the door.
+// Spec §4 Lit from the start: the attic is lit by its mood on every page (MoodLights). The stage
+// (design §1 Evolution) drives only the book: its paper warms, its ink fades in, and in luz the
+// candles light (one casts shadows) and warm the paper toward the door.
 export function StageLighting({ path, viewRef, resources, palette, shadowRef }: Props) {
-  const { moonFrom, candleAt, candleOffset, doorOffset, candleDistance, shadowMapPx } = tuning.world.light
-  const moonLight = useRef<THREE.DirectionalLight>(null)
-  const sky = useRef<THREE.HemisphereLight>(null)
+  const { candleAt, candleOffset, doorOffset, candleDistance, shadowMapPx } = tuning.world.light
   const candles = useRef<(THREE.PointLight | null)[]>([])
 
   // Candles stand beside the path; the last one waits behind the family door.
@@ -50,25 +50,11 @@ export function StageLighting({ path, viewRef, resources, palette, shadowRef }: 
 
   useFrame((state) => {
     writeStageMix(viewRef.current.progress, mix)
-    const { candle: candleIntensity, candleBase, flicker, flickerWaves } = tuning.world.light
-    const key = moonLight.current
-    if (key) {
-      key.color.copy(palette.key)
-      key.intensity = palette.keyIntensity
-    }
-    const ambient = sky.current
-    if (ambient) {
-      ambient.color.copy(palette.ambientSky)
-      ambient.groundColor.copy(palette.ambientGround)
-      ambient.intensity = palette.ambient
-    }
-
     const t = state.clock.elapsedTime
-    const lit = mix.light * (candleBase + (1 - candleBase) * mix.warm)
+    const lit = candleBrightness(mix)
     for (let i = 0; i < candles.current.length; i++) {
       const light = candles.current[i]
-      const { fast, slow, phase } = flickerWaves
-      if (light) light.intensity = candleIntensity * lit * (1 + flicker * Math.sin(t * fast + i * phase) * Math.sin(t * slow + i))
+      if (light) light.intensity = lit * candleFlicker(t, i)
     }
 
     applyStageMix(resources, mix, palette)
@@ -88,8 +74,7 @@ export function StageLighting({ path, viewRef, resources, palette, shadowRef }: 
 
   return (
     <>
-      <hemisphereLight ref={sky} />
-      <directionalLight ref={moonLight} position={[...moonFrom]} />
+      <MoodLights palette={palette} />
       {spots.map((spot, i) => {
         const door = i === spots.length - 1
         return (

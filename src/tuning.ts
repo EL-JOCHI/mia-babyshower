@@ -485,19 +485,23 @@ export const tuning = {
       swaySpeed: 0.05,
       box: { width: 28, bottom: 0.3, height: 6.5, back: -8, depth: 16 },
     },
+    // Saturday's stars in the window (spec §3): `count` of them (about half on a low device), each
+    // `size` to size + sizeRange across, twinkling between `min` and full size at `speed`.
+    stars: { count: 40, size: 0.05, sizeRange: 0.05, min: 0.35, speed: 1.6 },
     // Spec §3: two moods, one attic, each in a lighter (Claro) and a darker (Oscuro) version. Every
-    // color is a mix of the palette tokens and the feeling colors.
+    // color is a mix of the palette tokens and the feeling colors. The 3D attic mixes in linear light,
+    // so a little of a light color goes a long way (and the window's sky blends the same way).
     looks: {
       saturday: {
         // Noche de luna, Oscuro: full night. A big moon with a halo, twinkling stars, and cool
         // moonlight tinted toward Misha's blue.
         dark: {
           fog: tokens.plum,
-          wood: [tokens.ink, tokens.plum, 0.55],
+          wood: [tokens.plum, tokens.rose, 0.15],
           floor: tokens.plum,
           beam: tokens.ink,
-          skyTop: [tokens.ink, feelingColors.misha, 0.12],
-          skyBottom: [tokens.plum, feelingColors.misha, 0.3],
+          skyTop: [tokens.ink, feelingColors.misha, 0.06],
+          skyBottom: [tokens.plum, feelingColors.misha, 0.22],
           orbKind: 'moon',
           orbAt: [0.5, 0.4],
           orbSize: 1.25,
@@ -505,10 +509,10 @@ export const tuning = {
           halo: feelingColors.misha,
           cloth: [tokens.plum, tokens.deepRose, 0.35],
           key: [feelingColors.misha, tokens.bone, 0.55],
-          keyIntensity: 1,
+          keyIntensity: 1.2,
           ambientSky: [feelingColors.misha, tokens.bone, 0.7],
           ambientGround: tokens.plum,
-          ambient: 0.5,
+          ambient: 0.8,
           shaft: [feelingColors.misha, tokens.bone, 0.6],
           shaftOpacity: 0.14,
           sparkle: tokens.bone,
@@ -520,14 +524,15 @@ export const tuning = {
           warmth: 0.32,
           dust: tokens.bone,
         },
-        // Noche de luna, Claro: blue hour. A deep blue sky with a rising moon; the attic reads clearly.
+        // Noche de luna, Claro: blue hour. A deep blue sky with a rising moon; the attic reads clearly,
+        // lilac plum in the blue light.
         light: {
           fog: [tokens.plum, feelingColors.misha, 0.4],
-          wood: [tokens.plum, tokens.bone, 0.3],
-          floor: [tokens.plum, tokens.bone, 0.2],
+          wood: [tokens.plum, feelingColors.susto, 0.35],
+          floor: [tokens.plum, feelingColors.susto, 0.25],
           beam: [tokens.ink, tokens.plum, 0.6],
-          skyTop: [tokens.ink, feelingColors.misha, 0.45],
-          skyBottom: [feelingColors.misha, tokens.rose, 0.35],
+          skyTop: [tokens.ink, feelingColors.misha, 0.3],
+          skyBottom: [feelingColors.misha, tokens.rose, 0.5],
           orbKind: 'moon',
           orbAt: [0.7, -0.35],
           orbSize: 1,
@@ -538,7 +543,7 @@ export const tuning = {
           keyIntensity: 1.35,
           ambientSky: [feelingColors.misha, tokens.bone, 0.55],
           ambientGround: [tokens.plum, tokens.rose, 0.3],
-          ambient: 0.9,
+          ambient: 1.2,
           shaft: [feelingColors.misha, tokens.bone, 0.75],
           shaftOpacity: 0.1,
           sparkle: tokens.bone,
@@ -556,11 +561,11 @@ export const tuning = {
         // plum, the lanterns lit, and fireflies out.
         dark: {
           fog: [tokens.plum, tokens.deepRose, 0.25],
-          wood: [tokens.ink, tokens.plum, 0.7],
+          wood: [tokens.plum, tokens.rose, 0.2],
           floor: [tokens.plum, tokens.deepRose, 0.15],
           beam: tokens.ink,
-          skyTop: tokens.plum,
-          skyBottom: [tokens.candle, tokens.rose, 0.45],
+          skyTop: [tokens.ink, tokens.plum, 0.6],
+          skyBottom: [tokens.candle, tokens.rose, 0.6],
           orbKind: 'sun',
           orbAt: [0.15, -1.05],
           orbSize: 1.35,
@@ -571,7 +576,7 @@ export const tuning = {
           keyIntensity: 0.9,
           ambientSky: [tokens.rose, tokens.bone, 0.5],
           ambientGround: tokens.plum,
-          ambient: 0.55,
+          ambient: 0.75,
           shaft: [tokens.candle, tokens.rose, 0.3],
           shaftOpacity: 0.14,
           sparkle: tokens.candle,
@@ -583,14 +588,14 @@ export const tuning = {
           warmth: 0.36,
           dust: tokens.candle,
         },
-        // Atardecer dorado, Claro: golden afternoon. A warm sun in the window, and candle-gold light
-        // on the floor.
+        // Atardecer dorado, Claro: golden afternoon. A warm sun in the window, honey-gold wood, and
+        // candle-gold light on the floor.
         light: {
           fog: [tokens.bone, tokens.candle, 0.2],
-          wood: [tokens.bone, tokens.plum, 0.38],
+          wood: [tokens.bone, tokens.candle, 0.45],
           floor: [tokens.bone, tokens.plum, 0.5],
           beam: [tokens.plum, tokens.bone, 0.2],
-          skyTop: [feelingColors.misha, tokens.bone, 0.45],
+          skyTop: [feelingColors.misha, tokens.bone, 0.25],
           skyBottom: [tokens.candle, tokens.bone, 0.4],
           orbKind: 'sun',
           orbAt: [-0.45, 0.35],
@@ -655,8 +660,8 @@ export const tuning = {
       rafterGap: 4,
       // The moon or the sun sits where the look puts it (WorldLook.orbAt), `radius` times the look's
       // orbSize, with a soft halo `halo` times its radius (`sunHalo` for the sun, which is wider).
-      orb: { radius: 0.62, halo: 1.85, sunHalo: 2.4, haloOpacity: 0.22 },
-      // The sky disc behind the window is this much wider than the window.
+      orb: { radius: 0.62, halo: 1.85, sunHalo: 2.4, haloOpacity: 0.45 },
+      // The sky's gradient behind the window is this much wider than the window.
       skyScale: 1.3,
       roughness: { floor: 0.95, wall: 1, beam: 1 },
     },
