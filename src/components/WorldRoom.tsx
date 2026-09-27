@@ -17,19 +17,21 @@ import { useKeyboardModality } from '../hooks/useKeyboardModality'
 import { useSettledPage } from '../hooks/useSettledPage'
 import { useWorldCamera } from '../hooks/useWorldCamera'
 import type { BattleCat } from '../logic/battle'
+import { bookQrPx, fitsBook, wantsBook } from '../logic/book'
 import type { CatState } from '../logic/catState'
 import { stageAt, type Stage } from '../logic/era'
 import { landmarksFor, type LandmarkId, type Point } from '../logic/layout'
 import { isPartyOver } from '../logic/party'
-import { stationProgress } from '../logic/path'
+import { nearestStation, stationProgress } from '../logic/path'
 import { countablePages, type Progress, type ProgressEvent } from '../logic/progress'
 import { hasWebGL } from '../logic/webgl'
 import { tuning, type ThemeName } from '../tuning'
 import { FlatRoom, type RoomProps } from './FlatRoom'
+import { loadWorld } from './loadWorld'
 import { usePages } from './Pages'
 import { Signposts } from './Signposts'
 
-const World = lazy(() => import('../world/World'))
+const World = lazy(loadWorld)
 
 interface Props extends RoomProps {
   // The world is the same book by night (Oscuro) and by day (Claro), design §3.
@@ -175,7 +177,7 @@ function BookRoom({
   theme,
   onFirstMove,
   onFail,
-}: Props & { onFail: () => void }) {
+}: Props & { onFail: (page: LandmarkId) => void }) {
   const partyOver = isPartyOver(day, now)
   const ids = useMemo(() => landmarksFor(partyOver), [partyOver])
   const pages = useMemo(() => countablePages(ids), [ids])
@@ -195,23 +197,31 @@ function BookRoom({
   const openCover = useCallback(() => setMoved(true), [])
   // A drag, the wheel, or an arrow key: the guest's own move. It opens the cover and, the first
   // time, counts as the first move (design §6). Other keys and signposts only open the cover.
+  // While the book is still loading behind its cover, a move counts for nothing.
   const onMove = useCallback(() => {
     openCover()
-    if (hasMoved.current) return
+    if (hasMoved.current || !ready) return
     hasMoved.current = true
     firstMove.current?.()
-  }, [openCover])
+  }, [openCover, ready])
   const onReady = useCallback(() => setReady(true), [])
 
   const cam = useWorldCamera({ stations, reducedMotion: false, onMove })
-  const { glideTo, progressRef } = cam
+  const { glideTo, progressRef, aimRef } = cam
   const stage = stageAt(cam.progress)
   // The cover opens once the world is ready and the guest has moved, in either order.
   const opening = ready && moved
 
+  // The book gives way to the flat room (it failed, stalled, lost its WebGL context, or the screen
+  // turned too short): the flat room opens on the page the guest was on, or was heading to.
+  const fail = useCallback(() => onFail(nearestStation(aimRef.current, stations)), [aimRef, onFail, stations])
+
   // Design §6: a page is found once the camera rests within tuning.world.stationEps of its
-  // station (the cover never counts).
-  const atStation = pages.find((id) => Math.abs(cam.progress - stations[id]) <= tuning.world.stationEps)
+  // station (the cover never counts). Nothing is found, or stands, until the cover opens: before
+  // that the guest sees only the cover.
+  const atStation = opening
+    ? pages.find((id) => Math.abs(cam.progress - stations[id]) <= tuning.world.stationEps)
+    : undefined
   useSettledPage(atStation, (page) => {
     if (!progress.pages.includes(page)) onEvent({ type: 'reachedPage', page, pages })
   })
@@ -219,7 +229,9 @@ function BookRoom({
   // The pages standing now: within the pop-up range of the camera, the same range that stands a
   // page up. Their objects open at once, found or not (the facts are never gated). Keyed by the ids,
   // so the memoized pages re-render only when the set changes.
-  const standingKey = ids.filter((id) => Math.abs(cam.progress - stations[id]) <= tuning.world.popUp.range).join(',')
+  const standingKey = opening
+    ? ids.filter((id) => Math.abs(cam.progress - stations[id]) <= tuning.world.popUp.range).join(',')
+    : ''
   const standing = useMemo(() => (standingKey ? (standingKey.split(',') as LandmarkId[]) : []), [standingKey])
 
   // Any key opens the cover, so a keyboard never tabs into a closed book.
@@ -238,9 +250,29 @@ function BookRoom({
   // Facts are never gated: a world that stalls before its first frame hands over to the flat room.
   useEffect(() => {
     if (ready) return
-    const timer = window.setTimeout(onFail, tuning.world.loadTimeoutMs)
+    const timer = window.setTimeout(fail, tuning.world.loadTimeoutMs)
     return () => window.clearTimeout(timer)
-  }, [ready, onFail])
+  }, [ready, fail])
+
+  // Mobile browsers drop WebGL contexts, most often while the guest is away in WhatsApp after
+  // Confirmar. The event does not bubble, so the surface catches it on its way down to the canvas.
+  useEffect(() => {
+    const el = surface.current
+    if (!el) return
+    const onLost = () => fail()
+    el.addEventListener('webglcontextlost', onLost, true)
+    return () => el.removeEventListener('webglcontextlost', onLost, true)
+  }, [fail])
+
+  // Design §9: a screen that turns too short for a readable page (a phone turned sideways) hands
+  // over to the flat room for the rest of the visit.
+  useEffect(() => {
+    const onResize = () => {
+      if (!fitsBook(window.innerHeight)) fail()
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [fail])
 
   // Keyboard focus inside a page glides the camera to that page (BR-20, FR-11). The pages live in
   // their own DOM roots inside the surface, so this listens on the DOM directly.
@@ -285,7 +317,13 @@ function BookRoom({
 
   return (
     <main className="world-room" data-era={stage} aria-label={copy.a11y.room}>
-      <div ref={surface} className="world-surface" {...cam.surfaceProps}>
+      <div
+        ref={surface}
+        className="world-surface"
+        // The QR is drawn larger in the book, so it stays at its minimum size on a page at its smallest.
+        style={{ '--qr-px': `${bookQrPx}px` } as CSSProperties}
+        {...cam.surfaceProps}
+      >
         <BookPages
           ids={ids}
           stations={stations}
@@ -308,7 +346,7 @@ function BookRoom({
           running={opening}
           awake={coverGone}
           onReady={onReady}
-          onFail={onFail}
+          onFail={fail}
         />
         {!coverGone && <Cover partyOver={partyOver} opening={opening} behind={ready} />}
       </div>
@@ -317,14 +355,17 @@ function BookRoom({
   )
 }
 
-// Design §2: the 3D pop-up book, or the flat room with reduced motion, without WebGL, or when
-// the world fails.
+// Design §2: the 3D pop-up book, or the flat room with reduced motion, without WebGL, on a screen
+// too short for a readable page (design §9), or once the book gives way. Then the flat room stays
+// for the rest of the visit, opening on the page the guest was on.
 export function WorldRoom(props: Props) {
-  const [failed, setFailed] = useState(false)
-  const onFail = useCallback(() => setFailed(true), [])
-  if (props.reducedMotion || failed || !hasWebGL()) {
+  const [fallback, setFallback] = useState<LandmarkId | null>(null)
+  // The screen's height at start. From then on the book itself watches it.
+  const [height] = useState(() => window.innerHeight)
+  if (fallback !== null || !wantsBook({ reducedMotion: props.reducedMotion, height, webgl: hasWebGL })) {
     return (
       <FlatRoom
+        startAt={fallback ?? undefined}
         day={props.day}
         now={props.now}
         reducedMotion={props.reducedMotion}
@@ -339,5 +380,5 @@ export function WorldRoom(props: Props) {
       />
     )
   }
-  return <BookRoom {...props} onFail={onFail} />
+  return <BookRoom {...props} onFail={setFallback} />
 }

@@ -22,6 +22,8 @@ interface DragState {
 export interface WorldCameraApi {
   progress: number
   progressRef: { readonly current: number }
+  // Where progress is heading: the glide's target while gliding, otherwise where it is.
+  aimRef: { readonly current: number }
   glideTo: (id: LandmarkId) => void
   surfaceProps: {
     onPointerDown: (e: PointerEvent<HTMLElement>) => void
@@ -229,6 +231,7 @@ export function useWorldCamera({ stations, reducedMotion, onMove }: Options): Wo
   return {
     progress,
     progressRef,
+    aimRef: aim,
     glideTo,
     surfaceProps: {
       onPointerDown,

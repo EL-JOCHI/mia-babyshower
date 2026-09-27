@@ -5,6 +5,7 @@ import { copy } from '../content'
 import { cameraTargetFor } from '../logic/camera'
 import { emptyCatState } from '../logic/catState'
 import { emptyProgress } from '../logic/progress'
+import { bookQrPx } from '../logic/book'
 import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
 import { hasWebGL } from '../logic/webgl'
 import { tuning } from '../tuning'
@@ -35,6 +36,7 @@ vi.mock('../world/World', () => ({
     return createElement(
       'div',
       { 'data-testid': 'world', 'data-theme': theme, 'data-running': String(running) },
+      createElement('canvas', { key: 'canvas' }),
       ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id])),
     )
   },
@@ -188,11 +190,24 @@ const cover = () => document.querySelector('.book-cover')
 const worldSurface = () => document.querySelector('.world-surface') as HTMLElement
 const bookReady = () => waitFor(() => expect(cover()).toHaveAttribute('aria-hidden', 'true'))
 
+// Where the flat room's camera rests to centre a page, on the screen as it is now.
+function flatTarget(id: LandmarkId) {
+  const layout = computeLayout(window.innerWidth, window.innerHeight, landmarksFor(false))
+  return cameraTargetFor(layout.positions[id], layout, window.innerWidth, window.innerHeight)
+}
+
+// jsdom's window is 1024 × 768. A test may make it shorter, like a phone held sideways.
+const jsdomHeight = window.innerHeight
+function setScreenHeight(height: number) {
+  Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
+}
+
 describe('the 3D book and its fallback (design §2)', () => {
   beforeEach(() => {
     world.mode = 'fails'
     vi.mocked(hasWebGL).mockReturnValue(true)
   })
+  afterEach(() => setScreenHeight(jsdomHeight))
 
   it('shows the cover at once, and ends on the flat room when the world fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -294,6 +309,68 @@ describe('the 3D book and its fallback (design §2)', () => {
       />,
     )
     expect(screen.getByTestId('world')).toHaveAttribute('data-theme', 'light')
+  })
+
+  // Design §9: a page is never drawn below tuning.world.page.minScale, so a screen too short to
+  // show one whole gets the flat room from the start.
+  it('uses the flat room on a screen too short for a readable page (a phone held sideways)', () => {
+    world.mode = 'ready'
+    setScreenHeight(390)
+    renderWorldRoom()
+    expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+    expect(cover()).toBeNull()
+  })
+
+  it('draws the QR in the book large enough to stay at its minimum size on a page at its smallest', async () => {
+    world.mode = 'ready'
+    renderWorldRoom({ qrUrl: '/qr.png' })
+    await bookReady()
+    expect(worldSurface().style.getPropertyValue('--qr-px')).toBe(`${bookQrPx}px`)
+    expect(screen.getByRole('img', { name: copy.qrAlt }).style.width).toBe(`var(--qr-px, ${tuning.qr.minPx}px)`)
+  })
+
+  // Facts are never gated, and nothing counts before the guest can see it (design §6): while the
+  // book is still loading behind its cover, a signpost or a move records no page and no first move.
+  it('records no page and no first move before the book is ready', async () => {
+    world.mode = 'stalls'
+    const onEvent = vi.fn()
+    const onFirstMove = vi.fn()
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'setTimeout', 'clearTimeout'] })
+    try {
+      renderWorldRoom({ onEvent, onFirstMove })
+      fireEvent.click(screen.getByRole('button', { name: copy.signposts.donde }))
+      act(() => {
+        vi.advanceTimersByTime(tuning.world.glideMs + tuning.pages.settleMs + 50)
+      })
+      fireEvent.wheel(worldSurface(), { deltaY: 120 })
+      act(() => {
+        vi.advanceTimersByTime(tuning.pages.snapDelayMs + tuning.world.glideMs + tuning.pages.settleMs + 50)
+      })
+      expect(screen.queryByTestId('room-mid')).not.toBeInTheDocument()
+      expect(onEvent).not.toHaveBeenCalled()
+      expect(onFirstMove).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  // The slow-data case: a guest taps a signpost while the book is still loading, and the book
+  // never gets ready. The flat room opens on the page they asked for, not on the cover.
+  it('opens the flat room on the page the guest was aiming for when the book never gets ready', () => {
+    world.mode = 'stalls'
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'setTimeout', 'clearTimeout'] })
+    try {
+      renderWorldRoom()
+      fireEvent.click(screen.getByRole('button', { name: copy.signposts.donde }))
+      act(() => {
+        vi.advanceTimersByTime(tuning.world.loadTimeoutMs + 10)
+      })
+      expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+      expect(cameraX()).toBeCloseTo(flatTarget('donde').x, 5)
+      expect(cameraY()).toBeCloseTo(flatTarget('donde').y, 5)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   describe('moving through the book', () => {
@@ -413,6 +490,45 @@ describe('the 3D book and its fallback (design §2)', () => {
         vi.advanceTimersByTime(tuning.pages.settleMs + 10)
       })
       expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({ type: 'reachedPage', page: 'palabra' }))
+    })
+
+    // Mobile browsers drop WebGL contexts, most often on the way back from WhatsApp after
+    // Confirmar: the flat room takes over on the page the guest was on.
+    it('hands over to the flat room on the current page when the WebGL context is lost', async () => {
+      renderWorldRoom()
+      await bookReady()
+      fireEvent.click(screen.getByRole('button', { name: copy.signposts.confirmar }))
+      settle()
+      const canvas = worldSurface().querySelector('canvas')!
+      act(() => {
+        canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true }))
+      })
+      expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+      expect(cameraX()).toBeCloseTo(flatTarget('confirmar').x, 5)
+    })
+
+    it('stops listening for a lost context once the book is gone', async () => {
+      const view = renderWorldRoom()
+      await bookReady()
+      const surface = worldSurface()
+      const remove = vi.spyOn(surface, 'removeEventListener')
+      view.unmount()
+      expect(remove).toHaveBeenCalledWith('webglcontextlost', expect.any(Function), true)
+    })
+
+    // Design §9: turning a phone sideways leaves too little height for a readable page, so the
+    // book hands over to the flat room, on the same page, for the rest of the visit.
+    it('hands over to the flat room on the current page when the screen turns too short', async () => {
+      renderWorldRoom()
+      await bookReady()
+      fireEvent.click(screen.getByRole('button', { name: copy.signposts.donde }))
+      settle()
+      setScreenHeight(390)
+      act(() => {
+        window.dispatchEvent(new Event('resize'))
+      })
+      expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+      expect(cameraX()).toBeCloseTo(flatTarget('donde').x, 5)
     })
 
     it('glides to the page that keyboard focus enters (FR-11)', async () => {

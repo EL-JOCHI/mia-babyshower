@@ -91,6 +91,7 @@ function isOutside(el: HTMLElement): boolean {
 
 // §3 The room, §4 How the room moves. The flat room is the fallback for reduced motion and for
 // browsers without WebGL (design §2): everything is reachable, nothing moves on its own, no canvas.
+// It opens on the cover page, or on `startAt` when it takes over from the 3D book.
 export function FlatRoom({
   day,
   now,
@@ -103,13 +104,14 @@ export function FlatRoom({
   progress,
   onEvent,
   onFirstMove,
-}: RoomProps) {
+  startAt = 'llegada',
+}: RoomProps & { startAt?: LandmarkId }) {
   const { vw, vh } = useViewport()
   const partyOver = isPartyOver(day, now)
   const ids = useMemo(() => landmarksFor(partyOver), [partyOver])
   const pages = useMemo(() => countablePages(ids), [ids])
   const layout = useMemo(() => computeLayout(vw, vh, ids), [vw, vh, ids])
-  const [start] = useState(() => cameraTargetFor(layout.positions.llegada, layout, vw, vh))
+  const [start] = useState(() => cameraTargetFor(layout.positions[startAt] ?? layout.positions.llegada, layout, vw, vh))
   const hasMoved = useRef(false)
   const firstMove = useRef(onFirstMove)
   useEffect(() => {

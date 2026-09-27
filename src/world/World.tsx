@@ -39,7 +39,10 @@ function Scene({ ids, stations, progressRef, content, theme, awake, onReady }: S
   const size = useThree((state) => state.size)
   const resources = useWorldResources()
   const aspect = size.width / Math.max(1, size.height)
-  const path = useMemo(() => buildPath(ids.map((id) => stations[id]), aspect), [ids, stations, aspect])
+  const path = useMemo(
+    () => buildPath(ids.map((id) => stations[id]), aspect, size.height),
+    [ids, stations, aspect, size.height],
+  )
   const viewRef = useRef({ progress: 0 })
   // Marked stale by a station while its paper folds, so the candle's shadow map is redrawn only then.
   const shadowRef = useRef<ShadowState>({ drawn: false, stale: true })

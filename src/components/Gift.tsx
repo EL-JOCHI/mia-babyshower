@@ -15,6 +15,9 @@ interface Props {
 }
 
 const fileName = 'qr-regalo-mia.png'
+// The QR's size: tuning.qr.minPx, or larger where the room sets --qr-px (the 3D book, whose pages
+// may be drawn below their design size).
+const qrSize = `var(--qr-px, ${tuning.qr.minPx}px)`
 
 function download(url: string) {
   const link = document.createElement('a')
@@ -91,7 +94,7 @@ export function Gift({ qrUrl, open, tilting, onQrTap, onSave, nana }: Props) {
               alt={copy.qrAlt}
               width={tuning.qr.minPx}
               height={tuning.qr.minPx}
-              style={{ width: tuning.qr.minPx, height: tuning.qr.minPx }}
+              style={{ width: qrSize, height: qrSize }}
               draggable={false}
             />
           </figure>

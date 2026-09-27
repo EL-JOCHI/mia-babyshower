@@ -329,11 +329,18 @@ export const tuning = {
     maxDpr: 1.75,
     // Below this width the screen counts as a phone: fewer dust motes.
     phoneMaxPx: 768,
+    // A screen shorter than this cannot show the tallest page (Presente, with its QR) whole at
+    // page.minScale between the HUD and the signposts, so it gets the flat room instead: phones
+    // held sideways, and the smallest phones with their browser toolbars. Checked at start, and
+    // on resize, when the book hands over to the flat room on the page the guest was on.
+    minHeightPx: 640,
     // The camera path: stations spread along the book in a gentle S. The camera sits `lift` above
-    // each station and backs off until a page of `frameWidth` by `frameHeight` fits the screen.
-    // The camera looks `lookHeight` above the page's foot, so the tallest page (Presente, with its
-    // QR) stands clear of the HUD at the top of a phone.
-    path: { length: 19.2, sway: 1.1, lift: 1.6, lookHeight: 1.3, minPullBack: 3.4, frameWidth: 2.2, frameHeight: 5 },
+    // each station and backs off until a page of `frameWidth` by `frameHeight` fits the screen, but
+    // never so far that the page drops below page.minScale. The camera looks `lookHeight` above the
+    // page's foot: level with its own height, so the whole page is drawn at one scale, and high
+    // enough that the tallest page (Presente, with its QR) sits centred between the HUD and the
+    // signposts of a phone.
+    path: { length: 19.2, sway: 1.1, lift: 1.6, lookHeight: 1.6, minPullBack: 3.4, frameWidth: 2.2, frameHeight: 5 },
     // Until the cover opens, the camera waits on a wide view of the book, then swoops down to the first page.
     rig: {
       damping: 3,
@@ -350,7 +357,9 @@ export const tuning = {
     book: { pageWidth: 11.6, pageDepth: 8.4, pageTop: 0.42, coverTop: 0.12, gutterDip: 0.12, gutterWidth: 0.35, edgeCurl: 1.6, coverMargin: 0.3, clothRoughness: 0.85 },
     // A station's page is HTML: `cardPx` wide in a slot `slotPx` tall, drawn `cardWidth` world units wide.
     // It fades in between `fadeFrom` and `fadeTo` of the way up, so a page lying flat far away is not a sliver.
-    page: { cardPx: 320, slotPx: 640, cardWidth: 1.8, lift: 0.04, zIndexRange: [100, 0], fadeFrom: 0.2, fadeTo: 0.7 },
+    // At rest the page is never drawn smaller than `minScale` of its design size (its text stays at
+    // 90% or more): on a short screen the camera stops backing off there and the pop-ups crop instead.
+    page: { cardPx: 320, slotPx: 640, cardWidth: 1.8, lift: 0.04, zIndexRange: [100, 0], fadeFrom: 0.2, fadeTo: 0.7, minScale: 0.9 },
     // A piece that turns less than `stillEps` of its fold in a frame counts as still: the candle's
     // shadow map is redrawn only while some piece moves.
     popUp: { range: 0.18, stiffness: 70, damping: 9, stagger: 0.12, stillEps: 0.0001 },
