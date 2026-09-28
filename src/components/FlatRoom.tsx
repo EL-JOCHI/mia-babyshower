@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent, type UIEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent, type ReactNode, type UIEvent } from 'react'
 import { copy, type CatId, type DayId } from '../content'
 import { useCamera } from '../hooks/useCamera'
 import { useKeyboardModality } from '../hooks/useKeyboardModality'
@@ -10,9 +10,11 @@ import type { CatState } from '../logic/catState'
 import { stageAt } from '../logic/era'
 import { computeLayout, landmarksFor, type LandmarkId, type Layout, type Point } from '../logic/layout'
 import { isPartyOver } from '../logic/party'
+import { moodOfDay } from '../logic/mood'
 import { countablePages, type Progress, type ProgressEvent } from '../logic/progress'
 import { tuning } from '../tuning'
 import { Landmark } from './Landmark'
+import { PaperDiorama } from './PaperDiorama'
 import { usePages } from './Pages'
 import { Signposts } from './Signposts'
 import { HeartToy, PickToy, StarToy, ThunderBolt } from './Toys'
@@ -33,6 +35,10 @@ export interface RoomProps {
   // The guest's first drag, wheel, or arrow key. Tab, Escape, and modifier keys do not count.
   onFirstMove?: () => void
 }
+
+// Level 2 (spec §7): the live attic, drawn by the caller behind the cards from the flat camera's
+// horizontal position (0 to 1), read every frame.
+export type BackdropSlot = (pan: { readonly current: number }) => ReactNode
 
 // Fixed decoration spots, as fractions of the layer. Deterministic, so rendering stays pure.
 const farDots = Array.from({ length: 36 }, (_, i) => ({
@@ -105,7 +111,9 @@ export function FlatRoom({
   onEvent,
   onFirstMove,
   startAt = 'llegada',
-}: RoomProps & { startAt?: LandmarkId }) {
+  backdrop,
+  backdropShown = false,
+}: RoomProps & { startAt?: LandmarkId; backdrop?: BackdropSlot; backdropShown?: boolean }) {
   const { vw, vh } = useViewport()
   const partyOver = isPartyOver(day, now)
   const ids = useMemo(() => landmarksFor(partyOver), [partyOver])
@@ -128,6 +136,17 @@ export function FlatRoom({
   const keyboard = useKeyboardModality()
 
   const position = horizontalPosition(cam.camera.x, layout.roomWidth, vw)
+  // The live attic drifts with the flat camera's horizontal position, read each frame (spec §7).
+  const { cameraRef } = cam
+  const roomWidth = layout.roomWidth
+  const panRef = useMemo(
+    () => ({
+      get current(): number {
+        return horizontalPosition(cameraRef.current.x, roomWidth, window.innerWidth)
+      },
+    }),
+    [cameraRef, roomWidth],
+  )
   const stage = stageAt(position)
   const depth = reducedMotion ? { far: 1, mid: 1, near: 1 } : tuning.depth
   const standing = pagesInView(cam.camera, layout, ids, vw, vh)
@@ -177,7 +196,10 @@ export function FlatRoom({
   })
 
   return (
-    <main className="room" data-era={stage} aria-label={copy.a11y.room}>
+    <main className="room" data-era={stage} data-level={backdropShown ? 'backdrop' : 'diorama'} aria-label={copy.a11y.room}>
+      {/* Spec §7: the room's background is the paper diorama, with the live attic over it at level 2. */}
+      <PaperDiorama mood={moodOfDay[day]} pan={position} still={reducedMotion} resting={backdropShown} />
+      {backdrop?.(panRef)}
       <div
         ref={viewport}
         className="room-viewport"

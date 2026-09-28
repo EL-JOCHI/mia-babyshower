@@ -148,6 +148,7 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
         ) : (
           <WorldRoom
             theme={theme}
+            dialogOpen={collectionOpen || battleCat !== null}
             day={opening.day}
             now={now}
             reducedMotion={reducedMotion}

@@ -39,12 +39,15 @@ describe('preloading the book (design §2 Loading)', () => {
     expect(shouldPreloadWorld(`?e=${days.sun.code}`, guest)).toBe(true)
   })
 
-  it('does not fetch it on the gate, with reduced motion, without WebGL, or on a short screen', () => {
+  it('does not fetch it on the gate, with reduced motion, or without WebGL', () => {
     expect(shouldPreloadWorld('', guest)).toBe(false)
     expect(shouldPreloadWorld('?e=nope', guest)).toBe(false)
     expect(shouldPreloadWorld(`?e=${days.sat.code}`, { ...guest, reducedMotion: true })).toBe(false)
     expect(shouldPreloadWorld(`?e=${days.sat.code}`, { ...guest, webgl: () => false })).toBe(false)
-    expect(shouldPreloadWorld(`?e=${days.sat.code}`, { ...guest, height: 390 })).toBe(false)
+  })
+
+  it('fetches it for a short screen too, which gets the live attic behind the cards (spec §7)', () => {
+    expect(shouldPreloadWorld(`?e=${days.sat.code}`, { ...guest, height: 390 })).toBe(true)
   })
 })
 

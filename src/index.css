@@ -4,6 +4,8 @@
 @import './styles/game.css' layer(components);
 /* The family as paper pop-ups (spec §6). */
 @import './styles/family.css' layer(components);
+/* The paper diorama and the live attic behind the flat room (spec §7). */
+@import './styles/diorama.css' layer(components);
 
 /* Theme tokens are CSS variables generated from src/tuning.ts into index.html (BR-21). */
 @theme inline {

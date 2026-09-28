@@ -24,8 +24,9 @@ import { hasWebGL } from './logic/webgl'
 const root = document.getElementById('root')
 if (!root) throw new Error('Missing #root')
 
-// Design §2 Loading: a guest who will get the 3D book starts fetching it now, before the first
-// render. If this fetch fails, the room's own lazy load fails too and hands over to the flat room.
+// Design §2 Loading and spec §7: a guest who will get the 3D book or the live attic behind the flat
+// room starts fetching the World chunk now, before the first render. If this fetch fails, the room's
+// own lazy load fails too and leaves the paper diorama.
 const preload = shouldPreloadWorld(window.location.search, {
   reducedMotion: window.matchMedia(reducedMotionQuery).matches,
   height: window.innerHeight,

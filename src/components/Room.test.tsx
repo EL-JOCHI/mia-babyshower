@@ -501,3 +501,28 @@ describe('US-9 noticing and greeting in the room', () => {
     expect(onGreet).not.toHaveBeenCalled()
   })
 })
+
+describe('the paper diorama behind the flat room (spec §7)', () => {
+  it("lays the cards over the diorama of the day's mood", () => {
+    renderRoom({ day: 'sun', now: beforeSunCutoff })
+    const diorama = document.querySelector('.paper-diorama')!
+    expect(diorama).toHaveClass('mood-sunday')
+    expect(diorama).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByRole('main')).toHaveAttribute('data-level', 'diorama')
+    expect(diorama.compareDocumentPosition(screen.getByTestId('room-mid')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('slides the diorama as the camera moves sideways', () => {
+    renderRoom()
+    const wall = () => document.querySelector<HTMLElement>('.diorama-wall')!.style.transform
+    const before = wall()
+    fireEvent.wheel(document.querySelector('.room-viewport')!, { deltaY: 80, shiftKey: true })
+    expect(wall()).not.toBe(before)
+  })
+
+  it('holds the diorama still with reduced motion', () => {
+    renderRoom({ reducedMotion: true })
+    expect(document.querySelector('.paper-diorama')).toHaveClass('is-still')
+    expect(document.querySelector<HTMLElement>('.diorama-wall')!.style.transform).toBe('')
+  })
+})

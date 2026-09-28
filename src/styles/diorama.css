@@ -1,0 +1,170 @@
+/* ---------- Level 3: the paper diorama (spec §7) ---------- */
+/* Behind the flat room's cards. Its colors come from the mood and theme (src/headMeta.ts
+   dioramaCss); nothing here is a color of its own. */
+.paper-diorama {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(var(--diorama-fog), var(--diorama-floor));
+}
+
+/* Wider than the screen, so sliding never shows an edge. */
+.diorama-layer {
+  position: absolute;
+  inset: 0 -12%;
+  will-change: transform;
+}
+
+.diorama-layer svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.diorama-wall-fill {
+  fill: var(--diorama-wood);
+}
+
+.diorama-sky-top {
+  stop-color: var(--diorama-sky-top);
+}
+
+.diorama-sky-bottom {
+  stop-color: var(--diorama-sky-bottom);
+}
+
+.diorama-orb-place {
+  transform: translate(var(--diorama-orb-dx), var(--diorama-orb-dy)) scale(var(--diorama-orb-scale));
+}
+
+.diorama-orb {
+  fill: var(--diorama-orb);
+}
+
+.diorama-halo {
+  fill: var(--diorama-halo);
+  opacity: 0.3;
+}
+
+.diorama-star {
+  fill: var(--diorama-sparkle);
+  opacity: var(--diorama-stars);
+  animation: diorama-twinkle var(--diorama-twinkle) ease-in-out infinite alternate;
+}
+
+.diorama-window-frame {
+  fill: none;
+  stroke: var(--diorama-beam);
+  stroke-width: 6;
+}
+
+.diorama-window-bar {
+  stroke: var(--diorama-beam);
+  stroke-width: 3;
+}
+
+.diorama-shaft {
+  fill: var(--diorama-shaft);
+  opacity: var(--diorama-shaft-opacity);
+}
+
+.diorama-rafter {
+  fill: none;
+  stroke: var(--diorama-beam);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.diorama-string {
+  fill: none;
+  stroke: var(--shadow);
+  stroke-width: 1.5;
+  opacity: 0.6;
+}
+
+.diorama-garland-star {
+  fill: var(--diorama-sparkle);
+  stroke: var(--shadow);
+  stroke-width: 1;
+}
+
+.diorama-lantern {
+  fill: var(--diorama-cloth);
+  stroke: var(--shadow);
+  stroke-width: 1;
+}
+
+.diorama-lantern-glow {
+  fill: var(--candle);
+  opacity: var(--diorama-lantern-glow);
+}
+
+.diorama-lantern-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: diorama-sway var(--diorama-sway) ease-in-out infinite alternate;
+}
+
+.diorama-prop {
+  fill: color-mix(in oklab, var(--diorama-wood), var(--shadow) 45%);
+  stroke: var(--shadow);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.diorama-floor-fill {
+  fill: var(--diorama-floor);
+}
+
+.diorama-plank {
+  stroke: var(--shadow);
+  stroke-width: 1;
+  opacity: 0.25;
+}
+
+/* Under the live attic it rests; with reduced motion nothing loops at all. */
+.paper-diorama.is-resting * {
+  animation-play-state: paused;
+}
+
+.paper-diorama.is-still * {
+  animation: none;
+}
+
+@keyframes diorama-twinkle {
+  from {
+    opacity: calc(var(--diorama-stars) * 0.35);
+  }
+  to {
+    opacity: var(--diorama-stars);
+  }
+}
+
+@keyframes diorama-sway {
+  from {
+    rotate: -4deg;
+  }
+  to {
+    rotate: 4deg;
+  }
+}
+
+/* ---------- Level 2: the live attic behind the cards (spec §7) ---------- */
+/* It fades in over --backdrop-fade once its first frame is drawn; taps pass through it. */
+.room-backdrop {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--backdrop-fade) ease;
+}
+
+.room-backdrop.is-ready {
+  opacity: 1;
+}
+
+.room-backdrop canvas {
+  pointer-events: none;
+}

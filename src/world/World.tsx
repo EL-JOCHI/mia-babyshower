@@ -18,6 +18,8 @@ import { StageLighting, type ShadowState } from './StageLighting'
 import { Station } from './Station'
 import { WindowSky } from './WindowSky'
 
+export { Backdrop } from './Backdrop'
+
 export interface WorldProps {
   ids: readonly LandmarkId[]
   stations: Record<LandmarkId, number>
@@ -34,6 +36,8 @@ export interface WorldProps {
   // the ticking countdown on a page), never every frame. It runs from the moment the cover starts
   // to open.
   running: boolean
+  // The tab is hidden or a full-screen dialog covers the book: nothing draws (spec §8 Pausing).
+  paused: boolean
   // False until the cover has swung open: the camera waits on a wide view of the book and the pages
   // lie flat, so the guest sees the whole book before the camera swoops down to the first page.
   awake: boolean
@@ -45,7 +49,7 @@ export interface WorldProps {
   onFail: (error: unknown) => void
 }
 
-type SceneProps = Omit<WorldProps, 'onFail' | 'running'>
+type SceneProps = Omit<WorldProps, 'onFail' | 'running' | 'paused'>
 
 function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, onDoorTap, doorComplete, onReady }: SceneProps) {
   const palette = paletteFor(mood, theme)
@@ -98,7 +102,7 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
 
 // Design §2: the 3D world, loaded as its own chunk behind the HTML cover. The pages inside it are
 // the landmarks' real HTML. If the renderer cannot start, the room falls back to the flat room.
-export default function World({ onFail, running, ...props }: WorldProps) {
+export default function World({ onFail, running, paused, ...props }: WorldProps) {
   const [createRenderer] = useState(() => (defaults: THREE.WebGLRendererParameters) => {
     try {
       return new THREE.WebGLRenderer({ ...defaults, powerPreference: 'low-power' })
@@ -112,7 +116,7 @@ export default function World({ onFail, running, ...props }: WorldProps) {
     <Canvas
       className="world-canvas"
       dpr={[1, tuning.world.maxDpr]}
-      frameloop={running ? 'always' : 'demand'}
+      frameloop={paused ? 'never' : running ? 'always' : 'demand'}
       gl={createRenderer}
       flat
       shadows="percentage"

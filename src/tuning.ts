@@ -414,6 +414,21 @@ export const tuning = {
     // and fades in over backdropFadeMs once it has drawn its first frame.
     backdropMaxDpr: 1.25,
     backdropFadeMs: 600,
+    // Level 2's camera (spec §7): it frames the attic from the front, toward the window and the crib,
+    // with a wider view on portrait screens. The flat room's horizontal position (0 to 1) drifts it
+    // sideways by up to ±drift and turns it by up to ±yaw radians; vertical panning does not move it.
+    // It eases toward its place at `damping`.
+    backdrop: {
+      position: [0, 3.4, 5.5],
+      look: [0, 3.1, -9],
+      fovPortrait: 64,
+      fovLandscape: 46,
+      drift: 1.6,
+      yaw: 0.07,
+      damping: 4,
+      near: 0.1,
+      far: 40,
+    },
     // Spec §8 Device tiers: `lowMemoryGb` of memory or less, or `lowCores` cores or fewer, is a low
     // device. The core count only counts where the browser also reports memory (Chromium); a
     // browser without a memory reading (Safari, Firefox) counts as normal. Normal devices use maxDpr and

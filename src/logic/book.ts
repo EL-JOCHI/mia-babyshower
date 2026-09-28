@@ -21,10 +21,14 @@ export function wantsBook({ reducedMotion, height, webgl }: BookEnvironment): bo
   return !reducedMotion && fitsBook(height) && webgl()
 }
 
-// Design §2 Loading: a guest on a day link who will get the book starts fetching it at page start,
-// alongside the entry script, instead of once the room has rendered.
+// Design §2 Loading and spec §7: a guest on a day link who will get the book or the live attic starts
+// fetching the World chunk at page start, alongside the entry script, instead of once the room has
+// rendered.
 export function shouldPreloadWorld(search: string, env: BookEnvironment): boolean {
-  return resolveInvite(search).kind === 'day' && wantsBook(env)
+  return (
+    resolveInvite(search).kind === 'day' &&
+    roomLevel({ ...env, bookGaveWay: false, failed: false, backdropReady: true }) !== 'diorama'
+  )
 }
 
 // Spec §7: the full book, the flat room's cards over the live 3D attic (the backdrop), or over the

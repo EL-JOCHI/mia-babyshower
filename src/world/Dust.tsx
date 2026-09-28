@@ -1,7 +1,20 @@
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { tuning } from '../tuning'
+import { tokens, tuning } from '../tuning'
+
+// The dust's material: soft glowing points. The book's shares its glow texture with the candle flames.
+export function createDustMaterial(map: THREE.Texture): THREE.PointsMaterial {
+  return new THREE.PointsMaterial({
+    map,
+    color: tokens.bone,
+    size: tuning.world.dust.size,
+    transparent: true,
+    opacity: tuning.world.dust.opacity,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  })
+}
 
 // Drifting dust in the attic air. The spots come from a fixed seed, so every load looks the same.
 function dustGeometry(count: number): THREE.BufferGeometry {

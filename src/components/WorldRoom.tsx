@@ -14,10 +14,11 @@ import {
 } from 'react'
 import { copy, type CatId, type DayId } from '../content'
 import { useKeyboardModality } from '../hooks/useKeyboardModality'
+import { usePageHidden } from '../hooks/usePageHidden'
 import { useSettledPage } from '../hooks/useSettledPage'
 import { useWorldCamera } from '../hooks/useWorldCamera'
 import type { BattleCat } from '../logic/battle'
-import { bookQrPx, fitsBook, wantsBook } from '../logic/book'
+import { bookQrPx, fitsBook, roomLevel, wantsBackdrop, type RoomEnvironment } from '../logic/book'
 import type { CatState } from '../logic/catState'
 import { deviceTier, type DeviceTier } from '../logic/deviceTier'
 import { stageAt, type Stage } from '../logic/era'
@@ -28,19 +29,26 @@ import { nearestStation, stationProgress } from '../logic/path'
 import { countablePages, type Progress, type ProgressEvent } from '../logic/progress'
 import { hasWebGL } from '../logic/webgl'
 import { tuning, type ThemeName } from '../tuning'
-import { FlatRoom, type RoomProps } from './FlatRoom'
-import { loadWorld } from './loadWorld'
+import { FlatRoom, type BackdropSlot, type RoomProps } from './FlatRoom'
+import { loadBackdrop, loadWorld } from './loadWorld'
 import { usePages } from './Pages'
 import { Signposts } from './Signposts'
 
 const World = lazy(loadWorld)
+const Backdrop = lazy(loadBackdrop)
 
 interface Props extends RoomProps {
-  // The world is a mood per day (spec §3); the theme picks its lighter (Claro) or darker (Oscuro) look.
+  // Claro or Oscuro: the lighter or darker version of the day's mood (spec §3).
   theme: ThemeName
+  // A full-screen dialog (the battle, Tus gatos) covers the room: the 3D stops drawing (spec §8).
+  dialogOpen?: boolean
 }
 
-// If the world fails anyway, the guest gets the flat room instead.
+// Why the book gave way to the flat room (spec §7): it did not get ready in time or the screen
+// turned too short (the live attic may follow), or the 3D failed (the diorama, with no retry).
+export type HandoffReason = 'gaveWay' | 'failed'
+
+// If the 3D fails anyway (the book or the live attic), the guest keeps the flat room.
 class WorldBoundary extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() {
@@ -75,6 +83,7 @@ interface PagesProps {
   theme: ThemeName
   tier: DeviceTier
   running: boolean
+  paused: boolean
   awake: boolean
   onReady: () => void
   onFail: () => void
@@ -103,6 +112,7 @@ const BookPages = memo(function BookPages({
   theme,
   tier,
   running,
+  paused,
   awake,
   onReady,
   onFail,
@@ -139,6 +149,7 @@ const BookPages = memo(function BookPages({
           theme={theme}
           tier={tier}
           running={running}
+          paused={paused}
           awake={awake}
           onDoorTap={onDoorTap}
           doorComplete={progress.badges.includes('cuentoCompleto')}
@@ -187,9 +198,10 @@ function BookRoom({
   onEvent,
   theme,
   tier,
+  paused,
   onFirstMove,
   onFail,
-}: Props & { tier: DeviceTier; onFail: (page: LandmarkId) => void }) {
+}: Props & { tier: DeviceTier; paused: boolean; onFail: (page: LandmarkId, reason: HandoffReason) => void }) {
   const partyOver = isPartyOver(day, now)
   const ids = useMemo(() => landmarksFor(partyOver), [partyOver])
   const pages = useMemo(() => countablePages(ids), [ids])
@@ -224,9 +236,14 @@ function BookRoom({
   // The cover opens once the world is ready and the guest has moved, in either order.
   const opening = ready && moved
 
-  // The book gives way to the flat room (it failed, stalled, lost its WebGL context, or the screen
-  // turned too short): the flat room opens on the page the guest was on, or was heading to.
-  const fail = useCallback(() => onFail(nearestStation(aimRef.current, stations)), [aimRef, onFail, stations])
+  // The book gives way to the flat room on the page the guest was on, or was heading to (spec §7):
+  // it stalled or the screen turned too short (the live attic may follow), or the 3D failed.
+  const handOff = useCallback(
+    (reason: HandoffReason) => onFail(nearestStation(aimRef.current, stations), reason),
+    [aimRef, onFail, stations],
+  )
+  const giveWay = useCallback(() => handOff('gaveWay'), [handOff])
+  const failHard = useCallback(() => handOff('failed'), [handOff])
 
   // Design §6: a page is found once the camera rests within tuning.world.stationEps of its
   // station (the cover never counts). Nothing is found, or stands, until the cover opens: before
@@ -259,32 +276,32 @@ function BookRoom({
     return () => window.clearTimeout(timer)
   }, [opening])
 
-  // Facts are never gated: a world that stalls before its first frame hands over to the flat room.
+  // Facts are never gated: a world that stalls before its first frame gives way to the flat room.
   useEffect(() => {
     if (ready) return
-    const timer = window.setTimeout(fail, tuning.world.loadTimeoutMs)
+    const timer = window.setTimeout(giveWay, tuning.world.loadTimeoutMs)
     return () => window.clearTimeout(timer)
-  }, [ready, fail])
+  }, [ready, giveWay])
 
   // Mobile browsers drop WebGL contexts, most often while the guest is away in WhatsApp after
   // Confirmar. The event does not bubble, so the surface catches it on its way down to the canvas.
   useEffect(() => {
     const el = surface.current
     if (!el) return
-    const onLost = () => fail()
+    const onLost = () => failHard()
     el.addEventListener('webglcontextlost', onLost, true)
     return () => el.removeEventListener('webglcontextlost', onLost, true)
-  }, [fail])
+  }, [failHard])
 
-  // Design §9: a screen that turns too short for a readable page (a phone turned sideways) hands
-  // over to the flat room for the rest of the visit.
+  // Design §9: a screen that turns too short for a readable page (a phone turned sideways) gives
+  // way to the flat room for the rest of the visit.
   useEffect(() => {
     const onResize = () => {
-      if (!fitsBook(window.innerHeight)) fail()
+      if (!fitsBook(window.innerHeight)) giveWay()
     }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [fail])
+  }, [giveWay])
 
   // Keyboard focus inside a page glides the camera to that page (BR-20, FR-11). The pages live in
   // their own DOM roots inside the surface, so this listens on the DOM directly.
@@ -357,9 +374,10 @@ function BookRoom({
           theme={theme}
           tier={tier}
           running={opening}
+          paused={paused}
           awake={coverGone}
           onReady={onReady}
-          onFail={fail}
+          onFail={failHard}
         />
         {!coverGone && <Cover partyOver={partyOver} opening={opening} behind={ready} />}
       </div>
@@ -368,31 +386,102 @@ function BookRoom({
   )
 }
 
-// Design §2: the 3D pop-up book, or the flat room with reduced motion, without WebGL, on a screen
-// too short for a readable page (design §9), or once the book gives way. Then the flat room stays
-// for the rest of the visit, opening on the page the guest was on.
+// Levels 2 and 3 (spec §7): the flat room's cards over the paper diorama, with the live attic fading
+// in behind them where it can run. The flat room stays mounted through every change here, so its
+// camera, focus, and cards never move: a lost context or an error only takes the attic away, for the
+// rest of the visit.
+function FlatLevels({
+  room,
+  startAt,
+  env,
+  tier,
+  paused,
+}: {
+  room: Props
+  startAt: LandmarkId | undefined
+  env: Omit<RoomEnvironment, 'backdropReady'>
+  tier: DeviceTier
+  paused: boolean
+}) {
+  const [failed, setFailed] = useState(false)
+  const [ready, setReady] = useState(false)
+  const box = useRef<HTMLDivElement | null>(null)
+  const current = { ...env, failed: env.failed || failed }
+  const wants = wantsBackdrop(current)
+  const shown = roomLevel({ ...current, backdropReady: ready }) === 'backdrop'
+  const fail = useCallback(() => setFailed(true), [])
+  const onReady = useCallback(() => setReady(true), [])
+
+  // A lost WebGL context behind the cards leaves the diorama. The event does not bubble, so the box
+  // catches it on its way down to the canvas.
+  useEffect(() => {
+    const el = box.current
+    if (!wants || !el) return
+    el.addEventListener('webglcontextlost', fail, true)
+    return () => el.removeEventListener('webglcontextlost', fail, true)
+  }, [wants, fail])
+
+  const mood = moodOfDay[room.day]
+  const backdrop: BackdropSlot | undefined = wants
+    ? (pan) => (
+        <div
+          ref={box}
+          className={`room-backdrop${shown ? ' is-ready' : ''}`}
+          aria-hidden="true"
+          style={{ '--backdrop-fade': `${tuning.world.backdropFadeMs}ms` } as CSSProperties}
+        >
+          <WorldBoundary onError={fail}>
+            <Suspense fallback={null}>
+              <Backdrop mood={mood} theme={room.theme} tier={tier} panRef={pan} paused={paused} onReady={onReady} onFail={fail} />
+            </Suspense>
+          </WorldBoundary>
+        </div>
+      )
+    : undefined
+
+  return (
+    <FlatRoom
+      startAt={startAt}
+      day={room.day}
+      now={room.now}
+      reducedMotion={room.reducedMotion}
+      catState={room.catState}
+      onGreet={room.onGreet}
+      onChallenge={room.onChallenge}
+      musicPlaying={room.musicPlaying}
+      qrUrl={room.qrUrl}
+      progress={room.progress}
+      onEvent={room.onEvent}
+      onFirstMove={room.onFirstMove}
+      backdrop={backdrop}
+      backdropShown={shown}
+    />
+  )
+}
+
+// Spec §7: three levels. The full 3D book (a day link, motion allowed, WebGL, a screen tall enough,
+// and ready in time); else the flat room's cards over the live attic where WebGL can run; else over
+// the paper diorama. Once the book gives way, the flat room stays for the rest of the visit, opening
+// on the page the guest was on.
 export function WorldRoom(props: Props) {
-  const [fallback, setFallback] = useState<LandmarkId | null>(null)
+  const [handoff, setHandoff] = useState<{ page: LandmarkId; reason: HandoffReason } | null>(null)
   // The screen's height at start. From then on the book itself watches it.
   const [height] = useState(() => window.innerHeight)
+  // Spec §8 Device tiers: read once per visit.
   const [tier] = useState(() => deviceTier(navigator))
-  if (fallback !== null || !wantsBook({ reducedMotion: props.reducedMotion, height, webgl: hasWebGL })) {
-    return (
-      <FlatRoom
-        startAt={fallback ?? undefined}
-        day={props.day}
-        now={props.now}
-        reducedMotion={props.reducedMotion}
-        catState={props.catState}
-        onGreet={props.onGreet}
-        onChallenge={props.onChallenge}
-        musicPlaying={props.musicPlaying}
-        qrUrl={props.qrUrl}
-        progress={props.progress}
-        onEvent={props.onEvent}
-        onFirstMove={props.onFirstMove}
-      />
-    )
+  const hidden = usePageHidden()
+  // Spec §8 Pausing: nothing 3D draws while the tab is hidden or a full-screen dialog covers the room.
+  const paused = hidden || Boolean(props.dialogOpen)
+  const onFail = useCallback((page: LandmarkId, reason: HandoffReason) => setHandoff({ page, reason }), [])
+  const env = {
+    reducedMotion: props.reducedMotion,
+    height,
+    webgl: hasWebGL,
+    bookGaveWay: handoff !== null,
+    failed: handoff?.reason === 'failed',
   }
-  return <BookRoom {...props} tier={tier} onFail={setFallback} />
+  if (roomLevel({ ...env, backdropReady: false }) === 'book') {
+    return <BookRoom {...props} tier={tier} paused={paused} onFail={onFail} />
+  }
+  return <FlatLevels room={props} startAt={handoff?.page} env={env} tier={tier} paused={paused} />
 }

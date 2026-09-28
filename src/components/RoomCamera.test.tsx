@@ -2,19 +2,25 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createElement, useEffect, type ComponentProps, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { copy } from '../content'
-import { cameraTargetFor } from '../logic/camera'
+import { dioramaCss } from '../headMeta'
+import { cameraTargetFor, clampCamera } from '../logic/camera'
 import { emptyCatState } from '../logic/catState'
 import { emptyProgress } from '../logic/progress'
 import { bookQrPx } from '../logic/book'
 import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
 import { hasWebGL } from '../logic/webgl'
-import { tuning } from '../tuning'
+import { cssColor, tuning } from '../tuning'
 import { beforeSatCutoff, beforeSunCutoff, renderRoom } from '../test/helpers'
 import { WorldRoom } from './WorldRoom'
 
 // jsdom has no WebGL. The world stands in as its pages in plain DOM: it gets ready, fails on
 // purpose, or stalls and never draws a first frame.
 const world = vi.hoisted(() => ({ mode: 'fails' as 'fails' | 'ready' | 'stalls', mounts: 0 }))
+const backdrop = vi.hoisted(() => ({
+  mode: 'waits' as 'waits' | 'ready' | 'fails',
+  ready: null as null | (() => void),
+  mounts: 0,
+}))
 vi.mock('../world/World', () => ({
   default: function World({
     ids,
@@ -23,6 +29,7 @@ vi.mock('../world/World', () => ({
     theme,
     tier,
     running,
+    paused,
     doorComplete,
     onDoorTap,
     onReady,
@@ -33,6 +40,7 @@ vi.mock('../world/World', () => ({
     theme: string
     tier: string
     running: boolean
+    paused: boolean
     doorComplete: boolean
     onDoorTap: () => void
     onReady: () => void
@@ -52,12 +60,41 @@ vi.mock('../world/World', () => ({
         'data-theme': theme,
         'data-tier': tier,
         'data-running': String(running),
+        'data-paused': String(paused),
         'data-door-complete': String(doorComplete),
       },
       createElement('canvas', { key: 'canvas' }),
       // Stands in for the 3D door piece at the Familia station.
       createElement('button', { key: 'door', type: 'button', 'data-testid': 'world-door', onClick: onDoorTap }),
       ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id])),
+    )
+  },
+  // Level 2's live attic: it waits, gets ready, or fails on purpose; `backdrop.ready` readies it.
+  Backdrop: function Backdrop({
+    mood,
+    theme,
+    tier,
+    paused,
+    onReady,
+  }: {
+    mood: string
+    theme: string
+    tier: string
+    paused: boolean
+    onReady: () => void
+  }) {
+    if (backdrop.mode === 'fails') throw new Error('The attic could not start')
+    useEffect(() => {
+      backdrop.mounts += 1
+    }, [])
+    useEffect(() => {
+      backdrop.ready = onReady
+      if (backdrop.mode === 'ready') onReady()
+    }, [onReady])
+    return createElement(
+      'div',
+      { 'data-testid': 'backdrop', 'data-mood': mood, 'data-theme': theme, 'data-tier': tier, 'data-paused': String(paused) },
+      createElement('canvas'),
     )
   },
 }))
@@ -220,19 +257,27 @@ function flatTarget(id: LandmarkId) {
   return cameraTargetFor(layout.positions[id], layout, window.innerWidth, window.innerHeight)
 }
 
-// jsdom's window is 1024 × 768. A test may make it shorter, like a phone held sideways.
+// jsdom's window is 1024 × 768. A test may make it shorter, or turn it, like a phone.
+const jsdomWidth = window.innerWidth
 const jsdomHeight = window.innerHeight
 function setScreenHeight(height: number) {
   Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
+}
+function setScreenSize(width: number, height: number) {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
+  setScreenHeight(height)
 }
 
 describe('the 3D book and its fallback (design §2)', () => {
   beforeEach(() => {
     world.mode = 'fails'
     world.mounts = 0
+    backdrop.mode = 'waits'
+    backdrop.ready = null
+    backdrop.mounts = 0
     vi.mocked(hasWebGL).mockReturnValue(true)
   })
-  afterEach(() => setScreenHeight(jsdomHeight))
+  afterEach(() => setScreenSize(jsdomWidth, jsdomHeight))
 
   it('shows the cover at once, and ends on the flat room when the world fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -586,6 +631,12 @@ describe('the 3D book and its fallback (design §2)', () => {
       })
       expect(screen.getByTestId('room-mid')).toBeInTheDocument()
       expect(cameraX()).toBeCloseTo(flatTarget('confirmar').x, 5)
+      // Spec §7: a lost context is level 3 for the rest of the visit: no live attic.
+      await act(async () => {
+        await vi.dynamicImportSettled()
+      })
+      expect(screen.queryByTestId('backdrop')).toBeNull()
+      expect(screen.getByRole('main')).toHaveAttribute('data-level', 'diorama')
     })
 
     it('stops listening for a lost context once the book is gone', async () => {
@@ -610,6 +661,8 @@ describe('the 3D book and its fallback (design §2)', () => {
       })
       expect(screen.getByTestId('room-mid')).toBeInTheDocument()
       expect(cameraX()).toBeCloseTo(flatTarget('donde').x, 5)
+      // Spec §7: then the live attic comes in behind the cards.
+      expect(await screen.findByTestId('backdrop')).toBeInTheDocument()
     })
 
     it('glides to the page that keyboard focus enters (FR-11)', async () => {
@@ -620,5 +673,200 @@ describe('the 3D book and its fallback (design §2)', () => {
       settle()
       expect(screen.getByRole('main')).toHaveAttribute('data-era', 'luz')
     })
+  })
+})
+
+describe('three levels (spec §7)', () => {
+  beforeEach(() => {
+    world.mode = 'stalls'
+    world.mounts = 0
+    backdrop.mode = 'waits'
+    backdrop.ready = null
+    backdrop.mounts = 0
+    vi.mocked(hasWebGL).mockReturnValue(true)
+  })
+  afterEach(() => setScreenSize(jsdomWidth, jsdomHeight))
+
+  const level = () => screen.getByRole('main').getAttribute('data-level')
+  const backdropBox = () => document.querySelector<HTMLElement>('.room-backdrop')
+  const settleImports = () =>
+    act(async () => {
+      await vi.dynamicImportSettled()
+    })
+
+  it('opens the flat room over the diorama at the timeout, then fades the live attic in without moving the cards, the focus, or the pan (Review Focus 1)', async () => {
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'setTimeout', 'clearTimeout'] })
+    try {
+      renderWorldRoom()
+      fireEvent.click(screen.getByRole('button', { name: copy.signposts.donde }))
+      act(() => {
+        vi.advanceTimersByTime(tuning.world.loadTimeoutMs + 10)
+      })
+      expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+      expect(level()).toBe('diorama')
+      expect(document.querySelector('.paper-diorama')).not.toHaveClass('is-resting')
+      drag(surface(), [300, 400], [240, 400])
+      act(() => {
+        vi.advanceTimersByTime(tuning.camera.glideMs + 50)
+      })
+      const link = screen.getByRole('link', { name: copy.map })
+      act(() => link.focus())
+      const card = document.querySelector<HTMLElement>('.landmark-donde')!
+      const before = { camera: mid().style.transform, left: card.style.left, top: card.style.top }
+      await settleImports()
+      expect(screen.getByTestId('backdrop')).toBeInTheDocument()
+      expect(backdropBox()).not.toHaveClass('is-ready')
+      act(() => backdrop.ready!())
+      expect(backdropBox()).toHaveClass('is-ready')
+      expect(backdropBox()!.style.getPropertyValue('--backdrop-fade')).toBe(`${tuning.world.backdropFadeMs}ms`)
+      expect(level()).toBe('backdrop')
+      expect(document.querySelector('.paper-diorama')).toHaveClass('is-resting')
+      expect(mid().style.transform).toBe(before.camera)
+      expect(card.style.left).toBe(before.left)
+      expect(card.style.top).toBe(before.top)
+      expect(document.activeElement).toBe(link)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('gives a short screen the live attic behind the cards directly (spec §7)', async () => {
+    setScreenSize(844, 390)
+    renderWorldRoom()
+    expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+    expect(document.querySelector('.book-cover')).toBeNull()
+    expect(level()).toBe('diorama')
+    expect(await screen.findByTestId('backdrop')).toHaveAttribute('data-mood', 'saturday')
+    act(() => backdrop.ready!())
+    expect(level()).toBe('backdrop')
+  })
+
+  it('drops to the diorama on the same page when the live attic loses its WebGL context, with no retry (spec §7)', async () => {
+    setScreenSize(844, 390)
+    backdrop.mode = 'ready'
+    renderWorldRoom()
+    await screen.findByTestId('backdrop')
+    expect(level()).toBe('backdrop')
+    const camera = mid().style.transform
+    act(() => {
+      screen.getByTestId('backdrop').querySelector('canvas')!.dispatchEvent(new Event('webglcontextlost', { cancelable: true }))
+    })
+    expect(screen.queryByTestId('backdrop')).toBeNull()
+    expect(level()).toBe('diorama')
+    expect(mid().style.transform).toBe(camera)
+    expect(document.querySelector('.paper-diorama')).not.toHaveClass('is-resting')
+    await settleImports()
+    expect(screen.queryByTestId('backdrop')).toBeNull()
+  })
+
+  it('drops to the diorama when the live attic cannot start (spec §7)', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    setScreenSize(844, 390)
+    backdrop.mode = 'fails'
+    renderWorldRoom()
+    await settleImports()
+    await waitFor(() => expect(backdropBox()).toBeNull())
+    expect(level()).toBe('diorama')
+    expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+  })
+
+  it('keeps reduced motion on the still diorama: no live attic and no canvas (spec §7)', async () => {
+    renderWorldRoom({ reducedMotion: true })
+    await settleImports()
+    expect(document.querySelector('.paper-diorama')).toHaveClass('is-still')
+    expect(screen.queryByTestId('backdrop')).toBeNull()
+    expect(document.querySelector('canvas')).toBeNull()
+  })
+
+  it('swaps the live attic and the diorama to the other look in place (Review Focus 2)', async () => {
+    setScreenSize(844, 390)
+    backdrop.mode = 'ready'
+    const view = renderWorldRoom({ theme: 'dark' })
+    const attic = await screen.findByTestId('backdrop')
+    const diorama = document.querySelector('.paper-diorama')
+    view.rerender(worldRoom({ theme: 'light' }))
+    expect(screen.getByTestId('backdrop')).toBe(attic)
+    expect(attic).toHaveAttribute('data-theme', 'light')
+    expect(backdrop.mounts).toBe(1)
+    expect(document.querySelector('.paper-diorama')).toBe(diorama)
+    expect(diorama).toHaveAttribute('data-mood', 'saturday')
+    // The diorama recolors through the head's variables: each theme has its own block for the mood.
+    const { dark, light } = tuning.world.looks.saturday
+    expect(dioramaCss()).toContain(`:root[data-theme="dark"] [data-mood="saturday"]{--diorama-sky-top:${cssColor(dark.skyTop)}`)
+    expect(dioramaCss()).toContain(`:root[data-theme="light"] [data-mood="saturday"]{--diorama-sky-top:${cssColor(light.skyTop)}`)
+  })
+
+  it('re-frames the live attic when the phone turns, and leaves the card scale and the pan to the flat room (Review Focus 3)', async () => {
+    setScreenSize(844, 390)
+    backdrop.mode = 'ready'
+    renderWorldRoom()
+    const attic = await screen.findByTestId('backdrop')
+    const before = computeLayout(844, 390, landmarksFor(false))
+    const start = cameraTargetFor(before.positions.llegada, before, 844, 390)
+    setScreenSize(390, 844)
+    act(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+    expect(screen.getByTestId('backdrop')).toBe(attic)
+    expect(backdrop.mounts).toBe(1)
+    expect(level()).toBe('backdrop')
+    const after = computeLayout(390, 844, landmarksFor(false))
+    const camera = clampCamera(start, after, 390, 844, tuning.camera.edgeMarginPx)
+    expect(mid().style.transform).toBe(`translate3d(${-camera.x}px, ${-camera.y}px, 0)`)
+    expect(document.querySelector<HTMLElement>('.landmark-scale')!.style.zoom).toBe(String(after.scale))
+  })
+})
+
+describe('pausing (spec §8, Review Focus 4)', () => {
+  beforeEach(() => {
+    world.mounts = 0
+    backdrop.mode = 'ready'
+    backdrop.ready = null
+    backdrop.mounts = 0
+    vi.mocked(hasWebGL).mockReturnValue(true)
+  })
+  afterEach(() => {
+    setScreenSize(jsdomWidth, jsdomHeight)
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false })
+  })
+
+  const hide = (hidden: boolean) => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: hidden })
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+  }
+
+  it('stops the book while a full-screen dialog is open or the tab is hidden, and resumes after', async () => {
+    world.mode = 'ready'
+    const view = renderWorldRoom()
+    await bookReady()
+    const book = () => screen.getByTestId('world')
+    expect(book()).toHaveAttribute('data-paused', 'false')
+    view.rerender(worldRoom({ dialogOpen: true }))
+    expect(book()).toHaveAttribute('data-paused', 'true')
+    view.rerender(worldRoom({ dialogOpen: false }))
+    expect(book()).toHaveAttribute('data-paused', 'false')
+    hide(true)
+    expect(book()).toHaveAttribute('data-paused', 'true')
+    hide(false)
+    expect(book()).toHaveAttribute('data-paused', 'false')
+    expect(world.mounts).toBe(1)
+  })
+
+  it('stops the live attic the same way at level 2', async () => {
+    world.mode = 'stalls'
+    setScreenSize(844, 390)
+    const view = renderWorldRoom()
+    const attic = await screen.findByTestId('backdrop')
+    expect(attic).toHaveAttribute('data-paused', 'false')
+    view.rerender(worldRoom({ dialogOpen: true }))
+    expect(attic).toHaveAttribute('data-paused', 'true')
+    view.rerender(worldRoom({ dialogOpen: false }))
+    hide(true)
+    expect(attic).toHaveAttribute('data-paused', 'true')
+    hide(false)
+    expect(attic).toHaveAttribute('data-paused', 'false')
+    expect(backdrop.mounts).toBe(1)
   })
 })

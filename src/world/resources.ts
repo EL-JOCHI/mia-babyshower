@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { tokens, tuning } from '../tuning'
 import { glowTexture, pageEdgeTexture, pageTexture, pieceKinds, pieceTextures, type PieceKind } from './paperTextures'
+import { createDustMaterial } from './Dust'
 import type { WorldPalette } from './palette'
 import type { StageMix } from './stageMix'
 
@@ -70,15 +71,7 @@ function createResources(): WorldResources {
     fog: false,
   })
   const doorGlow = new THREE.MeshBasicMaterial({ color: tokens.plum, side: THREE.DoubleSide })
-  const dust = new THREE.PointsMaterial({
-    map: glow,
-    color: tokens.bone,
-    size: tuning.world.dust.size,
-    transparent: true,
-    opacity: tuning.world.dust.opacity,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  })
+  const dust = createDustMaterial(glow)
 
   return {
     plane,
