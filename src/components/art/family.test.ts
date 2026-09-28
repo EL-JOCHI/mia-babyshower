@@ -33,6 +33,21 @@ describe('the family drawing (spec §6)', () => {
     }
   })
 
+  // Faceless by geometry, not only by name: a second closed shape inside a body or a hair (an eye, a
+  // mouth) would keep the move and close counts equal above, so each is pinned to one subpath.
+  it('draws every body and every hair as exactly one closed outline, so no eye or mouth can hide inside', () => {
+    const subpaths = (d: string) => ({ moves: (d.match(/[Mm]/g) ?? []).length, closes: (d.match(/[Zz]/g) ?? []).length })
+    for (const figure of familyFigures) {
+      for (const d of [figure.body, figure.hair]) {
+        expect(subpaths(d)).toEqual({ moves: 1, closes: 1 })
+        // The one move opens the path and the one close ends it, so nothing is drawn after the close.
+        expect(d.trim()).toMatch(/^[Mm][^Mm]*[Zz]$/)
+      }
+      // The rim of backlight strokes the body and the hair together: exactly their two outlines.
+      expect(subpaths(rimPath(figure))).toEqual({ moves: 2, closes: 2 })
+    }
+  })
+
   it('gives mom straight hair and the others curls, dad the fullest afro', () => {
     expect(curls(byId.mom!.hair)).toBe(0)
     for (const id of ['dad', 'miguelito', 'mia']) expect(curls(byId[id]!.hair)).toBeGreaterThan(8)
