@@ -1,6 +1,6 @@
 # 🐾 Baby shower de Mia
 
-An interactive web invitation for Mia's baby shower 👶💖. It is a **moonlit pop-up storybook in a cat's attic** 📖🌙: a 3D book whose pages pop up as guests travel through it. It starts as a pencil sketch, turns to ink, and ends in candlelight. Guests find the date, the place, the RSVP, and the gift QR on its pages. Along the way they meet seven hand-drawn cats 🐱, collect their cards, and play with the two legendary ones. At the end, the family walks in through a lit door. 🚪✨
+An interactive web invitation for Mia's baby shower 👶💖. It is a **pop-up storybook in a cat's attic** 📖🌙: a 3D book whose pages pop up as guests travel through it. Saturday's link opens it under the moon and Sunday's in a golden dusk, and its pages go from pencil sketch to ink to candlelight. Guests find the date, the place, the RSVP, and the gift QR on its pages. Along the way they meet seven hand-drawn cats 🐱, collect their cards, and play with the two legendary ones. At the end, the family, as paper pop-ups, folds up and walks in through a lit door. 🚪✨
 
 > **Source of truth:** [`docs/requirements.md`](docs/requirements.md). Every behavior, string, and rule comes from there.
 
@@ -23,8 +23,10 @@ The **guest gate** says the invitation is for special guests and must be opened 
 ## ✨ What guests can do
 
 - 📖 **Travel through a 3D pop-up book.** The cover opens on the first move. Drag, use the wheel or the arrow keys, or tap a signpost (`Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`). Each page folds up out of the book as the camera arrives.
-- ✏️ **Sketch → ink → light.** The book starts as a pencil sketch (boceto), gains ink (tinta), and ends lit by candles (luz) near the family door.
-- 🌗 **Day or night.** `Oscuro` is the moonlit attic; `Claro` is the same book by day.
+- 🌙🌅 **A mood per day.** Saturday is a moonlit night, Sunday a golden dusk, each in a lighter (`Claro`) and a darker (`Oscuro`) look, lit from the first page. Saturday has a turning star mobile, a paper star garland, and a moonbeam; Sunday has swaying paper lanterns, fireflies at dusk, and a golden beam.
+- ✏️ **Sketch → ink → light.** The book's pop-up paper and the cats start as a pencil sketch (boceto), gain ink (tinta), and end lit by candles (luz) near the family door.
+- 🏠 **A lived-in attic.** A crib under the round window, a bookshelf, a yarn basket, a rocking chair, old trunks, a crooked lamp, a cat bed, a scratching post, and curtains, all in paper and ink.
+- 📱 **3D for almost everyone.** Short or sideways screens and slow loads get the readable flat room over the live 3D attic; no WebGL gets it over a layered paper diorama of the attic.
 - ⏳ **Watch the countdown** on a melting candle with flip-card digits.
 - 📍 **Unroll a treasure map** and 💬 **confirm on WhatsApp** with a wax seal, with a message that names their day.
 - 🎁 **Open a gift box** to see the QR, and save it with `Guardar QR`: it shares the image, or downloads it if sharing isn't available.
@@ -54,7 +56,7 @@ At midnight after each party (Bolivia time), that page changes. The address, the
 - Keyboard and screen-reader friendly. Every word is real HTML, even inside the 3D book. Focusing a control brings it into view.
 - Pinch zoom always works.
 - Text meets WCAG 2.2 AA contrast in both themes.
-- With **reduced motion**, guests get the **flat room**: the same pages with no canvas, no roaming cats, no line boil, no battle wipe, and no gate game. The flat room also takes over when WebGL can't start, the book doesn't load in time, the browser drops the book's WebGL context (for example on the way back from WhatsApp), or the screen is too short for readable pages (under 640 px tall, such as a phone held sideways). It opens on the page the guest was on.
+- With **reduced motion**, guests get the **flat room** over a still paper diorama of the attic: the same pages with no canvas, no roaming cats, no line boil, no battle wipe, no gate game, and the family simply standing. The flat room also takes over when the book can't run: over the live 3D attic when WebGL works (a screen under 640 px tall, such as a phone held sideways, or a book that doesn't load in time), and over the paper diorama when it doesn't (no WebGL, or the browser drops the WebGL context, for example on the way back from WhatsApp). It opens on the page the guest was on.
 - Large screens: the HUD, dialogs, and cards grow with the screen up to 2560 px wide.
 
 ### ⚡ Performance
@@ -62,6 +64,7 @@ At midnight after each party (Bolivia time), that page changes. The address, the
 - The first paint is the book's cover, in `index.html` itself: readable before any script runs.
 - The 3D book (Three.js, React Three Fiber, drei) is its own lazy chunk, loaded behind the cover. Guests who will get it start fetching it as soon as the page's script runs.
 - The book renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. The pixel ratio is capped at 1.75, one candle casts shadows, and its shadow map is redrawn only while paper moves.
+- The live attic behind the flat room renders at a lower pixel ratio. Both 3D views pause while the tab is hidden or a dialog is open. A low-end device gets no shadow map and fewer particles. The budget is 100 draw calls per frame in the book and 60 behind the cards (a dev-only readout shows the count).
 
 ---
 
@@ -100,7 +103,7 @@ Then open:
 
 Two files hold everything you're likely to adjust. Components read them, so a change there never needs a component change.
 
-- 🎚️ **`src/tuning.ts`**: every number and color. The palette and the feeling colors, the 3D book (camera path, pop-up springs, lights, fog, dust, paper pieces), the stage thresholds (boceto → tinta → luz), how long each cat takes to notice you, the cats' rig timings, the battle's numbers, XP and levels, the gate game, large-screen growth, room and card sizes, and the QR size.
+- 🎚️ **`src/tuning.ts`**: every number and color. The palette and the feeling colors, the four mood looks, the 3D book (camera path, pop-up springs, lights, fog, dust, paper pieces), the attic's props and each mood's props, the paper family, the live attic and the paper diorama, the device tiers, the stage thresholds (boceto → tinta → luz), how long each cat takes to notice you, the cats' rig timings, the battle's numbers, XP and levels, the gate game, large-screen growth, room and card sizes, and the QR size.
 - 📝 **`src/content.ts`**: every guest-facing string (Spanish), the dates and times, the address, the map link, the WhatsApp number and messages, the cats' names, feelings, rarities, and lines, and the game, battle, and gate-game copy. Keep it in sync with §6 of the spec.
 
 💡 **Preview the after-party look:** temporarily set Saturday's `overFrom` in `src/content.ts` to a past date, then open `?e=n4vk`. Don't commit that change.
@@ -131,12 +134,12 @@ src/
   headMeta.ts       🔗 share preview, theme variables, pre-paint theme, and the first-paint cover (injected into index.html)
   assets.ts         🖼️ detects the QR and music files
   index.css         🎨 tokens, fonts, HUD, dialogs, battle, gate, the book's cover
-  styles/           🎨 pages.css (the pop-up pages and their objects), game.css (quest log, toasts, gate game)
-  logic/            🧠 pure functions + tests: invite code, party over, countdown, layout, screen scale, stages, path, noticing, cats, battle, progress, gate game
-  hooks/            🪝 clock, theme, camera, world camera, noticing, acts, music, cat state, progress, gate best
-  components/       🧩 App, WorldRoom, FlatRoom, Pages, PageCard, CandleCountdown, TreasureMap, WaxSealConfirm, GiftBox, Gate, GateGame, Battle, CardReveal, QuestLog, BadgeToasts, Collection, Cat, FamilyDoor, …
-    art/            🐈‍⬛ CatSprite (the seven rigged cats), InkDefs (line boil, paper edge), cats/ (one drawing per cat)
-  world/            🧊 the lazy 3D book: World, CameraRig, Station (pop-up pages), Book, Attic, StageLighting, Dust, palettes, paper textures
+  styles/           🎨 pages.css (the pop-up pages and their objects), game.css (quest log, toasts, gate game), family.css (the paper family), diorama.css (the paper diorama and the live attic's layer)
+  logic/            🧠 pure functions + tests: invite code, party over, countdown, layout, screen scale, stages, path, noticing, cats, battle, progress, gate game, moods, levels, device tiers
+  hooks/            🪝 clock, theme, camera, world camera, noticing, acts, music, cat state, progress, gate best, page hidden
+  components/       🧩 App, WorldRoom, FlatRoom, PaperDiorama, Pages, PageCard, CandleCountdown, TreasureMap, WaxSealConfirm, GiftBox, Gate, GateGame, Battle, CardReveal, QuestLog, BadgeToasts, Collection, Cat, FamilyDoor, PaperFamily, …
+    art/            🐈‍⬛ CatSprite (the seven rigged cats), InkDefs (line boil, paper edge), cats/ (one drawing per cat), family.ts (the four paper figures)
+  world/            🧊 the lazy 3D chunk: World, Backdrop (the live attic), CameraRig, Station (pop-up pages), FamilyCutouts, Book, Attic, WindowSky, Props and props/ (the attic's furniture), MoodProps, Fireflies, StageLighting, MoodLights, Dust, palettes, paper textures
 public/
   og-image.jpg      📣 WhatsApp preview (1200×630)
   favicon.svg       🐱

@@ -111,19 +111,22 @@ Do this on real phones, not only on a computer: at least one iPhone and one mid-
 
 **Playing**
 
-- [ ] **Moving:** a drag moves through the book and comes to rest on the nearest page, a signpost glides to its page, and pinch still zooms. `La familia` glides to the lit door, and the family walks in.
+- [ ] **Moving:** a drag moves through the book and comes to rest on the nearest page, a signpost glides to its page, and pinch still zooms. `La familia` glides to the lit door: the paper family folds up and walks in once, then rests there.
+- [ ] **The family on a real phone:** on the phone (not only on a computer), the figures wait until the camera reaches `La familia`, then each folds up and they walk into the doorway one after another, above the card. Check that the fold and the walk are seen whole and read well at the phone's speed.
+- [ ] **The 3D door:** in the book, tap the lit doorway above the `La familia` card. Misha does her scratch.
 - [ ] **A cat and its card:** wait near a cat until `Saludar` appears, and tap it. Her card flips in, and she is in **Tus gatos**. Reload: she is still there.
 - [ ] **The battle:** at the door, Misha or Kira offers `¡A jugar!`. The moves work. `Huir` leaves with `Te fuiste sin hacer ruido.` and the cat offers `¡A jugar!` again. Winning adds the cat.
 - [ ] **Quest log and badges:** resting on a new page stamps `¡Página encontrada!` and raises `Páginas`; badge toasts show one at a time with their XP, and the XP bar fills. A page you only glide past counts nothing, and neither does a tap made while the cover is still closed.
-- [ ] **Claro and Oscuro** both read well, in the book and on the gate. **Music** (only once `src/assets/audio/ambience.mp3` is added) starts and stops.
+- [ ] **Both moods in both themes:** the Saturday link is a moonlit attic (Claro: blue hour with a rising moon; Oscuro: full night with stars) and the Sunday link a golden dusk (Claro: golden afternoon; Oscuro: late dusk, lanterns lit, fireflies). All four read well, in the book and on the gate. **Music** (only once `src/assets/audio/ambience.mp3` is added) starts and stops.
 
 **Fallbacks and real conditions**
 
-- [ ] **Reduced motion** (iPhone: Settings → Accessibility → Motion → Reduce Motion; Android: Settings → Accessibility → Remove animations): the link opens the flat room, with every page and no 3D book. The gate shows no game.
-- [ ] **Mid-range Android over mobile data:** the cover shows at once, and the book opens within about 6 seconds. If it doesn't, the flat room takes over by itself, on the page you were heading to.
+- [ ] **Reduced motion** (iPhone: Settings → Accessibility → Motion → Reduce Motion; Android: Settings → Accessibility → Remove animations): the link opens the flat room over the still paper diorama of that day's mood, with every page, no 3D, and the family simply standing in the door. The gate shows no game.
+- [ ] **Mid-range Android over mobile data:** the cover shows at once, and the book opens within about 6 seconds. If it doesn't, the flat room takes over by itself on the page you were heading to, over the paper diorama, and the live attic fades in behind the cards when it arrives.
 - [ ] **WhatsApp's in-app browser**, on iPhone and on Android: open both links from a WhatsApp chat. Every page reads without pinching.
-- [ ] **Landscape:** turn the phone sideways on `El lugar`. The flat room takes over on the same page, with the address and `Ver en el mapa` at full size, and stays for the rest of the visit.
-- [ ] **Back from WhatsApp:** tap `Confirmar por WhatsApp`, then come back to the invitation. It is still on `Confirmar`, either in the book or, if the phone dropped the 3D view while you were away, in the flat room. Everything still works. (If the phone reloaded the page instead, it starts again at the cover; cats and badges are kept.)
+- [ ] **Landscape:** turn the phone sideways on `El lugar`. The flat room takes over on the same page, over the live 3D attic of that day's mood, with the address and `Ver en el mapa` at full size; panning sideways drifts the attic. It stays for the rest of the visit. Opening a link with the phone already sideways goes straight to the same view.
+- [ ] **Back from WhatsApp:** tap `Confirmar por WhatsApp`, then come back to the invitation. It is still on `Confirmar`, either in the book or, if the phone dropped the 3D view while you were away, in the flat room over the paper diorama. Everything still works. (If the phone reloaded the page instead, it starts again at the cover; cats and badges are kept.)
+- [ ] **Optional, the device tier:** the draw-call readout in the bottom-left corner (for example `book · normal: 43 calls`) exists only on the dev server, never on the published site. To see which tier a real phone gets, run `npm run dev -- --host` on your computer and open its `Network` address, with `?e=n4vk`, from the phone on the same Wi-Fi. An iPhone always shows `normal` (Safari reports no memory); a low-memory Android shows `low` (no candle shadow, fewer fireflies and stars).
 - [ ] **The preview card** in WhatsApp (below).
 - [ ] **Scan the QR** from a second phone, straight off the screen. Also save it with `Guardar QR` and open it from your bank app's "scan from gallery".
 
