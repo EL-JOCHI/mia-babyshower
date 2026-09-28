@@ -67,9 +67,18 @@ describe('the paper family in the 3D doorway (spec §6)', () => {
     const stations = stationProgress(landmarksFor(false))
     const at = stations.familia
     expect(at - stations.presente).toBeLessThan(tuning.world.popUp.range)
-    expect(walkBegins(1, stations.presente, at)).toBe(false)
-    expect(walkBegins(standAt / 2, at, at)).toBe(false)
-    expect(walkBegins(standAt, at, at)).toBe(true)
-    expect(walkBegins(1, at - tuning.world.stationEps, at)).toBe(true)
+    expect(walkBegins(1, stations.presente, at, true)).toBe(false)
+    expect(walkBegins(standAt / 2, at, at, true)).toBe(false)
+    expect(walkBegins(standAt, at, at, true)).toBe(true)
+    expect(walkBegins(1, at - tuning.world.stationEps, at, true)).toBe(true)
+  })
+
+  // The concern fix: the family mounts after the book's first frame and shows once its shaders are
+  // compiled. A guest who reaches Familia before that sees the walk once the family shows, never an
+  // invisible walk that has already ended.
+  it('waits for the family to show before it walks in', () => {
+    const at = stationProgress(landmarksFor(false)).familia
+    expect(walkBegins(1, at, at, false)).toBe(false)
+    expect(walkBegins(1, at, at, true)).toBe(true)
   })
 })

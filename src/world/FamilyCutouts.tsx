@@ -15,6 +15,8 @@ interface Props {
   // camera to arrive, where the guest can see it.
   viewRef: RefObject<{ progress: number }>
   at: number
+  // The family's shaders are compiled and it shows (DeferredDetail): the walk waits for it.
+  shown: boolean
 }
 
 // A plane covering the figure's cell (the figure and its margin), with its feet on y = 0.
@@ -61,8 +63,9 @@ const flat = -Math.PI / 2
 // door piece, so once standing they fold with its pop-up spring. The door already stands from the
 // page before, so the family waits lying flat, out of sight; the first time the camera arrives with
 // the door standing, each figure folds up from the page with the pop-up spring and walks in, one
-// after another, and rests. That plays once a visit.
-export const FamilyCutouts = memo(function FamilyCutouts({ springs, index, viewRef, at }: Props) {
+// after another, and rests. That plays once a visit, and not before the family shows: it mounts after
+// the book's first frame and shows once its shaders are compiled.
+export const FamilyCutouts = memo(function FamilyCutouts({ springs, index, viewRef, at, shown }: Props) {
   const [spots] = useState(familySpots)
   const [parts] = useState(() => createFamily(spots))
   useEffect(() => () => disposeFamily(parts), [parts])
@@ -85,7 +88,7 @@ export const FamilyCutouts = memo(function FamilyCutouts({ springs, index, viewR
     const state = walk.current
     if (state.done) return
     if (!state.started) {
-      if (!walkBegins(springs.current.angle[index]!, viewRef.current.progress, at)) return
+      if (!walkBegins(springs.current.angle[index]!, viewRef.current.progress, at, shown)) return
       state.started = true
     }
     state.elapsed += Math.min(delta, 0.1)

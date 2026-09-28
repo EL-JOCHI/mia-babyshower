@@ -4,6 +4,7 @@ import { useRef, type ReactNode, type RefObject } from 'react'
 import * as THREE from 'three'
 import type { LandmarkId } from '../logic/layout'
 import { tuning, type PieceSpec } from '../tuning'
+import { DeferredDetail } from './DeferredDetail'
 import { FamilyCutouts } from './FamilyCutouts'
 import type { WorldResources } from './resources'
 import type { ShadowState } from './StageLighting'
@@ -19,6 +20,8 @@ interface Props {
   resources: WorldResources
   // The paper pieces cast the candle's shadow: moving one makes the shadow map stale.
   shadowRef: RefObject<ShadowState>
+  // The book has drawn its first frame: the Familia station's paper family may mount (DeferredDetail).
+  detail: boolean
   // Tapping this station's door piece (the Familia station's) starts Misha's scratch (spec §6).
   onDoorTap?: () => void
   children: ReactNode
@@ -83,7 +86,7 @@ function PaperPiece({
 // the camera arrives, with a springy overshoot, and lie flat again once it moves on. The page is
 // the landmark's real HTML, placed in 3D, so text stays sharp and keyboards and screen readers
 // reach everything. At the Familia station the paper family stands in the doorway (spec §6).
-export function Station({ id, at, anchor, viewRef, awake, resources, shadowRef, onDoorTap, children }: Props) {
+export function Station({ id, at, anchor, viewRef, awake, resources, shadowRef, detail, onDoorTap, children }: Props) {
   const pieces: readonly PieceSpec[] = tuning.world.pieces[id]
   const doorIndex = pieces.findIndex((piece) => piece.kind === 'door')
   const { cardPx, slotPx, cardWidth, lift, zIndexRange } = tuning.world.page
@@ -132,7 +135,11 @@ export function Station({ id, at, anchor, viewRef, awake, resources, shadowRef, 
     <group position={anchor}>
       {pieces.map((piece, i) => (
         <PaperPiece key={i} piece={piece} resources={resources} hinge={setHinge(i)} onTap={i === doorIndex ? onDoorTap : undefined}>
-          {id === 'familia' && i === doorIndex && <FamilyCutouts springs={springs} index={doorIndex} viewRef={viewRef} at={at} />}
+          {id === 'familia' && i === doorIndex && (
+            <DeferredDetail ready={detail}>
+              {(shown) => <FamilyCutouts springs={springs} index={doorIndex} viewRef={viewRef} at={at} shown={shown} />}
+            </DeferredDetail>
+          )}
         </PaperPiece>
       ))}
       <group ref={setHinge(pieces.length)} rotation-x={flat}>

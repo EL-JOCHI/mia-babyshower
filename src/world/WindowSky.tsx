@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { tierCount, tierSettings, type DeviceTier } from '../logic/deviceTier'
 import { tuning } from '../tuning'
+import { DeferredDetail } from './DeferredDetail'
 import { paint, type WorldPalette } from './palette'
 import { glowTexture } from './paperTextures'
 import { starField, twinkle, writeSkyColors } from './sky'
@@ -83,7 +84,9 @@ function Stars({ parts, tier }: { parts: SkyParts; tier: DeviceTier }) {
   return <instancedMesh ref={mesh} args={[parts.star, parts.starMaterial, count]} frustumCulled={false} />
 }
 
-export function WindowSky({ palette, tier }: { palette: WorldPalette; tier: DeviceTier }) {
+// `detail`: the canvas has drawn its first frame. The sky, the moon or sun, and its halo are in that
+// frame; the stars follow (DeferredDetail).
+export function WindowSky({ palette, tier, detail }: { palette: WorldPalette; tier: DeviceTier; detail: boolean }) {
   const [parts] = useState(createSky)
   useEffect(() => () => disposeSky(parts), [parts])
   // Switching theme repaints the sky in place.
@@ -97,9 +100,11 @@ export function WindowSky({ palette, tier }: { palette: WorldPalette; tier: Devi
     <group position={[0, windowY, wallZ]}>
       <mesh geometry={parts.plane} material={parts.sky} position-z={-0.8} scale={windowRadius * skyScale * 2} />
       {palette.stars > 0 && (
-        <group position-z={-0.78}>
-          <Stars parts={parts} tier={tier} />
-        </group>
+        <DeferredDetail ready={detail}>
+          <group position-z={-0.78}>
+            <Stars parts={parts} tier={tier} />
+          </group>
+        </DeferredDetail>
       )}
       <mesh geometry={parts.haloPlane} material={parts.halo} position={[x, y, -0.7]} scale={halo} />
       <mesh geometry={parts.disc} material={parts.orb} position={[x, y, -0.6]} scale={radius} />

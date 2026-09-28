@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { startTransition, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { tierCount, type DeviceTier } from '../logic/deviceTier'
 import { tuning, type MoodId, type ThemeName } from '../tuning'
@@ -7,6 +7,7 @@ import { Attic } from './Attic'
 import { backdropView } from './backdropView'
 import { backdropCanvas } from './canvasSettings'
 import { DrawCallReadout } from './DrawCallReadout'
+import { DeferredDetail } from './DeferredDetail'
 import { createDustMaterial, Dust } from './Dust'
 import { Fireflies } from './Fireflies'
 import { MoodLights } from './MoodLights'
@@ -73,16 +74,27 @@ function BackdropScene({ mood, theme, tier, panRef, onReady }: Omit<BackdropProp
   useLayoutEffect(() => paint(dust, palette.dust), [dust, palette])
   const { fog, phoneMaxPx } = tuning.world
   const dustCount = tierCount(size.width < phoneMaxPx ? tuning.world.dust.phone : tuning.world.dust.desktop, tier)
+  // The first frame draws the attic, the window's sky, and the lights, so the attic can fade in soon;
+  // the props, the mood's props, and the dust or fireflies follow once it is drawn (DeferredDetail).
+  const [drawn, setDrawn] = useState(false)
+  // The room hears first (the cover lifts, the load timeout stops); the detail mounts as a transition,
+  // so React renders it in slices after that, without holding up the room or the main thread.
+  const ready = useCallback(() => {
+    onReady()
+    startTransition(() => setDrawn(true))
+  }, [onReady])
   return (
     <>
       <fog attach="fog" args={[palette.fog, fog.near, fog.far]} />
-      <BackdropRig panRef={panRef} onReady={onReady} />
+      <BackdropRig panRef={panRef} onReady={ready} />
       <MoodLights palette={palette} />
       <Attic palette={palette} />
-      <WindowSky palette={palette} tier={tier} />
-      <Props palette={palette} />
-      <MoodProps key={mood} mood={mood} palette={palette} tier={tier} />
-      {palette.motes === 'fireflies' ? <Fireflies palette={palette} tier={tier} /> : <Dust count={dustCount} material={dust} />}
+      <WindowSky palette={palette} tier={tier} detail={drawn} />
+      <DeferredDetail ready={drawn}>
+        <Props palette={palette} />
+        <MoodProps key={mood} mood={mood} palette={palette} tier={tier} />
+        {palette.motes === 'fireflies' ? <Fireflies palette={palette} tier={tier} /> : <Dust count={dustCount} material={dust} />}
+      </DeferredDetail>
     </>
   )
 }

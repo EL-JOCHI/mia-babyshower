@@ -1,5 +1,5 @@
 import { Canvas, useThree } from '@react-three/fiber'
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { startTransition, useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import { tierCount, type DeviceTier } from '../logic/deviceTier'
 import type { LandmarkId } from '../logic/layout'
@@ -9,6 +9,7 @@ import { Book } from './Book'
 import { buildPath } from './bookPath'
 import { CameraRig } from './CameraRig'
 import { bookCanvas } from './canvasSettings'
+import { DeferredDetail } from './DeferredDetail'
 import { DrawCallReadout } from './DrawCallReadout'
 import { MoodProps } from './MoodProps'
 import { Dust } from './Dust'
@@ -66,11 +67,21 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
   // Marked stale by a station while its paper folds, so the candle's shadow map is redrawn only then.
   const shadowRef = useRef<ShadowState>({ drawn: false, stale: true })
   const { fog, phoneMaxPx, dust } = tuning.world
+  // The first frame draws the attic, the book, its pages, the lights, and the dust: the set the book
+  // had before the moods, so a first visit compiles no more shaders before the book is ready. The
+  // attic's detail follows once that frame is drawn (DeferredDetail).
+  const [drawn, setDrawn] = useState(false)
+  // The room hears first (the cover lifts, the load timeout stops); the detail mounts as a transition,
+  // so React renders it in slices after that, without holding up the room or the main thread.
+  const ready = useCallback(() => {
+    onReady()
+    startTransition(() => setDrawn(true))
+  }, [onReady])
 
   return (
     <>
       <fog attach="fog" args={[palette.fog, fog.near, fog.far]} />
-      <CameraRig path={path} progressRef={progressRef} viewRef={viewRef} awake={awake} onReady={onReady} />
+      <CameraRig path={path} progressRef={progressRef} viewRef={viewRef} awake={awake} onReady={ready} />
       <StageLighting
         path={path}
         viewRef={viewRef}
@@ -81,9 +92,12 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
         shadows={bookCanvas(tier).shadows !== false}
       />
       <Attic palette={palette} />
-      <WindowSky palette={palette} tier={tier} />
-      <Props palette={palette} />
-      <MoodProps key={mood} mood={mood} palette={palette} tier={tier} />
+      <WindowSky palette={palette} tier={tier} detail={drawn} />
+      <DeferredDetail ready={drawn}>
+        <Props palette={palette} />
+        <MoodProps key={mood} mood={mood} palette={palette} tier={tier} />
+        {palette.motes === 'fireflies' && <Fireflies palette={palette} tier={tier} />}
+      </DeferredDetail>
       <Book resources={resources} palette={palette} />
       {ids.map((id, i) => (
         <Station
@@ -95,15 +109,15 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
           awake={awake}
           resources={resources}
           shadowRef={shadowRef}
+          detail={drawn}
           onDoorTap={id === 'familia' ? onDoorTap : undefined}
         >
           {content[id]}
         </Station>
       ))}
-      {/* The Motion rule (spec §3): dust, or fireflies at Sunday's dusk. About half on a low device. */}
-      {palette.motes === 'fireflies' ? (
-        <Fireflies palette={palette} tier={tier} />
-      ) : (
+      {/* The Motion rule (spec §3): dust, or fireflies at Sunday's dusk (with the detail above). About
+          half on a low device. */}
+      {palette.motes !== 'fireflies' && (
         <Dust count={tierCount(size.width < phoneMaxPx ? dust.phone : dust.desktop, tier)} material={resources.dust} />
       )}
       {import.meta.env.DEV && <DrawCallReadout label={`book · ${tier}`} />}

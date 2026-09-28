@@ -72,12 +72,14 @@ export function foldUp(spot: FigureSpot, elapsed: number): number {
   return 1 - Math.exp(-zeta * w * t) * (Math.cos(wd * t) + ((zeta * w) / wd) * Math.sin(wd * t))
 }
 
-// Whether the walk sets off: the door stands (its spring past standAt) and the camera is within
-// startWithin of the Familia station. The door already stands from the page before, since the pop-up
-// range reaches the next station, so the walk waits until the guest is here to see it.
-export function walkBegins(doorAngle: number, progress: number, at: number): boolean {
+// Whether the walk sets off: the family is shown, the door stands (its spring past standAt), and the
+// camera is within startWithin of the Familia station. The door already stands from the page before,
+// since the pop-up range reaches the next station, so the walk waits until the guest is here to see
+// it. The family shows once its shaders are compiled, after the book's first frame (useDeferredDetail):
+// until then the walk waits too, so it never plays unseen.
+export function walkBegins(doorAngle: number, progress: number, at: number, shown: boolean): boolean {
   const { standAt, startWithin } = tuning.world.family
-  return doorAngle >= standAt && Math.abs(progress - at) <= startWithin
+  return shown && doorAngle >= standAt && Math.abs(progress - at) <= startWithin
 }
 
 // Two meshes per figure: the paper, and its dark edge behind.
