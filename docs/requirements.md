@@ -22,7 +22,7 @@ The book starts as a pencil sketch (**boceto**), becomes ink (**tinta**), and en
 
 Mom and dad love cats. That is the world. Rock is a detail: a pick, a note, a pink spotlight. Mia is the princess they are waiting for.
 
-At the end of the book, the family comes through a door as shadows: dad, mom, Miguelito, and Mia. Misha and Kira, the two cats who already belong to that family, are beside them and happy. The scene is presence. It is not a farewell.
+At the end of the book, the family comes through a door as faceless paper silhouettes: dad, mom, Miguelito, and Mia. Misha and Kira, the two cats who already belong to that family, are beside them and happy. The scene is presence. It is not a farewell.
 
 After a day's party is over, that page no longer shows the address, the map, the countdown, the confirm button, or the gift QR. The book, the cats, and the door stay. The page thanks the guest, who can relive the moment and meet the cats again.
 
@@ -302,7 +302,7 @@ Once every page that counts has been found, the doorway glows brighter.
 
 Nothing on the door says they are gone. The builders' note is this: Misha and Kira are the cats mom and dad had, and they died a couple of years ago. On the page they are here, with the family, glad. No grave, no dates, no ghost, no fading away.
 
-Dad’s shadow is the curl type in `ideas/dad.jpg`, grown out. The photo is about six months old, so the outline is fuller and tends toward an afro: taller and wider than that picture. The face is not drawn. `ideas/IMG-20260926-WA0000.jpg` is a black cat with a pink bow, and `ideas/IMG-20260913-WA0018(1).jpg` is a cat with a stroller. Those two are cat references, not the family.
+Dad’s silhouette is the curl type in `ideas/dad.jpg`, grown out. The photo is about six months old, so the outline is fuller and tends toward an afro: taller and wider than that picture. The face is not drawn. `ideas/IMG-20260926-WA0000.jpg` is a black cat with a pink bow, and `ideas/IMG-20260913-WA0018(1).jpg` is a cat with a stroller. Those two are cat references, not the family.
 
 ### Reference
 
@@ -346,7 +346,7 @@ The viewport height is `100dvh`, so the collapsing mobile address bar does not j
 The invitation is a Three.js diorama drawn with React Three Fiber (design §2): the attic, the open book, the pop-up paper pieces, the mood's window light (moonlight or a dusk sun) and candles, fog, and drifting dust or fireflies. Every card, cat, button, and piece of text is real HTML placed on the pages in 3D, so text stays sharp and keyboards and screen readers reach everything.
 
 - **The cover first.** The first paint is the book's cover in HTML, in `index.html` itself, before any script has loaded: the title, the hero line (or, after the party, the post-party lines), and `Muévete para explorar`. On the gate the first paint is the two gate sentences instead. The 3D book streams in behind the cover, as its own chunk. A guest who will get the book or the live attic (a day link, motion allowed, WebGL) starts fetching that chunk as soon as the page's script runs, before the first render; the gate, reduced motion, and browsers without WebGL never fetch it.
-- **The first frame.** The book is ready once it has drawn its first frame, and that frame draws only what the book had before the moods: the attic, the window's sky with its moon or sun, the book, its pages and paper pieces, the lights, and the dust. A first visit has no shader cache, so every other material would be one more shader to compile before the book is ready. The rest of the attic (the furniture, the mood's props, the window's stars, the fireflies, and the family) mounts right after, hidden, compiles its shaders without blocking the page, and then shows, usually within half a second. Nothing is compiled while the book is paused. If the guest reaches Familia before the family shows, the fold-up and walk wait for it.
+- **The first frame.** The book is ready once it has drawn its first frame, and that frame draws only what the book had before the moods: the attic, the window's sky with its moon or sun, the book, its pages and paper pieces, the lights, and the dust. A first visit has no shader cache, so every other material would be one more shader to compile before the book is ready. The rest of the attic (the furniture, the mood's props, the window's stars, the fireflies, and the family) mounts right after, hidden, compiles its shaders in the background, and then shows shortly after. The compile leaves the page free only where the browser compiles shaders in parallel (`KHR_parallel_shader_compile`); elsewhere it can hold the page briefly. No compile starts while the book is paused; one already under way finishes. If the guest reaches Familia before the family shows, the fold-up and walk wait for it.
 - **Opening.** The cover swings open like a book once the book is ready and the guest moves: a drag, the wheel, an arrow key, any other key, or a signpost. Until then the camera waits on a wide view of the whole book and the pages lie flat, and nothing counts: no page is found or stands, and a move earns nothing. A signpost tapped while the book is still loading still sets where the camera is heading. The book renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. Once open, the camera swoops down to the first page.
 - **The path.** The camera follows a smooth curve through the book, one point per page, evenly spaced. Progress along it runs from `0` (Llegada) to `1` (Familia).
 - **Moving.** A drag in either direction moves along the path (a left or up drag moves forward; one screen of drag is half the book). The wheel moves too. When a drag is released, or shortly after the wheel stops, the camera glides to the nearest page if it is within half the spacing between pages. The arrow keys glide to the next page (right or down) or the previous one (left or up). A signpost glides to its page. Keyboard focus inside a page glides the camera to that page.
@@ -438,11 +438,11 @@ One track, provided later by the hosts, loops quietly under the gate and under t
 | **2. Cards over the live attic** | Motion allowed and WebGL, but the screen is shorter than 640 px, the book was not ready in time, or the screen turned too short during the book. | The flat room's cards and signposts in front of the live 3D attic of the mood: its props and sky, and no book. |
 | **3. The paper diorama** | Reduced motion, no WebGL, a lost WebGL context, an error starting or running the 3D, or level 2's scene not arrived yet. | The flat room's cards in front of layered paper cut-outs of the mood's attic. |
 
-- **The load timeout:** the flat room opens on the page the guest was heading to, over the paper diorama. The 3D keeps loading; when it arrives, the live attic fades in behind the cards over about 600 ms, and the paper diorama under it stops moving. Nothing on the cards moves, and focus stays where it was. The guest stays in the flat room for the rest of the visit.
+- **The load timeout:** the flat room opens on the page the guest was heading to, over the paper diorama. The 3D keeps loading; when it arrives, the live attic fades in behind the cards over about 600 ms, and once it has, the paper diorama under it is hidden (it shows again at once if the live attic is lost). Nothing on the cards moves, and focus stays where it was. The guest stays in the flat room for the rest of the visit.
 - **A short screen at start:** level 2 directly. The 3D starts loading at page start for these guests too.
 - **A lost context or an error** at level 1 or 2: level 3 on the current page, with no retry for the rest of the visit.
 - **Level 2:** the live attic sits behind the cards, takes no taps, and is hidden from screen readers. It renders at a lower pixel ratio. Its first frame, the one that fades in, draws the attic, the window's sky, and the lights; the props, the mood's props, and the dust or fireflies follow in the same way as in the book. The flat room's sideways position drifts and turns it gently, so it moves with a little parallax; vertical moves do not. The cards stay opaque paper, and no text sits on the 3D.
-- **Level 3:** the back wall with the round window and the mood's moon or sun, the rafters, the star garland or the lantern string, the shelf, crib, chair, and lamp in silhouette, and the floor slide at different rates as the flat camera moves sideways. Its colors follow the mood and theme. Plain HTML and SVG, with no canvas.
+- **Level 3:** the back wall with the round window and the mood's moon or sun, the rafters, the star garland or the lantern string, the shelf, crib, chair, and lamp in silhouette, and the floor slide at different rates as the flat camera moves sideways; nothing else in it moves. The rafters, the garland, and the props each cast a still paper shadow on the layers behind. Its colors follow the mood and theme. Plain HTML and SVG, with no canvas.
 - **Low-end devices:** a device with 2 GB of memory or less, or with 2 cores or fewer, gets no real shadow map, a lower pixel ratio, about half the stars, fireflies, and dust, and slower ambient motion. Everything else is the same. Only browsers that report their memory (Chrome and other Chromium browsers) can count as low, and there the cores count too; Safari and Firefox report no memory, so they always get the normal device (an iPhone never drops to low on its core count alone).
 
 `prefers-reduced-motion: reduce` gives level 3, still: no parallax and no canvas. Every layer moves at the camera's speed, so there is no depth. Cats are still pictures, with no line boil. They do not roam, scratch in a loop, or throw things on their own. A tap on the countdown or the QR may play one small settle, then stop. `Saludar` still works, with the same noticing rules, and so does the battle, with no wipe. Signposts jump to their landmark instead of gliding. Every page's object is already open. The stage still follows the camera position. The family simply stands in the door. The gate shows no game.
@@ -462,7 +462,7 @@ Color and character come from:
 - `ideas/IMG-20260913-WA0012.jpg` — black field, magenta light, blush pink, cat and stroller.
 - `ideas/IMG-20260913-WA0017(1).jpg` — the round badge. Reference only.
 - `ideas/IMG-20260913-WA0018(1).jpg` — a black cat and a stroller, drawn as a pink line.
-- `ideas/dad.jpg` — dad, about six months ago. Short, dense curls. The shadow is that curl type grown toward an afro, fuller than the photo.
+- `ideas/dad.jpg` — dad, about six months ago. Short, dense curls. The silhouette is that curl type grown toward an afro, fuller than the photo.
 - `ideas/IMG-20260926-WA0000.jpg` — a seated black cat with a pink bow. A cat drawing, not a portrait of dad.
 
 The words "Mia's Baby Shower" are not on the site. The title is **Baby shower de Mia**.
@@ -475,13 +475,13 @@ The whole look is **a moonlit pop-up storybook in a cat's attic** (design §1, �
 
 ### Generated look and behavior
 
-Cats, toys, and the family shadows are made for this site. A picture that does not match this section does not ship. The implementer draws them. There is no separate art delivery.
+Cats, toys, and the family silhouettes are made for this site. A picture that does not match this section does not ship. The implementer draws them. There is no separate art delivery.
 
 Each cat is one inline SVG drawing, rigged in parts: body, head, ears, eyes with blinking lids, and tail. Parts move on springs: breathing, blinking, ear twitches, a tail sway whose tip follows through, and a head turn when noticing. The playing, noticing, and staying states are the same drawing with a small change (pose, heart). Scratch, throw, and startle reuse that playing drawing. Exported PNGs are allowed only when they already match this section. They are not required.
 
-**Line boil** (design §4): the ink outlines jitter a few times a second, like hand-drawn animation, through an animated SVG turbulence filter. It is off with reduced motion. Each cat is a paper cut-out, with a rough paper margin and a soft shadow on the page.
+**Line boil** (design §4): the ink outlines jitter a few times a second, like hand-drawn animation, through an animated SVG turbulence filter. It is off with reduced motion. Each cat is a paper cut-out, with a rough paper margin and a soft shadow on the page. The family's paper figures share that paper edge and the double ink line, but their line does not boil.
 
-Family shadows are drawn as SVG paths. They are not a photograph run through `brightness(0)` or a similar filter. Filtering `ideas/dad.jpg` would keep a face, and the door has no faces. The photo is only the curl reference.
+The family silhouettes are drawn as SVG paths. They are not a photograph run through `brightness(0)` or a similar filter. Filtering `ideas/dad.jpg` would keep a face, and the door has no faces. The photo is only the curl reference.
 
 Shared cat look:
 
@@ -537,7 +537,7 @@ Texture (design §3):
 - A faint vignette: the pages' edges age toward a darker tint.
 - No flat rounded "SaaS cards". Cards are torn, folded, or pinned paper.
 
-Bows stay light: Mimo's small bow, and none on the family shadows. Floral garlands and sweet script stay out.
+Bows stay light: Mimo's small bow, and none on the family silhouettes. Floral garlands and sweet script stay out.
 
 Typography (design §3): three open-licensed, self-hosted faces that cover every Spanish character.
 
@@ -656,7 +656,7 @@ Accessible names (read by screen readers, not shown):
 - The battle dialog: `¡{name} quiere jugar!`. Its moves are a group named `¿Qué vas a hacer?`, and its two bars are meters named `Energía de juego` and `Paciencia`.
 - Each `¡A jugar!` button is described by its cat's name, so the two at the door can be told apart.
 - The quest log's XP bar: a meter named `Nivel {n}, {title}`, read as `{n} XP`.
-- Toys, far-layer decoration, the collectible card, and the door shadows are decorative and hidden from screen readers; the greeting's live region carries the card's words. The 3D book's canvas carries no text: every word is in the HTML pages. The door line is the visible text for the door.
+- Toys, far-layer decoration, the collectible card, and the family's silhouettes at the door are decorative and hidden from screen readers; the greeting's live region carries the card's words. The 3D book's canvas carries no text: every word is in the HTML pages. The door line is the visible text for the door.
 
 Share preview (the same on every page):
 
@@ -1105,7 +1105,7 @@ Every value below is a starting value, chosen by judgment before the first build
 | Level 3 | Parallax travel across the flat room | `160px` times each layer's rate, `0.2` (the wall) to `0.85` (the floor) |
 | Device tier | A low device | `2` GB of memory or less, or `2` cores or fewer; only where the browser reports its memory |
 | Device tier | On a low device | No shadow map, half the stars, fireflies, and dust, ambient motion at `0.6` |
-| Performance | Draw calls per frame | At most `100` in the book, `60` at level 2 |
+| Performance | Draw calls per frame | At most `100` in the book, `60` at level 2. One accepted exception: on desktop, the frames that redraw the candle shadow while a page folds reach about `105`; phones stay at or below about `85` |
 | Family | Fold-up, walk-in, and stagger on the card | `700ms`, `1100ms`, `200ms` |
 | Family | Dad's height in the 3D doorway | `1.45` world units |
 | Noticing | Middle area of the viewport | `60%` |
@@ -1181,7 +1181,7 @@ Manual checks, on real phones, before each release:
 - **SC-4.** From the midnight after a day's party, that page has no address, no map, no confirm button, no gift QR, and no countdown. It thanks the guest, and the book can still be explored.
 - **SC-5.** Confirm opens WhatsApp to `59176632451` with that day's message, in one tap.
 - **SC-6.** Greeting a cat adds that cat, with a different line and a rarity, and that cat is still there after a reload and on the other link.
-- **SC-7.** The end of an invitation shows dad, mom, Miguelito, and Mia as shadows, told apart by curly or straight hair, with Misha and Kira happy beside them. The gate does not show that door.
+- **SC-7.** The end of an invitation shows dad, mom, Miguelito, and Mia as faceless paper silhouettes, told apart by curly or straight hair, with Misha and Kira happy beside them. The gate does not show that door.
 - **SC-8.** With reduced motion, without WebGL, on a screen shorter than 640 px, or when the book fails, stalls, or loses its WebGL context, the flat room shows every landmark that belongs at that clock, and a greet still saves.
 - **SC-9.** On a phone, a finger can move through the book (and the flat room both across and down), and a mouse can do the same on a computer.
 - **SC-10.** `npm test` and `vite preview` pass on Node 26 for `/`, `/?e=n4vk`, and `/?e=q8lm` before any GitHub setup.
@@ -1200,7 +1200,7 @@ Manual checks, on real phones, before each release:
 - The numbers and colors in the tuning module are starting values. The hosts tune them after the first build.
 - Seven cats is the whole cast. Rarity is fixed, not random. Misha and Kira are the only `Legendario` cats.
 - Misha and Kira stay visible and happy at the door on every invitation visit. Greeting them adds them to **Tus gatos**. The door does not wait for other cats.
-- Dad, Miguelito, and Mia are the curly shadows. Dad’s hair has grown since `ideas/dad.jpg` and tends toward an afro, so his outline is the tallest and fullest. Mom is the straight-haired shadow. Miguelito and Mia are curly at a child’s height and at the smallest height. No faces are drawn.
+- Dad, Miguelito, and Mia are the curly silhouettes. Dad’s hair has grown since `ideas/dad.jpg` and tends toward an afro, so his outline is the tallest and fullest. Mom is the straight-haired silhouette. Miguelito and Mia are curly at a child’s height and at the smallest height. No faces are drawn.
 - Greeting cannot fail. A cat who is not ready simply does not offer `Saludar` yet. The legendary battle cannot be lost.
 - The celebration is visual. The only sound is the one track the hosts provide, and only after the guest turns it on.
 - The map pin stays on the coordinates already confirmed. Only the words of the address changed.

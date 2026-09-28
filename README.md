@@ -65,7 +65,7 @@ At midnight after each party (Bolivia time), that page changes. The address, the
 - The 3D book (Three.js, React Three Fiber, drei) is its own lazy chunk, loaded behind the cover. Guests who will get it start fetching it as soon as the page's script runs.
 - The book renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. The pixel ratio is capped at 1.75, one candle casts shadows, and its shadow map is redrawn only while paper moves.
 - The book is ready after a first frame that compiles only the shaders the book had before the moods (the attic, the book, its pages, the lights, the dust). The furniture, the mood's props, the window's stars, the fireflies, and the family mount right after, compile in the background (`gl.compileAsync`), and then show, so a first visit, with no shader cache, is as fast as before.
-- The live attic behind the flat room renders at a lower pixel ratio. Both 3D views pause while the tab is hidden or a dialog is open. A low-end device gets no shadow map and fewer particles. The budget is 100 draw calls per frame in the book and 60 behind the cards (a dev-only readout shows the count).
+- The live attic behind the flat room renders at a lower pixel ratio. Both 3D views pause while the tab is hidden or a full-screen dialog (the battle, **Tus gatos**) is open; a card flipping in does not pause them. A low-end device gets no shadow map and fewer particles. The budget is 100 draw calls per frame in the book and 60 behind the cards (a dev-only readout shows the count).
 
 ---
 
