@@ -493,7 +493,8 @@ export const tuning = {
         { kind: 'candle', x: 1.35, z: 0.4, height: 0.75 },
       ],
       familia: [
-        { kind: 'door', x: 0, z: -0.8, height: 3.3 },
+        // Tall enough that the paper family stands in its doorway clear of the card and its stamp.
+        { kind: 'door', x: 0, z: -0.8, height: 3.6 },
         { kind: 'tree', x: -2.2, z: -0.5, height: 2 },
         { kind: 'candle', x: -1.35, z: 0.45, height: 0.9 },
         { kind: 'candle', x: 1.4, z: 0.45, height: 0.9 },
@@ -595,6 +596,41 @@ export const tuning = {
       // Sunday's dusk: fireflies drifting by up to `drift` around their spots in a box of air behind
       // the book, blinking at `blink`. They replace the dust.
       fireflies: { count: 60, size: 0.08, drift: 0.35, speed: 0.5, blink: 1.4, box: { width: 24, bottom: 0.8, height: 4.5, back: -9.2, depth: 6 } },
+    },
+    // Spec §6: the paper family in the 3D doorway at the Familia station. Dad is `height` tall and the
+    // others to scale. They stand `standY` up the doorway, above the Familia card's top and its
+    // ¡Página encontrada! stamp (the card is HTML, drawn over the canvas), `restZ` in front of the
+    // door. The first time the door stands (its spring past `standAt`) with the camera within
+    // `startWithin` of the station (the door already stands from the page before), each folds up
+    // from flat with the pop-up spring (popUp's stiffness and damping) and walks in from `walkFromX`
+    // aside and `walkFromZ` out on the page, over `walkS`, `staggerS` after the one before, bobbing
+    // by `bob` at `bobHz` steps a second. A dark copy `edge` behind each figure gives the paper its
+    // thickness; each figure stands `layer` in front of the one before, as the drawing overlaps them
+    // (their held hands), so no two sheets of paper share a depth. The texture sheet is at most
+    // `sheetMaxPx` a side, each figure with `sheetPad` drawing units of margin for its rim (drawn at
+    // `rimAlpha`, glowing `rimGlow` drawing units past it like the CSS family's drop-shadow, cut out
+    // at `alphaTest`). After Cuento completo, the doorway's glow moves `completeGlow` of the way
+    // toward bone.
+    family: {
+      height: 1.45,
+      standY: 1.36,
+      restZ: 0.06,
+      walkFromX: 0.5,
+      walkFromZ: 0.55,
+      walkS: 1.1,
+      staggerS: 0.35,
+      bob: 0.03,
+      bobHz: 2.4,
+      standAt: 0.95,
+      startWithin: 0.06,
+      edge: 0.012,
+      layer: 0.015,
+      sheetMaxPx: 1024,
+      sheetPad: 10,
+      rimAlpha: 0.85,
+      rimGlow: 4,
+      alphaTest: 0.4,
+      completeGlow: 0.5,
     },
     // Spec §3: two moods, one attic, each in a lighter (Claro) and a darker (Oscuro) version. Every
     // color is a mix of the palette tokens and the feeling colors. The 3D attic mixes in linear light,

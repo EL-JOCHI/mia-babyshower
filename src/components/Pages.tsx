@@ -38,6 +38,9 @@ interface PagesInput {
   qrUrl: string | undefined
   // Reduced motion: every object is already open and settled.
   still: boolean
+  // In the book, the family stands in the 3D doorway above the card (spec §6): the card drops its
+  // paper door and keeps the star, Misha and Kira, and the line. The frame tap moves to the 3D door.
+  familyInWorld: boolean
 }
 
 // Design §5: the facts, each on its pop-up page with its own object. Both rooms show these: the
@@ -53,6 +56,7 @@ export function Pages({
   standing,
   qrUrl,
   still,
+  familyInWorld,
 }: PagesInput): Record<LandmarkId, ReactNode> {
   const { active, play } = acts
   // Found (the stamp, the badge, the XP) and open (the object shows its fact) are separate.
@@ -155,8 +159,12 @@ export function Pages({
     // The lit door and the family. Finding every page lights the door brighter.
     familia: (
       <PageCard id="familia" found={found('familia')}>
-        <div className={`door-stage${progress.badges.includes('cuentoCompleto') ? ' is-complete' : ''}`}>
-          <FamilyDoor scratching={Boolean(active.mishaScratch)} still={still} onFrameTap={() => play('mishaScratch')} />
+        <div
+          className={`door-stage${progress.badges.includes('cuentoCompleto') ? ' is-complete' : ''}${familyInWorld ? ' is-in-world' : ''}`}
+        >
+          {!familyInWorld && (
+            <FamilyDoor scratching={Boolean(active.mishaScratch)} still={still} onFrameTap={() => play('mishaScratch')} />
+          )}
           <div
             className={`door-star${active.kiraStar ? ' is-dropping' : ''}`}
             aria-hidden="true"
@@ -201,6 +209,8 @@ interface RoomPagesOptions {
   // Where the cats are measured for noticing, and the camera whose speed counts as rushing.
   container: RefObject<HTMLElement | null>
   cameraRef: { readonly current: Point }
+  // The book stands the family in its 3D doorway (see PagesInput.familyInWorld).
+  familyInWorld: boolean
 }
 
 // The pages as a room shows them: the cats on their perches notice the guest, and the acts play,
@@ -221,7 +231,8 @@ export function usePages({
   standing,
   container,
   cameraRef,
-}: RoomPagesOptions): Record<LandmarkId, ReactNode> {
+  familyInWorld,
+}: RoomPagesOptions): { content: Record<LandmarkId, ReactNode>; playAct: (act: ActId) => void } {
   const noticing = useNoticing({ catIds: roomCats, container, cameraRef, musicPlaying })
   const acts = useActs({ available: roomActs, autonomous: !reducedMotion })
   const { active } = acts
@@ -252,5 +263,6 @@ export function usePages({
     </div>
   )
 
-  return Pages({ day, now, partyOver, acts, cats, onEvent, progress, standing, qrUrl, still: reducedMotion })
+  const content = Pages({ day, now, partyOver, acts, cats, onEvent, progress, standing, qrUrl, still: reducedMotion, familyInWorld })
+  return { content, playAct: acts.play }
 }

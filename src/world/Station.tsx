@@ -1,9 +1,10 @@
 import { Html } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useRef, type ReactNode, type RefObject } from 'react'
 import * as THREE from 'three'
 import type { LandmarkId } from '../logic/layout'
 import { tuning, type PieceSpec } from '../tuning'
+import { FamilyCutouts } from './FamilyCutouts'
 import type { WorldResources } from './resources'
 import type { ShadowState } from './StageLighting'
 
@@ -18,6 +19,8 @@ interface Props {
   resources: WorldResources
   // The paper pieces cast the candle's shadow: moving one makes the shadow map stale.
   shadowRef: RefObject<ShadowState>
+  // Tapping this station's door piece (the Familia station's) starts Misha's scratch (spec §6).
+  onDoorTap?: () => void
   children: ReactNode
 }
 
@@ -30,10 +33,14 @@ function PaperPiece({
   piece,
   resources,
   hinge,
+  onTap,
+  children,
 }: {
   piece: PieceSpec
   resources: WorldResources
   hinge: (group: THREE.Group | null) => void
+  onTap?: () => void
+  children?: ReactNode
 }) {
   const look = resources.pieces[piece.kind]
   const height = piece.height
@@ -41,9 +48,15 @@ function PaperPiece({
   const scaleX = piece.flip ? -width : width
   const light = look.light
   const flameSize = width * tuning.world.flame.scale
+  const tap = onTap
+    ? (event: ThreeEvent<MouseEvent>) => {
+        event.stopPropagation()
+        onTap()
+      }
+    : undefined
   return (
     <group ref={hinge} position={[piece.x, 0, piece.z]} rotation-x={flat}>
-      <mesh geometry={resources.plane} material={look.paper} scale={[scaleX, height, 1]} castShadow />
+      <mesh geometry={resources.plane} material={look.paper} scale={[scaleX, height, 1]} castShadow onClick={tap} />
       <mesh geometry={resources.plane} material={look.ink} scale={[scaleX, height, 1]} position-z={0.004} />
       {piece.kind === 'candle' && light && (
         <mesh
@@ -61,6 +74,7 @@ function PaperPiece({
           scale={[width * tuning.world.doorway.width, height * tuning.world.doorway.height, 1]}
         />
       )}
+      {children}
     </group>
   )
 }
@@ -68,9 +82,10 @@ function PaperPiece({
 // Design §1 and §2: a pop-up station. Paper cut-outs and the page itself fold up from the book as
 // the camera arrives, with a springy overshoot, and lie flat again once it moves on. The page is
 // the landmark's real HTML, placed in 3D, so text stays sharp and keyboards and screen readers
-// reach everything.
-export function Station({ id, at, anchor, viewRef, awake, resources, shadowRef, children }: Props) {
+// reach everything. At the Familia station the paper family stands in the doorway (spec §6).
+export function Station({ id, at, anchor, viewRef, awake, resources, shadowRef, onDoorTap, children }: Props) {
   const pieces: readonly PieceSpec[] = tuning.world.pieces[id]
+  const doorIndex = pieces.findIndex((piece) => piece.kind === 'door')
   const { cardPx, slotPx, cardWidth, lift, zIndexRange } = tuning.world.page
   const unitsPerPx = cardWidth / cardPx
   const hinges = useRef<(THREE.Group | null)[]>([])
@@ -116,7 +131,9 @@ export function Station({ id, at, anchor, viewRef, awake, resources, shadowRef, 
   return (
     <group position={anchor}>
       {pieces.map((piece, i) => (
-        <PaperPiece key={i} piece={piece} resources={resources} hinge={setHinge(i)} />
+        <PaperPiece key={i} piece={piece} resources={resources} hinge={setHinge(i)} onTap={i === doorIndex ? onDoorTap : undefined}>
+          {id === 'familia' && i === doorIndex && <FamilyCutouts springs={springs} index={doorIndex} viewRef={viewRef} at={at} />}
+        </PaperPiece>
       ))}
       <group ref={setHinge(pieces.length)} rotation-x={flat}>
         <Html

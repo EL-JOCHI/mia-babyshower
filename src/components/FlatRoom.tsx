@@ -131,7 +131,7 @@ export function FlatRoom({
   const stage = stageAt(position)
   const depth = reducedMotion ? { far: 1, mid: 1, near: 1 } : tuning.depth
   const standing = pagesInView(cam.camera, layout, ids, vw, vh)
-  const content = usePages({
+  const { content } = usePages({
     day,
     now,
     partyOver,
@@ -147,6 +147,7 @@ export function FlatRoom({
     standing,
     container: viewport,
     cameraRef: cam.cameraRef,
+    familyInWorld: false,
   })
 
   // Design §6: a page is found once the camera rests on it (the cover never counts).

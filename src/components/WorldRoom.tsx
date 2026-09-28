@@ -107,7 +107,7 @@ const BookPages = memo(function BookPages({
   onReady,
   onFail,
 }: PagesProps) {
-  const content = usePages({
+  const { content, playAct } = usePages({
     day,
     now,
     partyOver,
@@ -123,7 +123,10 @@ const BookPages = memo(function BookPages({
     standing,
     container,
     cameraRef: noticeCamera,
+    familyInWorld: true,
   })
+  // Spec §6: in the book the 3D doorway takes the frame tap, and starts Misha's scratch.
+  const onDoorTap = useCallback(() => playAct('mishaScratch'), [playAct])
   return (
     <WorldBoundary onError={onFail}>
       <Suspense fallback={null}>
@@ -137,6 +140,8 @@ const BookPages = memo(function BookPages({
           tier={tier}
           running={running}
           awake={awake}
+          onDoorTap={onDoorTap}
+          doorComplete={progress.badges.includes('cuentoCompleto')}
           onReady={onReady}
           onFail={onFail}
         />

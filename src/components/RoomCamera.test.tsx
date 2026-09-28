@@ -23,6 +23,8 @@ vi.mock('../world/World', () => ({
     theme,
     tier,
     running,
+    doorComplete,
+    onDoorTap,
     onReady,
   }: {
     ids: LandmarkId[]
@@ -31,6 +33,8 @@ vi.mock('../world/World', () => ({
     theme: string
     tier: string
     running: boolean
+    doorComplete: boolean
+    onDoorTap: () => void
     onReady: () => void
   }) {
     if (world.mode === 'fails') throw new Error('The world could not start')
@@ -42,8 +46,17 @@ vi.mock('../world/World', () => ({
     }, [onReady])
     return createElement(
       'div',
-      { 'data-testid': 'world', 'data-mood': mood, 'data-theme': theme, 'data-tier': tier, 'data-running': String(running) },
+      {
+        'data-testid': 'world',
+        'data-mood': mood,
+        'data-theme': theme,
+        'data-tier': tier,
+        'data-running': String(running),
+        'data-door-complete': String(doorComplete),
+      },
       createElement('canvas', { key: 'canvas' }),
+      // Stands in for the 3D door piece at the Familia station.
+      createElement('button', { key: 'door', type: 'button', 'data-testid': 'world-door', onClick: onDoorTap }),
       ids.map((id) => createElement('section', { key: id, 'data-landmark-id': id }, content[id])),
     )
   },
@@ -375,6 +388,26 @@ describe('the 3D book and its fallback (design §2)', () => {
     await bookReady()
     expect(worldSurface().style.getPropertyValue('--qr-px')).toBe(`${bookQrPx}px`)
     expect(screen.getByRole('img', { name: copy.qrAlt }).style.width).toBe(`var(--qr-px, ${tuning.qr.minPx}px)`)
+  })
+
+  it("starts Misha's scratch from the 3D doorway, and keeps the card's line and cats without its paper door (spec §6)", async () => {
+    world.mode = 'ready'
+    renderWorldRoom()
+    await bookReady()
+    const familia = document.querySelector('[data-landmark-id="familia"]')!
+    expect(familia.querySelector('.family-door')).toBeNull()
+    expect(familia.querySelector('.door-stage')).toHaveClass('is-in-world')
+    expect(familia).toHaveTextContent(copy.doorLine)
+    expect(familia.querySelector('.cat-misha')).not.toBeNull()
+    expect(familia.querySelector('.cat-kira')).not.toBeNull()
+    fireEvent.click(screen.getByTestId('world-door'))
+    expect(familia.querySelector('.cat-misha')).toHaveClass('act-scratch')
+  })
+
+  it('tells the world once every page is found, so the doorway glows brighter (spec §6)', async () => {
+    world.mode = 'ready'
+    renderWorldRoom({ progress: { ...emptyProgress, badges: ['cuentoCompleto'] } })
+    expect(await screen.findByTestId('world')).toHaveAttribute('data-door-complete', 'true')
   })
 
   // Facts are never gated, and nothing counts before the guest can see it (design §6): while the

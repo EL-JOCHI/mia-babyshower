@@ -4,6 +4,7 @@ import { tierCount } from '../../logic/deviceTier'
 import { tuning, type PropName } from '../../tuning'
 import { buildProps, disposeBuiltProps, propDrawCalls, propFactories, totalCalls } from './build'
 import { buildMoodProps, disposeMoodBuild, moodDrawCalls, moodMaterials, skyAndMotesCalls } from './moodProps'
+import { familyDrawCalls } from '../familyWalk'
 
 describe('the lived-in attic (spec §5)', () => {
   it('builds every prop from a pure factory: the same shapes on every call', () => {
@@ -58,7 +59,8 @@ describe('the draw-call budget (spec §8)', () => {
     const build = buildMoodProps(mood)
     const calls = totalCalls(propDrawCalls(built)) + moodDrawCalls(build) + skyAndMotesCalls(look)
     const { book, backdrop, bookAtRest, attic, materials } = tuning.world.budget
-    expect(bookAtRest + calls).toBeLessThanOrEqual(book)
+    // The book adds the paper family at the Familia station; level 2 has no book.
+    expect(bookAtRest + calls + familyDrawCalls).toBeLessThanOrEqual(book)
     expect(attic + calls).toBeLessThanOrEqual(backdrop)
     expect(propDrawCalls(built).materials + moodMaterials[mood].length).toBeLessThanOrEqual(materials)
     // A low device draws fewer stars and fireflies, never more (the calls stay the same: one each).

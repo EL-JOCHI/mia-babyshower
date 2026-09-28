@@ -120,6 +120,9 @@ export function pieceTextures(kind: PieceKind): PieceTextures {
 
 export const pieceKinds: readonly PieceKind[] = ['arch', 'candle', 'tree', 'frame', 'door']
 
+// Each piece's width over its height, from its drawing (no canvas needed).
+export const pieceAspect = Object.fromEntries(pieceKinds.map((kind) => [kind, 100 / art[kind].height])) as Record<PieceKind, number>
+
 // The open pages: paper grain, a faint border, and a soft shadow down the gutter.
 export function pageTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas')

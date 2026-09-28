@@ -22,6 +22,8 @@ interface Props {
   // The candle's shadow map: whether it has been drawn yet, and whether a paper piece has moved
   // since (Station marks it stale).
   shadowRef: RefObject<ShadowState>
+  // Every page found (Cuento completo): the doorway glows brighter.
+  complete: boolean
 }
 
 const mix = createStageMix()
@@ -29,7 +31,7 @@ const mix = createStageMix()
 // Spec §4 Lit from the start: the attic is lit by its mood on every page (MoodLights). The stage
 // (design §1 Evolution) drives only the book: its paper warms, its ink fades in, and in luz the
 // candles light (one casts shadows) and warm the paper toward the door.
-export function StageLighting({ path, viewRef, resources, palette, shadowRef }: Props) {
+export function StageLighting({ path, viewRef, resources, palette, shadowRef, complete }: Props) {
   const { candleAt, candleOffset, doorOffset, candleDistance, shadowMapPx } = tuning.world.light
   const candles = useRef<(THREE.PointLight | null)[]>([])
 
@@ -57,7 +59,7 @@ export function StageLighting({ path, viewRef, resources, palette, shadowRef }: 
       if (light) light.intensity = lit * candleFlicker(t, i)
     }
 
-    applyStageMix(resources, mix, palette)
+    applyStageMix(resources, mix, palette, complete)
 
     // One candle casts shadows (six passes, a point light's cube). The light stands still and only
     // the paper pieces cast, so the map is redrawn only after a piece has moved, and only while

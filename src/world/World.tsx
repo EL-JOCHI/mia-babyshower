@@ -37,13 +37,17 @@ export interface WorldProps {
   // False until the cover has swung open: the camera waits on a wide view of the book and the pages
   // lie flat, so the guest sees the whole book before the camera swoops down to the first page.
   awake: boolean
+  // Tapping the 3D doorway at the Familia station starts Misha's scratch (spec §6).
+  onDoorTap: () => void
+  // Every page found (Cuento completo): the doorway glows brighter.
+  doorComplete: boolean
   onReady: () => void
   onFail: (error: unknown) => void
 }
 
 type SceneProps = Omit<WorldProps, 'onFail' | 'running'>
 
-function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, onReady }: SceneProps) {
+function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, onDoorTap, doorComplete, onReady }: SceneProps) {
   const palette = paletteFor(mood, theme)
   const size = useThree((state) => state.size)
   const resources = useWorldResources()
@@ -61,7 +65,7 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
     <>
       <fog attach="fog" args={[palette.fog, fog.near, fog.far]} />
       <CameraRig path={path} progressRef={progressRef} viewRef={viewRef} awake={awake} onReady={onReady} />
-      <StageLighting path={path} viewRef={viewRef} resources={resources} palette={palette} shadowRef={shadowRef} />
+      <StageLighting path={path} viewRef={viewRef} resources={resources} palette={palette} shadowRef={shadowRef} complete={doorComplete} />
       <Attic palette={palette} />
       <WindowSky palette={palette} tier={tier} />
       <Props palette={palette} />
@@ -77,6 +81,7 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
           awake={awake}
           resources={resources}
           shadowRef={shadowRef}
+          onDoorTap={id === 'familia' ? onDoorTap : undefined}
         >
           {content[id]}
         </Station>

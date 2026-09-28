@@ -110,16 +110,19 @@ function disposeResources(r: WorldResources) {
 
 const paper = new THREE.Color()
 const candle = new THREE.Color(tokens.candle)
+const bone = new THREE.Color(tokens.bone)
 const unlitDoor = new THREE.Color(tokens.plum)
 
-// Retints the shared materials for the stage and the theme: the paper warms, the ink fades in, the
-// flames and the doorway light up. Runs every frame without allocating.
-export function applyStageMix(r: WorldResources, mix: StageMix, palette: WorldPalette) {
+// Retints the shared materials for the stage and the look: the paper warms, the ink fades in, the
+// flames and the doorway light up, and after Cuento completo the doorway glows brighter (spec §6).
+// Runs every frame without allocating.
+export function applyStageMix(r: WorldResources, mix: StageMix, palette: WorldPalette, complete: boolean) {
   paper.copy(palette.paper.sketch).lerp(palette.paper.bone, mix.ink).lerp(palette.paper.warm, mix.warm)
   for (const material of r.tinted) material.color.copy(paper)
   for (const material of r.inked) material.opacity = mix.ink
   r.flame.opacity = mix.light
   r.doorGlow.color.copy(unlitDoor).lerp(candle, mix.light)
+  if (complete) r.doorGlow.color.lerp(bone, tuning.world.family.completeGlow * mix.light)
   r.dust.color.copy(palette.dust).lerp(candle, mix.warm)
 }
 

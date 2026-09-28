@@ -122,3 +122,9 @@
     translate: 0 0 0;
   }
 }
+
+/* In the book the family stands in the 3D doorway above the card (src/world/FamilyCutouts.tsx). The
+   card keeps the star, Misha and Kira, and the line, with room for the cats. */
+.door-stage.is-in-world {
+  min-height: 96px;
+}
