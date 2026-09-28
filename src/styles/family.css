@@ -1,0 +1,124 @@
+/* ---------- The family as paper pop-ups (spec §6) ---------- */
+/* The door: the light behind, the paper family in the doorway, and the frame drawn over them. */
+.family-door {
+  position: relative;
+}
+
+.family-door-light {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.family-door-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* The doorway: layered paper seen in perspective from above, like a reader over a pop-up book. The
+   figures lie on the page in front of the door, fold up, and walk back into it: nearer ones sit
+   lower and larger, so no head rises past the arch drawn over them. */
+.paper-family {
+  position: absolute;
+  perspective: var(--family-perspective);
+  perspective-origin: 50% 0%;
+  pointer-events: none;
+}
+
+.paper-figure {
+  position: absolute;
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+}
+
+.figure-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.figure-rim {
+  transform: translateZ(var(--family-rim-depth));
+}
+
+.figure-hair {
+  transform: translateZ(var(--family-hair-depth));
+}
+
+.figure-rim-line {
+  fill: none;
+  stroke: var(--candle);
+  stroke-linejoin: round;
+  opacity: 0.75;
+  filter: drop-shadow(0 0 4px var(--candle));
+}
+
+.figure-echo {
+  fill: none;
+  stroke: var(--rose);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.figure-ink {
+  fill: none;
+  stroke: var(--shadow);
+  stroke-linejoin: round;
+}
+
+.figure-fill {
+  fill: var(--shadow);
+  stroke: none;
+}
+
+/* Waiting: lying flat on the page. */
+.paper-family.is-waiting .paper-figure {
+  opacity: 0;
+  rotate: x 88deg;
+}
+
+/* Once: each figure folds up from the page, then walks in toward the door with a small bob. */
+.paper-family.is-entering .paper-figure {
+  animation:
+    figure-fold var(--family-fold) var(--spring) var(--figure-delay) both,
+    figure-walk var(--family-walk) ease-in-out calc(var(--family-fold) + var(--figure-delay)) both;
+}
+
+@keyframes figure-fold {
+  from {
+    opacity: 0;
+    rotate: x 88deg;
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    rotate: x 0deg;
+  }
+}
+
+@keyframes figure-walk {
+  from {
+    translate: 0 0 var(--family-walk-from);
+  }
+  25% {
+    translate: 0 -2px calc(var(--family-walk-from) * 0.75);
+  }
+  50% {
+    translate: 0 0 calc(var(--family-walk-from) * 0.5);
+  }
+  75% {
+    translate: 0 -2px calc(var(--family-walk-from) * 0.25);
+  }
+  to {
+    translate: 0 0 0;
+  }
+}

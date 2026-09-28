@@ -359,7 +359,21 @@ export const tuning = {
   // The quest log and the badge toasts (design §6). A toast stays `toastMs`, fading out over the
   // last `toastLeaveMs`. The XP bar fills over `barMs`.
   quest: { toastMs: 2800, toastLeaveMs: 320, barMs: 600 },
-  familyEnterMs: 1800,
+  // Spec §6: the CSS paper family on the Familia card. The first time the door is `inViewShare` in
+  // view, the four figures fold up over `foldMs`, then walk in over `walkMs`, `staggerMs` apart, from
+  // `walkFromPx` toward the viewer, seen with `perspectivePx` of perspective. Their paper layers sit
+  // at these depths (px): the rim of backlight behind, the hair in front. The rim is a stroke
+  // `rimWidth` wide in the drawing's units, wide enough to glow past each figure's paper edge.
+  family: {
+    foldMs: 700,
+    walkMs: 1100,
+    staggerMs: 200,
+    inViewShare: 0.4,
+    perspectivePx: 600,
+    walkFromPx: 60,
+    depthPx: { rim: -8, hair: 5 },
+    rimWidth: 10,
+  },
   progress: {
     levels: [0, 60, 180, 360, 600],
     badgeXp: { openBook: 10, palabra: 20, fecha: 30, lugar: 30, sellada: 50, regalo: 20, qrGuardado: 20, puerta: 30, primerGato: 20, cuentoCompleto: 100, todosLosGatos: 150 },

@@ -4,6 +4,7 @@ import { battleCopy, copy, days, gameCopy, shared } from '../content'
 import { FlatRoom } from './FlatRoom'
 import { cameraTargetFor } from '../logic/camera'
 import { computeLayout, landmarksFor } from '../logic/layout'
+import { emptyProgress } from '../logic/progress'
 import { whatsappUrl } from '../logic/whatsapp'
 import { tuning } from '../tuning'
 import {
@@ -377,13 +378,26 @@ describe('US-12 Watch the cats play (invitation)', () => {
     expect(document.querySelector('.figure-mia')).not.toBeNull()
   })
 
-  it('draws the family as solid shadows whose top copy has no outline, so no face or inner line shows (§5)', () => {
+  it('draws the family as faceless paper figures in three layers, whose top copy has no outline (spec §6)', () => {
     renderRoom()
-    const groups = document.querySelectorAll('.family-shadows')
-    expect(groups).toHaveLength(2)
-    const top = groups[1]!
-    expect(top).not.toHaveAttribute('stroke')
-    expect(top.querySelectorAll('.family-figure')).toHaveLength(4)
+    const figures = document.querySelectorAll('.family-door .paper-family .paper-figure')
+    expect(figures).toHaveLength(4)
+    for (const figure of figures) {
+      expect([...figure.querySelectorAll('.figure-layer')].map((layer) => layer.getAttribute('class'))).toEqual([
+        'figure-layer figure-rim',
+        'figure-layer figure-body',
+        'figure-layer figure-hair',
+      ])
+      for (const fill of figure.querySelectorAll('.figure-fill')) expect(fill).not.toHaveAttribute('stroke')
+    }
+    expect(document.querySelector('.paper-family [class*="face"], .paper-family [class*="eye"], .paper-family [class*="mouth"]')).toBeNull()
+  })
+
+  it('lights the door brighter around the paper family once every page is found (spec §6)', () => {
+    renderRoom({ progress: { ...emptyProgress, badges: ['cuentoCompleto'] } })
+    const stage = document.querySelector('.door-stage')!
+    expect(stage).toHaveClass('is-complete')
+    expect(stage.querySelector('.family-door .paper-family')).not.toBeNull()
   })
 
   describe('acts', () => {
@@ -425,6 +439,16 @@ describe('US-12 Watch the cats play (invitation)', () => {
       const spot = document.querySelector('.confirm-spot') as HTMLElement
       fireEvent.click(spot)
       expect(document.querySelector('.cat-susto')).toHaveClass('act-startle')
+    })
+
+    it("starts Misha's scratch from the door frame, with the paper family in the doorway (spec §6)", () => {
+      renderRoom()
+      fireEvent.click(document.querySelector('.door-frame-hit')!)
+      expect(document.querySelector('.door-scratch')).toHaveClass('is-visible')
+      expect(document.querySelector('.cat-misha')).toHaveClass('act-scratch')
+      expect(document.querySelector('.family-door .paper-family')).not.toBeNull()
+      advance(tuning.acts.scratchFadeMs + 10)
+      expect(document.querySelector('.door-scratch')).not.toHaveClass('is-visible')
     })
   })
 

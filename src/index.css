@@ -2,6 +2,8 @@
 /* The pop-up pages and their objects (design §5), and the game layer (design §6). */
 @import './styles/pages.css' layer(components);
 @import './styles/game.css' layer(components);
+/* The family as paper pop-ups (spec §6). */
+@import './styles/family.css' layer(components);
 
 /* Theme tokens are CSS variables generated from src/tuning.ts into index.html (BR-21). */
 @theme inline {
@@ -1869,17 +1871,6 @@
   }
   100% {
     transform: translate(0, 0) rotate(360deg);
-  }
-}
-
-@keyframes family-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
