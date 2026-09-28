@@ -262,15 +262,14 @@ export const tuning = {
   depth: { far: 0.25, mid: 1, near: 1.15 },
   // Level 3 (spec §7): the paper diorama behind the flat room's cards. Its round window has radius
   // `windowRadius` in the diorama's drawing units. Each layer slides by its rate times `travelPx`
-  // across the flat room's whole horizontal pan (reduced motion: no sliding). The window's stars
-  // twinkle over `twinkleMs`, `twinkleStaggerMs` apart; Sunday's lanterns sway over `swayMs`.
+  // across the flat room's whole horizontal pan (reduced motion: no sliding); nothing else in it
+  // moves. The rafters, the garland, and the props each cast a still paper shadow `castOffset`
+  // drawing units below themselves.
   diorama: {
     windowRadius: 40,
     travelPx: 160,
     rates: { wall: 0.2, rafters: 0.35, garland: 0.5, props: 0.65, floor: 0.85 },
-    twinkleMs: 2600,
-    twinkleStaggerMs: 330,
-    swayMs: 4800,
+    castOffset: 1.5,
   },
   eras: { color: 0.33, threeD: 0.66 },
   noticing: {

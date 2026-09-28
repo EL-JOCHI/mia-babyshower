@@ -19,10 +19,10 @@
     color-mix(in oklab, var(--diorama-wood), var(--shadow) 35%);
 }
 
-/* Wider than the screen, so sliding never shows an edge. */
+/* Each layer slides on its own compositor layer, so a pan redraws nothing. */
 .diorama-layer {
   position: absolute;
-  inset: 0 -12%;
+  inset: 0;
   will-change: transform;
 }
 
@@ -38,13 +38,6 @@
   aspect-ratio: 4 / 3;
   translate: -50% 0;
   overflow: visible;
-}
-
-/* Each paper layer casts a soft shadow on the ones behind it. */
-.diorama-rafters,
-.diorama-garland,
-.diorama-props {
-  filter: drop-shadow(0 3px 2px color-mix(in oklab, var(--shadow), transparent 55%));
 }
 
 .diorama-wall-fill {
@@ -75,7 +68,6 @@
 .diorama-star {
   fill: var(--diorama-sparkle);
   opacity: var(--diorama-stars);
-  animation: diorama-twinkle var(--diorama-twinkle) ease-in-out infinite alternate;
 }
 
 .diorama-window-frame {
@@ -125,12 +117,6 @@
   opacity: var(--diorama-lantern-glow);
 }
 
-.diorama-lantern-sway {
-  transform-box: fill-box;
-  transform-origin: 50% 0;
-  animation: diorama-sway var(--diorama-sway) ease-in-out infinite alternate;
-}
-
 .diorama-prop {
   fill: color-mix(in oklab, var(--diorama-wood), var(--shadow) 45%);
   stroke: var(--shadow);
@@ -148,31 +134,31 @@
   opacity: 0.25;
 }
 
-/* Under the live attic it rests; with reduced motion nothing loops at all. */
-.paper-diorama.is-resting * {
-  animation-play-state: paused;
+/* Each paper layer's shadow on the ones behind it: the same cut-outs, a little lower, in the shadow
+   color, drawn once into the layer (a CSS filter would be redrawn on every frame the layer slides). */
+.diorama-cast {
+  opacity: 0.45;
 }
 
-.paper-diorama.is-still * {
-  animation: none;
+.diorama-cast * {
+  stroke: var(--shadow);
 }
 
-@keyframes diorama-twinkle {
-  from {
-    opacity: calc(var(--diorama-stars) * 0.35);
-  }
-  to {
-    opacity: var(--diorama-stars);
-  }
+.diorama-cast :not(.diorama-rafter, .diorama-string) {
+  fill: var(--shadow);
 }
 
-@keyframes diorama-sway {
-  from {
-    rotate: -4deg;
-  }
-  to {
-    rotate: 4deg;
-  }
+/* Nothing in the diorama loops (spec §7 Level 3 moves only with the pan). With reduced motion its
+   layers never move, and under the live attic (level 2) it is hidden once the attic has faded in
+   over it, so it is not drawn at all. Without the attic (a lost context) it shows again at once. */
+.paper-diorama.is-still .diorama-layer,
+.paper-diorama.is-resting .diorama-layer {
+  will-change: auto;
+}
+
+.paper-diorama.is-resting {
+  visibility: hidden;
+  transition: visibility 0s linear var(--backdrop-fade);
 }
 
 /* ---------- Level 2: the live attic behind the cards (spec §7) ---------- */

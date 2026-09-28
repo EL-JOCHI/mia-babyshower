@@ -8,7 +8,7 @@ interface Props {
   pan: number
   // Reduced motion: the same room with no depth motion (spec §7).
   still: boolean
-  // The live attic (level 2) has faded in over it: it stops animating.
+  // The live attic (level 2) is over it: it is hidden once the attic has faded in.
   resting: boolean
 }
 
@@ -49,12 +49,28 @@ function starPoints(cx: number, cy: number, r: number): string {
   }).join(' ')
 }
 
-function Layer({ name, pan, still, children }: { name: LayerName; pan: number; still: boolean; children: ReactNode }) {
-  const { travelPx, rates } = tuning.diorama
+interface LayerProps {
+  name: LayerName
+  pan: number
+  still: boolean
+  // It casts a paper shadow on the layers behind it.
+  cast?: boolean
+  children: ReactNode
+}
+
+// One paper layer. A layer that casts a shadow draws it as a still copy of its cut-outs, a little
+// lower and in the shadow color (src/styles/diorama.css .diorama-cast), so sliding it redraws nothing.
+function Layer({ name, pan, still, cast = false, children }: LayerProps) {
+  const { travelPx, rates, castOffset } = tuning.diorama
   const style = still ? undefined : { transform: `translate3d(${Number(((0.5 - pan) * travelPx * rates[name]).toFixed(2))}px, 0, 0)` }
   return (
     <div className={`diorama-layer diorama-${name}`} style={style}>
-      <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice" focusable="false">
+      <svg viewBox="0 0 400 300" focusable="false">
+        {cast && (
+          <g className="diorama-cast" transform={`translate(0 ${castOffset})`}>
+            {children}
+          </g>
+        )}
         {children}
       </svg>
     </div>
@@ -70,9 +86,10 @@ export function PaperDiorama({ mood, pan, still, resting }: Props) {
   const id = useId()
   const sky = `${id}-sky`
   const clip = `${id}-window`
-  const { windowRadius: r, twinkleMs, twinkleStaggerMs, swayMs } = tuning.diorama
+  const r = tuning.diorama.windowRadius
   const classes = ['paper-diorama', `mood-${mood}`, still ? 'is-still' : '', resting ? 'is-resting' : ''].filter(Boolean).join(' ')
-  const style = { '--diorama-twinkle': `${twinkleMs}ms`, '--diorama-sway': `${swayMs}ms` } as CSSProperties
+  // Level 2's fade, so the diorama hides just as the live attic has faded in over it.
+  const style = { '--backdrop-fade': `${tuning.world.backdropFadeMs}ms` } as CSSProperties
   // The beam falls away from the moon (Saturday, on the right) or the sun (Sunday, on the left).
   const shaft = mood === 'saturday' ? 'M176 112 L224 112 L200 300 L110 300 Z' : 'M176 112 L224 112 L300 300 L210 300 Z'
 
@@ -93,14 +110,7 @@ export function PaperDiorama({ mood, pan, still, resting }: Props) {
           <rect x={windowX - r} y={windowY - r} width={r * 2} height={r * 2} fill={`url(#${sky})`} />
           {mood === 'saturday' &&
             stars.map(([x, y, size], i) => (
-              <circle
-                key={i}
-                className="diorama-star"
-                cx={windowX + x}
-                cy={windowY + y}
-                r={size}
-                style={{ animationDelay: `${-i * twinkleStaggerMs}ms` }}
-              />
+              <circle key={i} className="diorama-star" cx={windowX + x} cy={windowY + y} r={size} />
             ))}
           <g transform={`translate(${windowX} ${windowY})`}>
             <g className="diorama-orb-place">
@@ -114,20 +124,20 @@ export function PaperDiorama({ mood, pan, still, resting }: Props) {
         <path className="diorama-shaft" d={shaft} />
       </Layer>
 
-      <Layer name="rafters" pan={pan} still={still}>
+      <Layer name="rafters" pan={pan} still={still} cast>
         <path className="diorama-rafter" d="M-150 170 L200 22 L550 170" />
         <path className="diorama-rafter" d="M60 112 H340" />
         <path className="diorama-rafter" d="M-40 300 V200 M440 300 V200" />
       </Layer>
 
-      <Layer name="garland" pan={pan} still={still}>
+      <Layer name="garland" pan={pan} still={still} cast>
         <path className="diorama-string" d={stringPath} />
         {hangAt.map((t, i) => {
           const [x, y] = alongString(t)
           return mood === 'saturday' ? (
             <polygon key={i} className="diorama-garland-star" points={starPoints(x, y + 8, 7)} />
           ) : (
-            <g key={i} className="diorama-lantern-sway" style={{ animationDelay: `${-i * twinkleStaggerMs}ms` }}>
+            <g key={i}>
               <path className="diorama-string" d={`M${x} ${y} V${y + 8}`} />
               <ellipse className="diorama-lantern" cx={x} cy={y + 18} rx={8} ry={10} />
               <ellipse className="diorama-lantern-glow" cx={x} cy={y + 18} rx={5} ry={7} />
@@ -136,7 +146,7 @@ export function PaperDiorama({ mood, pan, still, resting }: Props) {
         })}
       </Layer>
 
-      <Layer name="props" pan={pan} still={still}>
+      <Layer name="props" pan={pan} still={still} cast>
         <path className="diorama-prop" d="M52 262 V188 H118 V262 Z M58 212 H112 M58 237 H112" />
         <path className="diorama-prop" d="M150 262 V222 H250 V262 M150 232 H250 M162 232 V262 M176 232 V262 M190 232 V262 M204 232 V262 M218 232 V262 M232 232 V262" />
         <path className="diorama-prop" d="M292 262 L300 226 H330 L336 262 M300 226 L294 192 M298 250 Q316 270 344 252" />
