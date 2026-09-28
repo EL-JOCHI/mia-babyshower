@@ -79,4 +79,19 @@ describe('the CSS paper family (spec §6)', () => {
     expect(figures.map((f) => f.style.getPropertyValue('--figure-delay'))).toEqual([0, 1, 2, 3].map((i) => `${i * staggerMs}ms`))
     expect(family()).toHaveAttribute('aria-hidden', 'true')
   })
+
+  it("cuts each figure from paper in the cats' double ink line, with no line boil, moving or still", () => {
+    for (const still of [false, true]) {
+      const view = render(<PaperFamily still={still} />)
+      for (const layer of document.querySelectorAll('.figure-body, .figure-hair')) {
+        const cut = layer.querySelector('[filter="url(#paper-cut)"]')
+        expect(cut).not.toBeNull()
+        expect(cut!.querySelector('.figure-ink')).not.toBeNull()
+        expect(cut!.querySelector('.figure-echo')).not.toBeNull()
+      }
+      expect(document.querySelectorAll('.figure-body, .figure-hair')).toHaveLength(8)
+      expect(family().querySelector('[filter="url(#ink-boil)"]')).toBeNull()
+      view.unmount()
+    }
+  })
 })

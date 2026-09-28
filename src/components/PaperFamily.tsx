@@ -10,8 +10,9 @@ const share = (value: number) => `${Number((value * 100).toFixed(3))}%`
 // paper like the cats (the shared #paper-cut filter: a rough paper edge and a soft shadow) and drawn
 // in their scratchy double ink: the ink stroke, a fill-only copy over it so no inner line shows
 // (spec §6: no faces, no inner lines), and the lighter second pass offset along the outline, as on
-// the cats. The line boils with the cats' (#ink-boil), and holds still with reduced motion.
-function Layer({ figure, layer, still }: { figure: FamilyFigure; layer: FamilyLayer; still: boolean }) {
+// the cats. Unlike the cats' line, it does not boil: eight animated turbulence filters inside the
+// family's 3D layers would halve the frame rate at the Familia card.
+function Layer({ figure, layer }: { figure: FamilyFigure; layer: FamilyLayer }) {
   const { x, y, width, height } = figure.box
   const { line, echo } = tuning.cats
   return (
@@ -20,17 +21,15 @@ function Layer({ figure, layer, still }: { figure: FamilyFigure; layer: FamilyLa
         <path d={rimPath(figure)} className="figure-rim-line" strokeWidth={tuning.family.rimWidth} />
       ) : (
         <g filter="url(#paper-cut)">
-          <g filter={still ? undefined : 'url(#ink-boil)'}>
-            <path d={figure[layer]} className="figure-ink" strokeWidth={line} />
-            <path d={figure[layer]} className="figure-fill" />
-            <path
-              d={figure[layer]}
-              className="figure-echo"
-              strokeWidth={echo.width}
-              opacity={echo.opacity}
-              transform={`translate(${echo.dx} ${echo.dy})`}
-            />
-          </g>
+          <path d={figure[layer]} className="figure-ink" strokeWidth={line} />
+          <path d={figure[layer]} className="figure-fill" />
+          <path
+            d={figure[layer]}
+            className="figure-echo"
+            strokeWidth={echo.width}
+            opacity={echo.opacity}
+            transform={`translate(${echo.dx} ${echo.dy})`}
+          />
         </g>
       )}
     </svg>
@@ -103,9 +102,9 @@ export function PaperFamily({ still }: { still: boolean }) {
             } as CSSProperties
           }
         >
-          <Layer figure={figure} layer="rim" still={still} />
-          <Layer figure={figure} layer="body" still={still} />
-          <Layer figure={figure} layer="hair" still={still} />
+          <Layer figure={figure} layer="rim" />
+          <Layer figure={figure} layer="body" />
+          <Layer figure={figure} layer="hair" />
         </div>
       ))}
     </div>
