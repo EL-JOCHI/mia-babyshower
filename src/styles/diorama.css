@@ -1,12 +1,22 @@
 /* ---------- Level 3: the paper diorama (spec §7) ---------- */
 /* Behind the flat room's cards. Its colors come from the mood and theme (src/headMeta.ts
    dioramaCss); nothing here is a color of its own. */
+/* Behind the drawing: the roof's underside in shadow, with faint boards, and the floor's band along
+   the bottom (the drawing's floor starts 262 of its 300 units down, so 12.7% up). They show only
+   where a very wide screen runs past the drawn wall and floor. */
 .paper-diorama {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  background: linear-gradient(var(--diorama-fog), var(--diorama-floor));
+  background:
+    linear-gradient(to top, var(--diorama-floor) 12.7%, transparent 12.7%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 46px,
+      color-mix(in oklab, var(--diorama-beam), transparent 70%) 46px 48px
+    ),
+    color-mix(in oklab, var(--diorama-wood), var(--shadow) 35%);
 }
 
 /* Wider than the screen, so sliding never shows an edge. */
@@ -16,11 +26,25 @@
   will-change: transform;
 }
 
+/* The drawing (400 × 300) always fills the screen's height, standing on its bottom edge: a portrait
+   phone sees the middle of the room, from the window down to the crib, and a landscape one the whole
+   room, with the wall, rafters, and floor (drawn past the drawing's edges) running on to the sides. */
 .diorama-layer svg {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  bottom: 0;
+  left: 50%;
   height: 100%;
+  width: auto;
+  aspect-ratio: 4 / 3;
+  translate: -50% 0;
+  overflow: visible;
+}
+
+/* Each paper layer casts a soft shadow on the ones behind it. */
+.diorama-rafters,
+.diorama-garland,
+.diorama-props {
+  filter: drop-shadow(0 3px 2px color-mix(in oklab, var(--shadow), transparent 55%));
 }
 
 .diorama-wall-fill {
