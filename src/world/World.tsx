@@ -8,6 +8,8 @@ import { Attic } from './Attic'
 import { Book } from './Book'
 import { buildPath } from './bookPath'
 import { CameraRig } from './CameraRig'
+import { bookCanvas } from './canvasSettings'
+import { DrawCallReadout } from './DrawCallReadout'
 import { MoodProps } from './MoodProps'
 import { Dust } from './Dust'
 import { Fireflies } from './Fireflies'
@@ -69,7 +71,15 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
     <>
       <fog attach="fog" args={[palette.fog, fog.near, fog.far]} />
       <CameraRig path={path} progressRef={progressRef} viewRef={viewRef} awake={awake} onReady={onReady} />
-      <StageLighting path={path} viewRef={viewRef} resources={resources} palette={palette} shadowRef={shadowRef} complete={doorComplete} />
+      <StageLighting
+        path={path}
+        viewRef={viewRef}
+        resources={resources}
+        palette={palette}
+        shadowRef={shadowRef}
+        complete={doorComplete}
+        shadows={bookCanvas(tier).shadows !== false}
+      />
       <Attic palette={palette} />
       <WindowSky palette={palette} tier={tier} />
       <Props palette={palette} />
@@ -96,6 +106,7 @@ function Scene({ ids, stations, progressRef, content, mood, theme, tier, awake, 
       ) : (
         <Dust count={tierCount(size.width < phoneMaxPx ? dust.phone : dust.desktop, tier)} material={resources.dust} />
       )}
+      {import.meta.env.DEV && <DrawCallReadout label={`book · ${tier}`} />}
     </>
   )
 }
@@ -111,15 +122,16 @@ export default function World({ onFail, running, paused, ...props }: WorldProps)
       throw error
     }
   })
+  const canvas = bookCanvas(props.tier)
 
   return (
     <Canvas
       className="world-canvas"
-      dpr={[1, tuning.world.maxDpr]}
+      dpr={canvas.dpr}
       frameloop={paused ? 'never' : running ? 'always' : 'demand'}
       gl={createRenderer}
       flat
-      shadows="percentage"
+      shadows={canvas.shadows}
       camera={{ fov: tuning.world.fovPortrait, near: tuning.world.rig.near, far: tuning.world.rig.far }}
       onCreated={({ gl }) => {
         // The stage lighting redraws the shadow map itself, only when the paper that casts it moves.

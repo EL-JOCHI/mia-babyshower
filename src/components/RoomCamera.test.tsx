@@ -1,16 +1,18 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createElement, useEffect, type ComponentProps, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { copy } from '../content'
+import { copy, days, shared } from '../content'
 import { dioramaCss } from '../headMeta'
 import { cameraTargetFor, clampCamera } from '../logic/camera'
 import { emptyCatState } from '../logic/catState'
 import { emptyProgress } from '../logic/progress'
 import { bookQrPx } from '../logic/book'
 import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
+import { tierCount } from '../logic/deviceTier'
 import { hasWebGL } from '../logic/webgl'
 import { cssColor, tuning } from '../tuning'
 import { beforeSatCutoff, beforeSunCutoff, renderRoom } from '../test/helpers'
+import { backdropCanvas, bookCanvas } from '../world/canvasSettings'
 import { WorldRoom } from './WorldRoom'
 
 // jsdom has no WebGL. The world stands in as its pages in plain DOM: it gets ready, fails on
@@ -954,5 +956,47 @@ describe('pausing (spec §8, Review Focus 4)', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+})
+
+describe('a low-tier device (spec §8, Review Focus 5)', () => {
+  beforeEach(() => {
+    world.mode = 'ready'
+    world.mounts = 0
+    backdrop.mode = 'ready'
+    backdrop.ready = null
+    backdrop.mounts = 0
+    vi.mocked(hasWebGL).mockReturnValue(true)
+    // A low device as Chromium reports it: little memory (Safari reports none and stays normal).
+    Object.defineProperty(navigator, 'deviceMemory', { configurable: true, value: tuning.world.tiers.lowMemoryGb })
+  })
+  afterEach(() => {
+    delete (navigator as { deviceMemory?: number }).deviceMemory
+    setScreenSize(jsdomWidth, jsdomHeight)
+  })
+
+  it('draws the book with no shadow map and fewer particles, and still shows every fact', async () => {
+    renderWorldRoom({ qrUrl: '/qr.png' })
+    await bookReady()
+    expect(screen.getByTestId('world')).toHaveAttribute('data-tier', 'low')
+    expect(bookCanvas('low').shadows).toBe(false)
+    expect(tierCount(tuning.world.stars.count, 'low')).toBeLessThan(tuning.world.stars.count)
+    expect(tierCount(tuning.world.mood.fireflies.count, 'low')).toBeLessThan(tuning.world.mood.fireflies.count)
+    // Spec §9: every fact is readable at every level and on every device.
+    expect(screen.getByText(days.sat.dateLine)).toBeInTheDocument()
+    expect(screen.getByText(shared.clockTime)).toBeInTheDocument()
+    expect(screen.getByText(shared.place)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: copy.map })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: copy.confirm })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: copy.qrAlt })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: copy.qrSave })).toBeInTheDocument()
+    expect(screen.getByText(copy.doorLine)).toBeInTheDocument()
+  })
+
+  it('draws the live attic as low too, at a pixel ratio of 1', async () => {
+    setScreenSize(844, 390)
+    renderWorldRoom()
+    expect(await screen.findByTestId('backdrop')).toHaveAttribute('data-tier', 'low')
+    expect(backdropCanvas('low').dpr[1]).toBe(1)
   })
 })

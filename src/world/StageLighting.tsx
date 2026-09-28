@@ -24,6 +24,8 @@ interface Props {
   shadowRef: RefObject<ShadowState>
   // Every page found (Cuento completo): the doorway glows brighter.
   complete: boolean
+  // Spec §8 Device tiers: a low device has no real shadow map, so the door candle casts none.
+  shadows: boolean
 }
 
 const mix = createStageMix()
@@ -31,7 +33,7 @@ const mix = createStageMix()
 // Spec §4 Lit from the start: the attic is lit by its mood on every page (MoodLights). The stage
 // (design §1 Evolution) drives only the book: its paper warms, its ink fades in, and in luz the
 // candles light (one casts shadows) and warm the paper toward the door.
-export function StageLighting({ path, viewRef, resources, palette, shadowRef, complete }: Props) {
+export function StageLighting({ path, viewRef, resources, palette, shadowRef, complete, shadows }: Props) {
   const { candleAt, candleOffset, doorOffset, candleDistance, shadowMapPx } = tuning.world.light
   const candles = useRef<(THREE.PointLight | null)[]>([])
 
@@ -66,7 +68,7 @@ export function StageLighting({ path, viewRef, resources, palette, shadowRef, co
     // the candles are lit; the first frame draws it so the texture exists. A settled book in luz
     // redraws nothing.
     const shadow = shadowRef.current
-    const draw = !shadow.drawn || (shadow.stale && mix.light > 0.001)
+    const draw = shadows && (!shadow.drawn || (shadow.stale && mix.light > 0.001))
     state.gl.shadowMap.needsUpdate = draw
     if (draw) {
       shadow.drawn = true
@@ -90,7 +92,7 @@ export function StageLighting({ path, viewRef, resources, palette, shadowRef, co
             intensity={0}
             distance={candleDistance}
             decay={2}
-            castShadow={door}
+            castShadow={door && shadows}
             shadow-mapSize={[shadowMapPx, shadowMapPx]}
             shadow-camera-near={0.1}
             shadow-camera-far={candleDistance}

@@ -1,10 +1,12 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { tierCount, tierSettings, type DeviceTier } from '../logic/deviceTier'
+import { tierCount, type DeviceTier } from '../logic/deviceTier'
 import { tuning, type MoodId, type ThemeName } from '../tuning'
 import { Attic } from './Attic'
 import { backdropView } from './backdropView'
+import { backdropCanvas } from './canvasSettings'
+import { DrawCallReadout } from './DrawCallReadout'
 import { createDustMaterial, Dust } from './Dust'
 import { Fireflies } from './Fireflies'
 import { MoodLights } from './MoodLights'
@@ -101,13 +103,14 @@ export function Backdrop({ mood, theme, tier, panRef, paused, onReady, onFail }:
   return (
     <Canvas
       className="backdrop-canvas"
-      dpr={[1, tierSettings(tier).backdropMaxDpr]}
+      dpr={backdropCanvas(tier).dpr}
       frameloop={paused ? 'never' : 'always'}
       gl={createRenderer}
       flat
       camera={{ fov: backdrop.fovPortrait, near: backdrop.near, far: backdrop.far }}
     >
       <BackdropScene mood={mood} theme={theme} tier={tier} panRef={panRef} onReady={onReady} />
+      {import.meta.env.DEV && <DrawCallReadout label={`attic · ${tier}`} />}
     </Canvas>
   )
 }
