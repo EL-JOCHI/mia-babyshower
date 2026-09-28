@@ -1,7 +1,10 @@
 import type { CatDrawing } from './types'
 
-// Nana (Delicadeza): upright and poised, ears shaped like a crown. Grooms on her throne.
+// Delilah (Curiosidad): a curious black cat, as the real Delilah was. Upright on her seat, her head
+// leaning in and her nose forward, wide-eyed, whiskers pointing ahead. Sniffs everything, then
+// grooms.
 export const nana: CatDrawing = {
+  coat: { kind: 'black' },
   ground: { cx: 60, rx: 24 },
   tail: {
     d: 'M77 107 C 81 114, 68 115, 58 114 C 50 113, 44 112, 40 110',
@@ -20,42 +23,32 @@ export const nana: CatDrawing = {
     { d: 'M55 87 L 55 110', width: 2.8, paw: [54, 110], groom: true },
     { d: 'M65 87 L 65 110', width: 2.8, paw: [66, 110] },
   ],
-  collar: { d: 'M48 62 Q 60 68, 72 62', charm: 'gem', at: [60, 68] },
+  collar: { d: 'M48 63 Q 60 69, 72 63', charm: 'gem', at: [60, 69] },
   head: {
-    d: 'M42 43 C 42 31, 50 24, 60 24 C 70 24, 78 31, 78 43 C 78 53, 70 60, 60 60 C 50 60, 42 53, 42 43 Z',
-    origin: [60, 57],
-    turn: -5,
+    d: 'M39 47 C 39 35, 47 28, 57 28 C 67 28, 75 35, 75 47 C 75 57, 67 64, 57 64 C 50 64, 44 61, 41 56 C 37 55, 37 50, 39 47 Z',
+    origin: [58, 61],
+    turn: -9,
   },
   ears: {
     l: {
-      d: 'M43 35 L 40 14 L 45 21 L 48 10 L 51 22 L 56 18 L 55 27 Z',
-      inner: 'M45 31 L 44 23 L 47 26 L 49 19 L 50 27 Z',
-      origin: [48, 30],
-      knobs: [
-        [40, 14],
-        [48, 10],
-        [56, 18],
-      ],
+      d: 'M41 39 C 39 31, 40 24, 42 17 C 47 20, 51 25, 53 29 Z',
+      inner: 'M43 35 C 42 30, 43 26, 44 21 C 47 24, 49 26, 50 29 Z',
+      origin: [46, 33],
     },
     r: {
-      d: 'M77 35 L 80 14 L 75 21 L 72 10 L 69 22 L 64 18 L 65 27 Z',
-      inner: 'M75 31 L 76 23 L 73 26 L 71 19 L 70 27 Z',
-      origin: [72, 30],
-      knobs: [
-        [80, 14],
-        [72, 10],
-        [64, 18],
-      ],
+      d: 'M62 29 C 66 24, 70 20, 75 17 C 77 24, 77 31, 74 38 Z',
+      inner: 'M64 29 C 67 26, 70 23, 73 21 C 74 26, 74 30, 72 34 Z',
+      origin: [69, 32],
     },
   },
   eyes: [
-    { x: 52.5, y: 42, r: 6.6 },
-    { x: 67.5, y: 41.5, r: 7.4 },
+    { x: 48.5, y: 45, r: 7.2 },
+    { x: 63.5, y: 44.5, r: 7.8 },
   ],
-  droop: 0.2,
-  pupil: 0.34,
-  nose: [60, 50],
-  mouth: 'M56 53 q2 2 4 0 q2 2 4 0',
-  whiskers: 'M49 50 L 45 49.5 M49 53 L 46 54 M71 50 L 75 49.5 M71 53 L 74 54',
-  heart: [60, 2],
+  droop: 0,
+  pupil: 0.5,
+  nose: [41.5, 52],
+  mouth: 'M42 56 q1.8 1.8 3.5 0 q1.8 1.8 3.5 0',
+  whiskers: 'M46 53 L 40 51.5 M46 56 L 41 57 M68 53 L 74 52 M68 56 L 73 57',
+  heart: [58, 11],
 }

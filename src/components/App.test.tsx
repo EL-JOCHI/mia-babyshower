@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { battleCopy, copy, days, gameCopy, gateGameCopy, shared } from '../content'
+import { battleCopy, cats, copy, days, gameCopy, gateGameCopy, shared } from '../content'
 import { storageKeys } from '../logic/storageKeys'
 import { whatsappUrl } from '../logic/whatsapp'
 import { tuning } from '../tuning'
@@ -24,7 +24,7 @@ const winBattle = (name: 'Misha' | 'Kira') => {
 
 describe('US-8 Enter only with the link I was sent', () => {
   it('shows the gate with both sentences, and no date, place, WhatsApp, or QR (AC4, SC-3)', () => {
-    render(<App search="" qrUrl="/qr.png" />)
+    render(<App search="" />)
     expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
     expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
     const text = document.body.textContent ?? ''
@@ -60,7 +60,7 @@ describe('US-10 Play the gate game', () => {
     render(<App search="" />)
     expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
     expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Luz' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Mishona' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: gateGameCopy.start }))
     expect(screen.getByText(gateGameCopy.seconds(tuning.gateGame.durationMs / 1000))).toBeInTheDocument()
@@ -76,20 +76,47 @@ describe('US-10 Play the gate game', () => {
     expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
   })
 
-  it('hides the roaming, greetable Luz while a round plays (she is the catcher); she is back after game over', () => {
+  it('hides the roaming, greetable Mishona while a round plays (she is the catcher); she is back after game over', () => {
     render(<App search="" />)
-    expect(screen.getByRole('img', { name: 'Luz' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Mishona' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: gateGameCopy.start }))
-    expect(screen.queryByRole('img', { name: 'Luz' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'Mishona' })).not.toBeInTheDocument()
     expect(document.querySelector('[data-cat-id="luz"]')).toBeNull()
-    expect(screen.getByRole('img', { name: 'Mimo' })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Susto' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Choni' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Chavela' })).toBeInTheDocument()
 
     for (let t = 0; t < tuning.gateGame.durationMs + 500; t += 1000) advance(1000)
 
     expect(screen.getByText(gateGameCopy.over)).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Luz' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Mishona' })).toBeInTheDocument()
+  })
+
+  // Controller ruling 3: a cat's rig loops under its paper-cut and ink-boil filters, so every frame
+  // it moves redraws those filters. While a round plays, every gate cat holds still: the roaming
+  // Choni and Chavela and the game's Mishona, Choni, and Chavela alike. After the round they boil again.
+  it('holds every gate cat still while a round plays (no ink boil, no rig loop), and lets them boil again after it', () => {
+    render(<App search="" />)
+    const gate = () => document.querySelector('.gate') as HTMLElement
+    const sprites = () => gate().querySelectorAll('.cat-sprite')
+    const boiling = () => gate().querySelectorAll('.cat-sprite [filter="url(#ink-boil)"]')
+    expect(sprites()).toHaveLength(3)
+    expect(boiling()).toHaveLength(3)
+    expect(gate()).not.toHaveClass('is-playing')
+
+    fireEvent.click(screen.getByRole('button', { name: gateGameCopy.start }))
+    // Choni and Chavela still roam; Mishona catches, and Choni and Chavela react beside the field.
+    expect(sprites()).toHaveLength(5)
+    expect(boiling()).toHaveLength(0)
+    // The class that stops the rig's loops (src/index.css, `.gate.is-playing .cat-sprite *`).
+    expect(gate()).toHaveClass('is-playing')
+
+    for (let t = 0; t < tuning.gateGame.durationMs + 500; t += 1000) advance(1000)
+
+    expect(screen.getByText(gateGameCopy.over)).toBeInTheDocument()
+    expect(gate()).not.toHaveClass('is-playing')
+    expect(sprites()).toHaveLength(3)
+    expect(boiling()).toHaveLength(3)
   })
 
   it('shows the sentences and still cats, with no start button, with reduced motion (AC3)', () => {
@@ -99,14 +126,18 @@ describe('US-10 Play the gate game', () => {
     expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
     expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
     for (const el of document.querySelectorAll('.cat')) expect(el).toHaveClass('is-still')
+    // Reduced motion keeps the ink from boiling.
+    expect(document.querySelectorAll('.gate .cat-sprite [filter="url(#ink-boil)"]')).toHaveLength(0)
   })
 })
 
 describe('US-12 The gate is a room with cats (AC1)', () => {
-  it('has Luz, Mimo, and Susto with the yarn, the box, and a heart; no Bram, Misha, Kira, or door', () => {
+  it('has Mishona, Choni, and Chavela with the yarn, the box, and a heart; no other cat, and no door', () => {
     render(<App search="" />)
-    for (const name of ['Luz', 'Mimo', 'Susto']) expect(screen.getByRole('img', { name })).toBeInTheDocument()
-    for (const name of ['Bram', 'Nana', 'Misha', 'Kira']) expect(screen.queryByRole('img', { name })).not.toBeInTheDocument()
+    for (const name of ['Mishona', 'Choni', 'Chavela']) expect(screen.getByRole('img', { name })).toBeInTheDocument()
+    for (const name of ['Kiri kiri', 'Delilah', 'Chona', 'Chori', 'Minina', 'Misha', 'Kira']) {
+      expect(screen.queryByRole('img', { name })).not.toBeInTheDocument()
+    }
     expect(document.querySelector('.toy-yarn')).not.toBeNull()
     expect(document.querySelector('.toy-box')).not.toBeNull()
     expect(document.querySelector('.toy-heart')).not.toBeNull()
@@ -162,7 +193,7 @@ describe('US-3 AC4 and BR-16 storage', () => {
     localStorage.setItem(storageKeys.cats, '{not json')
     render(<App search="" />)
     openCollection()
-    expect(dialog().getByText(copy.roundCount(0))).toBeInTheDocument()
+    expect(dialog().getByText(copy.roundCount(0, cats.length))).toBeInTheDocument()
   })
 })
 
@@ -170,17 +201,17 @@ describe('US-9 Meet the cats and keep them', () => {
   beforeEach(() => vi.useFakeTimers())
   afterEach(() => vi.useRealTimers())
 
-  it('greets Luz, stores her, and shows the caught line, rarity, and line (AC1)', () => {
+  it('greets Mishona, stores her, and shows the caught line, rarity, and line (AC1)', () => {
     vi.setSystemTime(beforeSatCutoff)
     catsInView()
     render(<App search="?e=n4vk" />)
     advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Mishona' }))
     expect(JSON.parse(localStorage.getItem(storageKeys.cats)!)).toEqual({ caught: ['luz'], round: ['luz'], rounds: 1 })
     const status = screen.getByRole('status')
-    expect(status).toHaveTextContent(copy.caught('Luz'))
+    expect(status).toHaveTextContent(copy.caught('Mishona'))
     expect(status).toHaveTextContent('Común')
-    expect(status).toHaveTextContent('Siempre encuentra algo que perseguir.')
+    expect(status).toHaveTextContent('Se arregla los bigotes antes de saludarte.')
     advance(tuning.greetingToastMs + 10)
     expect(screen.getByRole('status')).toBeEmptyDOMElement()
   })
@@ -200,13 +231,13 @@ describe('US-9 Meet the cats and keep them', () => {
     expect(stored(storageKeys.cats).caught).toEqual(['misha', 'kira'])
   })
 
-  it('greets Mimo on the gate, where Bram never appears (AC5, AC7)', () => {
+  it('greets Choni on the gate, where Kiri kiri never appears (AC5, AC7)', () => {
     catsInView()
     render(<App search="" />)
     advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Mimo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Choni' }))
     expect(JSON.parse(localStorage.getItem(storageKeys.cats)!).caught).toEqual(['mimo'])
-    expect(screen.queryByRole('img', { name: 'Bram' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'Kiri kiri' })).not.toBeInTheDocument()
   })
 
   it('shows two stored cats with their lines and adds nothing until a new greet (AC6)', () => {
@@ -215,9 +246,28 @@ describe('US-9 Meet the cats and keep them', () => {
     localStorage.setItem(storageKeys.cats, stored)
     render(<App search="?e=q8lm" />)
     openCollection()
-    expect(dialog().getByText('Siempre encuentra algo que perseguir.')).toBeInTheDocument()
-    expect(dialog().getByText('Elige un solo lugar, y ese es el suyo.')).toBeInTheDocument()
-    expect(dialog().getByText(copy.roundCount(2))).toBeInTheDocument()
+    expect(dialog().getByText('Se arregla los bigotes antes de saludarte.')).toBeInTheDocument()
+    expect(dialog().getByText('Todo lo huele primero, hasta el QR.')).toBeInTheDocument()
+    expect(dialog().getByText(copy.roundCount(2, cats.length))).toBeInTheDocument()
+    expect(localStorage.getItem(storageKeys.cats)).toBe(stored)
+  })
+
+  // Review Focus 1: a guest who met every cat before the rename comes back.
+  it('keeps a returning guest\'s seven cats under their new names, and shows the three new cats as not yet met', () => {
+    vi.setSystemTime(beforeSatCutoff)
+    const old = ['luz', 'mimo', 'susto', 'bram', 'nana', 'misha', 'kira']
+    const stored = JSON.stringify({ caught: old, round: old, rounds: 1 })
+    localStorage.setItem(storageKeys.cats, stored)
+    render(<App search="?e=n4vk" />)
+    expect(screen.getByText(gameCopy.cats(7, cats.length))).toBeInTheDocument()
+    openCollection()
+    expect(dialog().getByText(copy.roundCount(7, cats.length))).toBeInTheDocument()
+    for (const name of ['Mishona', 'Choni', 'Chavela', 'Kiri kiri', 'Delilah', 'Misha', 'Kira']) {
+      expect(dialog().getByText(name)).toBeInTheDocument()
+    }
+    for (const id of ['chona', 'chori', 'minina']) {
+      expect(within(screen.getByTestId(`collection-${id}`)).getByText(copy.notYet)).toBeInTheDocument()
+    }
     expect(localStorage.getItem(storageKeys.cats)).toBe(stored)
   })
 
@@ -303,10 +353,10 @@ describe('US-14 The legendary battle and the card reward (design §6, §7)', () 
   it('shows the card for a normal greeting, and a tap sends it away', () => {
     render(<App search="?e=n4vk" />)
     advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Mishona' }))
     const card = screen.getByTestId('card-reveal')
     expect(card).toHaveClass('rarity-comun')
-    expect(card).toHaveTextContent('Luz')
+    expect(card).toHaveTextContent('Mishona')
     expect(card).toHaveTextContent('Común')
     fireEvent.click(card)
     advance(tuning.card.leaveMs + 10)
@@ -316,7 +366,7 @@ describe('US-14 The legendary battle and the card reward (design §6, §7)', () 
   it('a first greeting earns XP for the cat and the first-cat badge (metCat)', () => {
     render(<App search="?e=n4vk" />)
     advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Mishona' }))
     const progress = stored(storageKeys.progress)
     expect(progress.xp).toBeGreaterThan(0)
     expect(progress.xp).toBe(tuning.progress.catXp.comun + tuning.progress.badgeXp.primerGato)
@@ -330,7 +380,7 @@ describe('US-14 The legendary battle and the card reward (design §6, §7)', () 
     localStorage.setItem(storageKeys.progress, progress)
     render(<App search="?e=n4vk" />)
     advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Mishona' }))
     expect(stored(storageKeys.cats).round).toEqual(['luz'])
     expect(localStorage.getItem(storageKeys.progress)).toBe(progress)
   })
@@ -390,7 +440,7 @@ describe('US-15 The game layer: pages, badges, and XP (design §5, §6)', () => 
 
   it('earns QR guardado from Guardar QR', () => {
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
-    render(<App search="?e=n4vk" qrUrl="/qr.png" />)
+    render(<App search="?e=n4vk" />)
     fireEvent.click(screen.getByRole('button', { name: copy.qrSave }))
     expect(toast()).toHaveTextContent(gameCopy.badges.qrGuardado)
     expect(toast()).toHaveTextContent(gameCopy.badgeXp(tuning.progress.badgeXp.qrGuardado))
@@ -425,13 +475,15 @@ describe('US-15 The game layer: pages, badges, and XP (design §5, §6)', () => 
     expect(screen.queryByTestId('badge-toast')).not.toBeInTheDocument()
   })
 
-  it('holds the badge toasts until the card has gone, and counts the cat in the quest log', () => {
+  it('holds the badge toasts until the card has gone, and counts the cat in the quest log and on Tus gatos', () => {
     catsInView()
     render(<App search="?e=n4vk" />)
-    expect(screen.getByText(gameCopy.cats(0))).toBeInTheDocument()
+    expect(screen.getByText(gameCopy.cats(0, cats.length))).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: copy.collection, description: copy.roundCount(0, cats.length) })).toBeInTheDocument()
     advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
-    expect(screen.getByText(gameCopy.cats(1))).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Mishona' }))
+    expect(screen.getByText(gameCopy.cats(1, cats.length))).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: copy.collection, description: '1 de 10' })).toBeInTheDocument()
     expect(screen.getByTestId('card-reveal')).toBeInTheDocument()
     expect(screen.queryByTestId('badge-toast')).not.toBeInTheDocument()
     advance(tuning.greetingToastMs + 10)
@@ -440,7 +492,7 @@ describe('US-15 The game layer: pages, badges, and XP (design §5, §6)', () => 
 
   it('shows every object already open with reduced motion: the gift box with the QR, and the map', () => {
     window.__prefersReducedMotion = true
-    render(<App search="?e=n4vk" qrUrl="/qr.png" />)
+    render(<App search="?e=n4vk" />)
     const box = document.querySelector<HTMLElement>('.gift-box')!
     expect(box).toHaveClass('is-open')
     expect(within(box).getByRole('img', { name: copy.qrAlt })).toBeInTheDocument()
@@ -512,12 +564,12 @@ describe('US-13 Relive the party', () => {
       round: [],
       rounds: 2,
     })
-    expect(dialog().getByText(copy.roundCount(0))).toBeInTheDocument()
+    expect(dialog().getByText(copy.roundCount(0, cats.length))).toBeInTheDocument()
     expect(dialog().getByText(copy.roundNumber(2))).toBeInTheDocument()
-    expect(dialog().getByText('Siempre encuentra algo que perseguir.')).toBeInTheDocument()
+    expect(dialog().getByText('Se arregla los bigotes antes de saludarte.')).toBeInTheDocument()
     fireEvent.click(dialog().getByRole('button', { name: copy.close }))
     advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
-    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Luz' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Saludar a Mishona' }))
     expect(JSON.parse(localStorage.getItem(storageKeys.cats)!)).toEqual({
       caught: ['luz', 'mimo', 'nana'],
       round: ['luz'],
@@ -563,9 +615,18 @@ describe('US-13 Relive the party', () => {
 
 describe('US-11 Hear the room when I ask', () => {
   it('has no music control and no audio element without a track (AC1)', () => {
-    render(<App search="" musicUrl={undefined} />)
+    render(<App search="" musicUrl="" />)
     expect(screen.queryByRole('button', { name: copy.musicOn })).not.toBeInTheDocument()
     expect(document.querySelector('audio')).toBeNull()
+  })
+
+  it("plays the host's track: the music control appears, and the track waits until asked (spec §4)", () => {
+    render(<App search="" />)
+    expect(screen.getByRole('button', { name: copy.musicOn })).toBeInTheDocument()
+    const audio = document.querySelector('audio')!
+    expect(audio.getAttribute('src')).toMatch(/ambience.*\.mp3$/)
+    expect(audio).toHaveAttribute('preload', 'none')
+    expect(audio.loop).toBe(true)
   })
 
   it('starts paused, then plays from the start and reads Silenciar música (AC2, AC3)', async () => {

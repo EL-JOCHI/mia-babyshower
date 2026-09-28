@@ -1,10 +1,10 @@
 # Stack and resources
 
-**Checked:** 2026-09-26, updated 2026-09-27 for the pop-up book redesign  
-**Purpose:** The technical stack, and the assets still missing.  
+**Checked:** 2026-09-26, updated 2026-09-27 for the pop-up book redesign and 2026-09-28 for the family cats and the real QR  
+**Purpose:** The technical stack, and where the assets live.  
 **Requirements:** `docs/requirements.md` is the behavior, including section 16, which is the build order. This file is the versions and the asset list.
 
-Everything below is installed and pinned in `package.json`. The redesign (`docs/superpowers/specs/2026-09-26-invitation-redesign-design.md`) added `@react-three/drei` and the three storybook fonts, and removed Press Start 2P and Source Sans 3.
+Everything below is installed and pinned in `package.json`. The redesign (`docs/superpowers/specs/2026-09-26-invitation-redesign-design.md`) added `@react-three/drei` and the three storybook fonts, and removed Press Start 2P and Source Sans 3. The family-cats work (`docs/superpowers/specs/2026-09-28-family-cats-qr-design.md`) added `qrcode-generator` and, for tests only, `jsqr`, `pngjs`, and `@types/pngjs`.
 
 ## 1. What has to give way
 
@@ -30,6 +30,7 @@ Checked with `npm view` on 2026-09-26. Peers below are from those releases.
 | three | 0.186.0 | The 3D book only, in its own lazy chunk |
 | @react-three/fiber | 9.7.0 | React renderer for Three.js. Peer: `three >= 0.156`, React as above. |
 | @react-three/drei | 10.7.8 | `Html`, to place the pages in 3D. Peers: React 19, Fiber 9, `three >= 0.159`. |
+| qrcode-generator | 2.0.4 | The gift QR on the page: builds the module matrix from the bank payload at runtime (error correction Q, version 18), in the entry chunk. MIT, no dependencies, ships its own types. The download does not use it: `Guardar QR` saves the bank's own image. |
 
 ### Build
 
@@ -54,6 +55,9 @@ Checked with `npm view` on 2026-09-26. Peers below are from those releases.
 | @testing-library/dom | 10.4.2 | Required by the React testing library. |
 | @testing-library/jest-dom | 7.0.1 | DOM matchers such as `toBeInTheDocument`. |
 | @testing-library/user-event | 14.6.7 | Taps, keys, and drags in component tests. |
+| jsqr | 1.4.0 | Decodes the gift QR in tests: the page's drawing, rasterized at 220 px, and the committed bank image. Apache-2.0. Tests only. |
+| pngjs | 7.0.0 | Reads the committed bank image (`src/assets/qr-bank.png`) into pixels for `jsqr`. MIT. Tests only. |
+| @types/pngjs | 6.0.5 | Types for pngjs. They bring in Node's types, so the tests type-check in their own `tsconfig.test.json`, with `node` in its `types`. The app's `tsconfig.app.json` leaves the tests out and has no Node types, so the shipped code cannot use a Node API. |
 
 ### Lint
 
@@ -93,17 +97,17 @@ The fallbacks are the plain generic families (`serif`, `monospace`), not the sys
 
 Install **Node.js 26.9.0** with nvm before the first `npm install`. Node 26.10.0 came out on 2026-09-21. The pin stays at 26.9.0 unless it is changed on scaffold day. Put `26.9.0` in `.nvmrc` and `"node": ">=26.9.0"` in `engines`. npm is the one that ships with that Node.
 
-`@types/node` is **26.6.2**.
+`@types/node` is **26.6.2**. Only the tests see Node's types (`tsconfig.test.json`); the app does not (`tsconfig.app.json`).
 
 Vite 8 accepts Node `^20.19.0 || >=22.12.0`. Vitest 5 accepts `^22.12.0 || ^24.0.0 || >=26.0.0`. Node 26.9.0 satisfies both. The project does not target an older line.
 
-Do not add a router, an animation library, a component kit, a state library, `qrcode.react`, or a game engine. The QR is an image. Theme, cats, music, progress, and the best gate score are `localStorage` plus React state.
+Do not add a router, an animation library, a component kit, a state library, a React QR component such as `qrcode.react`, or a game engine. The QR on the page is plain SVG drawn from `qrcode-generator`'s matrix; the download is the bank's own image. Theme, cats, music, progress, and the best gate score are `localStorage` plus React state.
 
 ## 2.1 Why this stack still fits
 
 Scratching a card, batting the countdown, tilting the QR, and startling at nothing are short reactions on HTML, not a physics world. React owns those elements, so the words stay readable, the QR stays scannable, and a screen reader can reach the buttons. A cat is a small state: playing, noticing, or staying. The camera is one position updated by drag, touch, wheel, and keys.
 
-Three.js draws the 3D book, through React Three Fiber and drei, and only when motion is allowed and WebGL starts. It loads as a separate chunk behind the HTML cover. It renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. The pages, the cats, and every control stay HTML and SVG, placed in 3D with drei's `Html`, so the words stay sharp and reachable. Where the book cannot run (reduced motion, no WebGL, a failure, or a load timeout), the flat room shows the same pages with no canvas. In the flat room, parallax is the same camera position applied to two or three CSS layers at different speeds. It is not a scroll library. Reduced motion sets every layer to the same speed. The room height uses `dvh`. The drag surface uses `touch-action: pinch-zoom`, so one finger moves the camera and two fingers still zoom. The document uses `overscroll-behavior: none`. Zoom stays enabled. Cats and shadows are SVG or CSS drawn in the app. `Guardar QR` shares or downloads the image file. It does not open a bank deep link.
+Three.js draws the 3D book, through React Three Fiber and drei, and only when motion is allowed and WebGL starts. It loads as a separate chunk behind the HTML cover. It renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. The pages, the cats, and every control stay HTML and SVG, placed in 3D with drei's `Html`, so the words stay sharp and reachable. Where the book cannot run (reduced motion, no WebGL, a failure, or a load timeout), the flat room shows the same pages with no canvas. In the flat room, parallax is the same camera position applied to two or three CSS layers at different speeds. It is not a scroll library. Reduced motion sets every layer to the same speed. The room height uses `dvh`. The drag surface uses `touch-action: pinch-zoom`, so one finger moves the camera and two fingers still zoom. The document uses `overscroll-behavior: none`. Zoom stays enabled. Cats and shadows are SVG or CSS drawn in the app. `Guardar QR` shares or downloads the bank's own QR image. It does not open a bank deep link.
 
 A 2D game framework such as Phaser, or a physics library, would draw the invitation into a canvas. The date, the verse, and the QR would then have to be rebuilt as HTML on top, which is a second UI. That cost shows up only if the cats need real collision, dozens of objects, or free-roam simulation. This invitation does not. The reactions return the countdown and the QR to rest. They do not need a solver.
 
@@ -115,7 +119,7 @@ A 2D game framework such as Phaser, or a physics library, would draw the invitat
 - The 3D book loads behind the cover, only if the guest has not asked for reduced motion and WebGL can start. The first paint is the cover from `index.html`, before any script.
 - Every tunable number and color lives in one tuning module (requirements BR-21).
 - `index.html` carries the share preview. Its absolute image URL comes from `VITE_SITE_URL` in `.env`, written as `%VITE_SITE_URL%`.
-- Tests call the pure functions for the invite code, the party-over cutoff, the layout, the screen scale, the stage, the camera path, noticing, a greet, playing again, the battle, progress, and the gate game. Component tests cover the Spanish strings, the WhatsApp URL, the gate and its game, the battle dialog, the card, the quest log, and the toasts, with the 3D world replaced by a stand-in. They do not screenshot the cats.
+- Tests call the pure functions for the invite code, the party-over cutoff, the layout, the screen scale, the stage, the camera path, noticing, a greet, playing again, the battle, progress, the gate game, and the gift QR (its matrix, its emblem, and a decode of the drawing and of the bank's image). Component tests cover the Spanish strings, the WhatsApp URL, the gate and its game, the battle dialog, the card, the quest log, and the toasts, with the 3D world replaced by a stand-in. They do not screenshot the cats.
 - Countdown tests use Vitest fake timers and the fixed instants in the requirements. Display strings are already Spanish, so the suite does not need a locale polyfill.
 
 ## 4. Files already in the repo
@@ -132,15 +136,16 @@ These stay references. They are not copied into the public site. `ideas/dad.jpg`
 | `docs/requirements.md` | Behavior. |
 | `docs/stack-and-resources.md` | This file. |
 
-## 5. Still to be supplied
+## 5. Assets
 
-The site can be built without these. The requirements already say what to show while they are missing.
+Where each asset lives. The requirements say what shows if one is missing.
 
-| Asset | When it arrives | Where it will live |
+| Asset | Status | Where it lives |
 | --- | --- | --- |
-| Payment QR image | Hosts add the file | `src/assets/qr.png`, detected at build time with `import.meta.glob`. PNG, not blurred. Made without a fixed amount, reusable, and expiring after 18 October 2026 or never. |
-| Ambience track | Hosts add the file | `src/assets/audio/ambience.mp3`, detected at build time. One file, looped, mastered quiet. The control stays hidden until the file exists. |
-| Share preview image | The implementer makes it in R1 | `public/og-image.jpg`, 1200×630 JPEG under 300 KB. No date, no place. |
+| Gift QR payload | In the repo | `shared.giftQr` in `src/content.ts`: the Banco Ganadero payload, decoded locally. Drawn on the page with `qrcode-generator`. Expires 27 September 2027. |
+| Gift QR image | In the repo | `src/assets/qr-bank.png`: the bank's own QR (version 13, error correction L, with its ECI marker), cropped from the host's image and padded with a white quiet zone of about 4 modules. The gift page imports it; `Guardar QR` saves it as `qr-regalo-mia.png`. Its SHA-256 is pinned in `src/components/Gift.test.tsx`. |
+| Ambience track | In the repo | `src/assets/audio/ambience.mp3`, the host's track, detected at build time. One file, looped, not preloaded. |
+| Share preview image | In the repo | `public/og-image.jpg`, 1200×630 JPEG under 300 KB: the title and the ten cats in their coats. No date, no place. |
 | Portraits of mom, Miguelito, and Mia | Not required | Hair rules in the requirements are enough. Do not wait on photos. |
 
 No account art, no Pokémon tiles, no Pixar characters, no skulls.
@@ -165,7 +170,7 @@ When the repository exists, once:
 1. Open **Settings → Pages**.
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
 
-The workflow installs Node from `.nvmrc` (26.9.0), runs `npm ci`, `npm test`, and `npm run build`, then publishes `dist`. Until `package.json` is in the repo, the job succeeds and does not deploy. The QR image and the music file are not required for that build. Add them when you have them. The next push picks them up.
+The workflow installs Node from `.nvmrc` (26.9.0), runs `npm ci`, `npm test`, and `npm run build`, then publishes `dist`. Until `package.json` is in the repo, the job succeeds and does not deploy. The gift QR (its payload and the bank's image) and the music file are already in the repo.
 
 The repository is `mia-babyshower`, public. The live links will be `https://el-jochi.github.io/mia-babyshower/?e=n4vk` and `https://el-jochi.github.io/mia-babyshower/?e=q8lm`. The bare `https://el-jochi.github.io/mia-babyshower/` is the guest gate.
 

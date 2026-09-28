@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { cats } from '../content'
 import { tuning } from '../tuning'
 import { applyEvent, countablePages, emptyProgress, levelFor, sanitizeProgress } from './progress'
 import { landmarksFor } from './layout'
@@ -49,8 +50,11 @@ describe('cats', () => {
     expect(r.awards).toEqual([{ xp: x.catXp.comun }, { badge: 'primerGato', xp: x.badgeXp.primerGato }])
     expect(r.progress.xp).toBe(x.catXp.comun + x.badgeXp.primerGato)
   })
-  it('awards Todos los gatos on the seventh cat', () => {
-    const r = applyEvent({ ...emptyProgress, badges: ['primerGato'] }, { type: 'metCat', cat: 'kira', metCount: 7 })
+  it('awards Todos los gatos on the last of the ten cats, and not on the seventh (spec §3)', () => {
+    const seventh = applyEvent({ ...emptyProgress, badges: ['primerGato'] }, { type: 'metCat', cat: 'kira', metCount: 7 })
+    expect(seventh.awards.map((a) => a.badge ?? 'cat')).toEqual(['cat'])
+    const r = applyEvent({ ...emptyProgress, badges: ['primerGato'] }, { type: 'metCat', cat: 'kira', metCount: cats.length })
+    expect(cats).toHaveLength(10)
     expect(r.awards.map((a) => a.badge ?? 'cat')).toEqual(['cat', 'todosLosGatos'])
     expect(r.awards[0]?.xp).toBe(x.catXp.legendario)
   })

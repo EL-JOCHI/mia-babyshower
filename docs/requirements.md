@@ -2,11 +2,12 @@
 
 **Status:** Draft  
 **Created:** 2026-09-23  
-**Updated:** 2026-09-27  
+**Updated:** 2026-09-28  
 **Kind:** Product specification (spec-driven development)  
 **Release:** R1 goes live on 2026-09-27. The links go out that night. The parties are on 17 and 18 October 2026. Section 16 has the release plan.  
 **Reviewed:** 2026-09-26 in `docs/requirements-review.md`. The host decisions from that review are applied here.  
-**Redesign:** 2026-09-26 in `docs/superpowers/specs/2026-09-26-invitation-redesign-design.md`, a moonlit pop-up book. Its changes are applied here: the 3D book, the new look and cats, the legendary battle, the game layer, and the gate game.
+**Redesign:** 2026-09-26 in `docs/superpowers/specs/2026-09-26-invitation-redesign-design.md`, a moonlit pop-up book. Its changes are applied here: the 3D book, the new look and cats, the legendary battle, the game layer, and the gate game.  
+**Family cats and the real QR:** 2026-09-28 in `docs/superpowers/specs/2026-09-28-family-cats-qr-design.md`: the family's ten cats in their coats, the real gift QR, the icons, the host's music, the smooth gate game, and dad's guitar. Its changes are applied here. Where the build differs from that spec, this file follows the build: `Guardar QR` saves the bank's own QR image, and the code on the page uses error correction Q.
 
 This file is the source of truth for what the site is. Later documentation, tests, and code have to match it. A requirement that is not written here is not in scope. A test that does not trace to a requirement here does not belong in the suite. Code that does not serve a requirement here does not get added.
 
@@ -56,13 +57,14 @@ The code is the first `e` in the query string. Spaces around it are ignored, and
 One screen, with no camera to move, and a small arcade game under the two sentences. None of the fighting.
 
 - The sentences in section 6 stay on screen the whole time, in every phase of the game.
-- `Toca para jugar` starts a 30-second round. Yarn balls and hearts fall, and the guest moves Luz left and right to catch them: by pointer or finger over the play field, or with the arrow keys once the field has focus.
+- `Toca para jugar` starts a 30-second round. Yarn balls and hearts fall, and the guest moves Mishona left and right to catch them: by pointer or finger over the play field, or with the arrow keys once the field has focus.
 - Yarn is worth 10 points and a heart 20, times the combo. Each catch raises the combo by one, up to ×5. A drop that reaches the bottom resets the combo to ×1. There is no losing, only the timer.
-- The screen shows `Puntos {n}`, `Combo ×{n}`, and the seconds left. Mimo cheers when the combo reaches ×3, and Susto startles when a drop is missed. Neither score nor combo is announced by screen readers while playing.
+- The screen shows `Puntos {n}`, `Combo ×{n}`, and the seconds left. Choni cheers when the combo reaches ×3, and Chavela startles when a drop is missed. Neither score nor combo is announced by screen readers while playing.
 - When the time runs out: `¡Se acabó el tiempo!`, the score, and `Tu mejor puntaje: {n}`, or `¡Nuevo récord!` when the score beats the best. `Jugar otra vez` starts a new round at once. The best score is kept on the browser (BR-16). Screen readers hear the end once, in a polite live region.
 - The round pauses while the page is hidden. A long gap between frames, such as after sleep, never ends the round at once.
+- It runs smoothly: each frame moves the drops and the catcher directly, and React redraws the game only when the score, the combo, the phase, or the best score changes; the frame loop writes the clock itself. While a round plays, every gate cat, the catcher too, holds still: no line boil and no rig loops. They come back to life when the round ends. Target: a steady 60 frames per second on a mid-range phone.
 - There is no button that enters a party. Nothing about the party shows, in any phase.
-- Luz, Mimo, and Susto rest below the game, play with the yarn, the box, and a heart, and can be greeted here. While a round plays, the roaming Luz steps aside, because she is the catcher; she is back when the round ends.
+- Mishona, Choni, and Chavela rest below the game, play with the yarn, the box, and a heart, and can be greeted here. While a round plays, the roaming Mishona steps aside, because she is the catcher; she is back when the round ends.
 - Reduced motion shows the two sentences and still cats. There is no game and nothing falls. Greeting still works.
 
 ### The room: the book
@@ -74,7 +76,7 @@ On a real invitation the first thing on screen is the book's cover, in HTML: the
 3. **Cuándo** — that day's date and `16:00`, pinned to the page, with a melting candle, an hourglass, and the countdown as flip-card digits. The candle is whole 30 days before the party and burns down toward a stub at the start.
 4. **Dónde** — a treasure map that unrolls, a pin that drops, the address, and `Ver en el mapa`. Only until the party is over.
 5. **Confirmar** — the invitation letter and `Confirmar por WhatsApp`, with a message that names this day. Tapping it presses a wax seal onto the letter while WhatsApp opens at once. Only until the party is over.
-6. **Presente** — presence first, then a gift box whose ribbon unties and whose lid lifts to reveal the shared QR on its plate, with `Guardar QR` below. Only until the party is over.
+6. **Presente** — one line, presence first, then a gift box whose ribbon unties and whose lid lifts to reveal the gift QR drawn in the invitation's style, with `Guardar QR` below as a cat button and its hint. Only until the party is over. See *The gift QR*.
 7. **Familia** — the lit doorway. The family, four faceless paper figures, folds up from the page and walks in. Misha and Kira are with them. Once every page that counts has been found (the badge `Cuento completo`), the door glows brighter.
 
 The objects open as soon as their page stands up or comes into view, found or not, and stay open: a fact is never held behind an arrival, a tap, or a badge. With reduced motion every object is already open and still.
@@ -85,7 +87,7 @@ Section 4 says how the book is laid out and how the flat room lays out the same 
 
 Signposts stay on screen: `Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`. `Inicio` leads to Llegada. Activating one glides the camera to that page. A signpost is absent when its landmark is absent. The guest never has to hunt for the invitation or for the door.
 
-A theme control, the music control, and `Tus gatos` stay fixed on screen on the gate and on both invitations. On an invitation the quest log also stays on screen (see *The game layer*). The theme offers **Oscuro** and **Claro**. `Confirmar por WhatsApp` and `Ver en el mapa` live inside their pages and move with them.
+A theme control, the music control, and `Tus gatos` stay fixed on screen on the gate and on both invitations. On an invitation the quest log also stays on screen (see *The game layer*). The theme offers **Oscuro** and **Claro** as a moon and a sun drawn in the ink style; their names stay for screen readers as visually hidden text, the active one is pressed, and each is a touch target of at least 44 px. `Tus gatos` is a cat's head with a small badge `{n}/10`, the cats met out of all of them; its name stays `Tus gatos` and the count is read with it. The music control stays a text button: `Activar música` or `Silenciar música`. `Confirmar por WhatsApp` and `Ver en el mapa` live inside their pages and move with them.
 
 ### The moods
 
@@ -106,7 +108,7 @@ Each look sets the sky behind the round window, the moon or sun and its halo, th
 
 ### The lived-in attic
 
-Both moods share one attic, furnished in the pink-noir paper style (flat shapes, ink edges, slightly crooked): a crib under the round window, where the mood's mobile hangs; a bookshelf with colored books; a yarn basket; a rocking chair; three stacked old trunks; a crooked floor lamp, lit by its own glow in the Claro looks only; a cat bed; a scratching post; and curtains at the window. Soft painted shadows lie under the crib, the chair, and the trunks. No cobwebs, graves, or anything sad.
+Both moods share one attic, furnished in the pink-noir paper style (flat shapes, ink edges, slightly crooked): a crib under the round window, where the mood's mobile hangs; a bookshelf with colored books; a yarn basket; a rocking chair; three stacked old trunks; a crooked floor lamp, lit by its own glow in the Claro looks only; a cat bed; a scratching post; curtains at the window; and, leaning against the back wall in the corner by the Familia door, dad's guitar: a B.C. Rich Mockingbird Contour in gold top, its hooked body extruded thin with darker sides, a rosewood neck with bone inlays, a 3+3 headstock, two black humbuckers in gold bezels, a bridge, and knobs, with ink edges. It is there on both days, in every look, in the live attic too. Soft painted shadows lie under the crib, the chair, and the trunks. No cobwebs, graves, or anything sad.
 
 The props stand along the walls, behind and around the book. None stands between the camera and a page, at a page or while gliding between pages, and none covers a page or the HUD. Behind the flat room's cards (level 2) they frame the view.
 
@@ -125,7 +127,7 @@ When the party is over:
 - Cuándo keeps the date line and `16:00` as a memory. The countdown is gone.
 - Llegada shows the post-party hero line and the relive line from section 6 in place of the hero line.
 - **Tus gatos** offers `Jugar otra vez`. See *Playing again*.
-- The landmarks left are Llegada, Palabra, Cuándo, and Familia. The cats and the door remain.
+- The landmarks left are Llegada, Palabra, Cuándo, and Familia. The cats and the door remain: all ten cats move onto those four pages (see *The cats*).
 - The quest log counts 3 pages: Palabra, Cuándo, and Familia.
 - Nothing says the address was removed.
 
@@ -133,21 +135,35 @@ Between `16:00` and midnight on the party day, the countdown reads zero.
 
 The page checks the clock every second. If the page is open at the cutoff, the party-over state applies without a reload.
 
+### The gift QR
+
+- **Payload.** The Banco Ganadero transfer QR, decoded locally (no online service) from the host's cropped image of it: a version-13 code at error correction L, with a UTF-8 ECI marker, holding 369 characters of base64-like text, with no readable name or account number. The payload is stored verbatim in the content module (`shared.giftQr`) as a fact, next to the address and the WhatsApp number. The name and account number printed around the bank's QR never enter the repo. The bank's QR expires on **27 September 2027**.
+- **On screen: drawn from the payload.** A small MIT-licensed encoder (`qrcode-generator`, in the entry chunk) builds the matrix from the payload at runtime, at error correction Q (version 18, 89 modules). It is drawn as SVG in the palette: ink modules in rounded runs on bone paper, three rounded finder eyes, a quiet zone of 4 modules, and a small cat emblem in the centre, where the bank's `$` was. The emblem is 19 modules square, about 4.6% of the code's area (never more than 5%), and never covers a finder or alignment pattern. The ink is the palette's ink in both themes, so the code is dark on light in Oscuro and in Claro. The plate keeps the minimum QR size (220 CSS px; 245 px in the book). The screen code carries the same text as the bank's, but it is a different code: another level and version, and no ECI marker.
+- **The download: the bank's own image.** `Guardar QR` does not render a new code. It saves `src/assets/qr-bank.png`: the host's cropped bank QR, with the bank's `$` in its centre, padded with a white quiet zone of about 4 modules on every side (741 × 741 px, fully opaque). It is the bank's exact code: version 13, error correction L, with its ECI marker. The file is saved as `qr-regalo-mia.png`. The gift page fetches it ahead of the tap, so the share still runs inside the tap, as iOS requires.
+- **The cat button.** `Guardar QR` is a small drawn cat face with a download arrow beside the text, with `Toca el gatito para guardar el QR en tu celular.` under it. It shares the file where the browser can share files, and otherwise downloads it. The `QR guardado` badge still counts.
+- **Proof.** Tests decode both with `jsqr`. The screen drawing is rasterized at its real on-screen size, 220 px, with its rounded runs and eyes antialiased and the emblem's square left light, in both themes' colors, and must decode to the stored payload exactly; it still decodes with every module under the emblem flipped. The committed `qr-bank.png` is pinned by its SHA-256, read from the file (with `pngjs`), and must decode to the stored payload exactly, as a version-13 code with its ECI marker, fully opaque, with a white quiet zone of at least 4 modules on every side. Before the links go out, the host scans the page's QR and imports the saved `qr-regalo-mia.png` with the Banco Ganadero app.
+- If the payload were ever empty, the box would show `El QR estará aquí pronto.`, with no QR and no `Guardar QR`.
+
 ### The cats
 
-Seven cats. Each one has a feeling, a rarity, a way of moving, and a sentence you learn only after they stay. The feelings follow the idea of Inside Out: a person is many moods, and you can tell them apart. The drawings are original. They are not those characters.
+Ten cats: the family's own. Each one has a feeling, a rarity, a way of moving, and a sentence you learn only after they stay. The feelings follow the idea of Inside Out: a person is many moods, and you can tell them apart. Misha and Kira are drawn as the real cats (from the host's photo, never committed); the others are their family, drawn in the same style. The ids stay as they were, so a guest's saved `mia-cats` still loads.
 
-| Id | Name | Feeling | Rarity | Where they appear | What they do | Line once they stay |
+| Id | Name | Feeling | Rarity | Page (party current → over) | What they do | Line once they stay |
 | --- | --- | --- | --- | --- | --- | --- |
-| `luz` | Luz | Alegría | Común | Gate and invitation | Bats the countdown so a number wobbles, chases the heart, pounces | Siempre encuentra algo que perseguir. |
-| `mimo` | Mimo | Ternura | Común | Gate and invitation | Sleeps on the corner of a card, slow blink, comes if you wait | Le gusta que te quedes un rato. |
-| `susto` | Susto | Temor | Poco común | Gate and invitation | Startles at nothing beside a button, then peeks back | Se asoma cuando el mundo está en calma. |
-| `bram` | Bram | Ímpetu | Poco común | Invitation | Scratches the edge of the countdown, throws the guitar pick, then flops | Hace ruido y después se queda. |
-| `nana` | Nana | Delicadeza | Poco común | Invitation | Sits on the QR frame, sniffs it, steps off the code | Elige un solo lugar, y ese es el suyo. |
-| `misha` | Misha | Calma | Legendario | Invitation, at the family door | One slow scratch on the door frame, tail up. Notices you sooner if the music is on | Está en calma, y está en casa. |
-| `kira` | Kira | Asombro | Legendario | Invitation, at the family door | Bats a star off the door, watches it fall, then comes closer | Mira la puerta, y se queda cerca. |
+| `luz` | Mishona | Coquetería | Común | Cuándo and the gate → Cuándo | Bats the countdown so a number wobbles, chases the heart, pounces. The gate game's catcher | Se arregla los bigotes antes de saludarte. |
+| `mimo` | Choni | Cariño | Común | Palabra and the gate → Palabra | Sleeps on the corner of a card, slow blink, comes if you wait | Se acurruca a tu lado y ronronea bajito. |
+| `susto` | Chavela | Temor | Poco común | Confirmar and the gate → Llegada | Startles at nothing beside a button, then peeks back | Se asoma cuando el mundo está en calma. |
+| `bram` | Kiri kiri | Juego | Poco común | Cuándo → Cuándo | Scratches the edge of the countdown, throws the guitar pick, then flops | Tira la púa, la persigue y vuelve por más. |
+| `nana` | Delilah | Curiosidad | Poco común | Presente, on the gift box → Palabra | Sits on the QR frame, sniffs it, steps off the code | Todo lo huele primero, hasta el QR. |
+| `chona` | Chona | Energía | Poco común | Llegada → Llegada | Races in a short arc, skids, looks back | Llega corriendo y no se queda quieta. |
+| `chori` | Chori | Apapacho | Poco común | Dónde, on the treasure map → Palabra | Rolls over slowly, paws in the air | Redondita, tranquila y siempre con hambre. |
+| `minina` | Minina | Travesura | Poco común | Confirmar, batting the wax seal → Llegada | Bats at the seal's ribbon, pounces | Pequeñita, blanca y lista para jugar. |
+| `misha` | Misha | Calma | Legendario | Familia, at the family door | One slow scratch on the door frame, tail up. Notices you sooner if the music is on | Está en calma, y está en casa. |
+| `kira` | Kira | Asombro | Legendario | Familia, at the family door | Bats a star off the door, watches it fall, then comes closer | Mira la puerta, y se queda cerca. |
 
-While motion is allowed, each cat also has a loop of its own on its page (design §4): Luz pounces, Mimo curls up and slow-blinks, Susto hides and peeks, Bram struts and flicks the pick, Nana grooms on her throne, and Misha and Kira glow by the door. Under the loops, every cat breathes, blinks, twitches an ear, and sways its tail, each on its own clock, so the family never moves in unison.
+The mix is 2 Común, 6 Poco común, and 2 Legendario. Every count and total (the quest log, **Tus gatos**, `Todos los gatos`) comes from this list: ten, not a fixed number.
+
+While motion is allowed, each cat also has a loop of its own on its page (design §4): Mishona pounces, Choni curls up and slow-blinks, Chavela hides and peeks, Kiri kiri struts and flicks the pick, Delilah grooms on the gift box, Chona dashes and looks back, Chori rolls on her back, Minina bats at the seal, and Misha and Kira glow by the door. Under the loops, every cat breathes, blinks, twitches an ear, and sways its tail, each on its own clock, so the family never moves in unison.
 
 ### Playing with what is on screen
 
@@ -157,16 +173,16 @@ Typical cat acts, and no others:
 
 - **Scratch.** Claws on the edge of a card, the countdown frame, or the door. The marks fade. They never cut through letters.
 - **Throw.** A paw knocks the heart, the star, or the guitar pick a short way. The QR can tilt. The object comes back to its place.
-- **Scare at nothing.** Susto freezes and jumps at an empty spot, then peeks back. Nothing is there. No monster.
+- **Scare at nothing.** Chavela freezes and jumps at an empty spot, then peeks back. Nothing is there. No monster.
 
 The guest can start a reaction by tapping the countdown, the QR, or the verse card. The cat assigned to that object does the act. If that cat is not on the page, nothing plays. Another cat does not take the act.
 
 | What was tapped | Cat | Act |
 | --- | --- | --- |
-| Invitation countdown | Luz | Bat a number. Bram may also scratch the frame. |
-| Verse card | Mimo | Lift her head from the corner. |
-| QR | Nana | Sit on the frame, then step off. The code may tilt and then lies flat. |
-| An empty spot near a button | Susto | Startle, then peek back. |
+| Invitation countdown | Mishona | Bat a number. Kiri kiri may also scratch the frame. |
+| Verse card | Choni | Lift her head from the corner. |
+| QR | Delilah | Sit on the frame, then step off. The code may tilt and then lies flat. |
+| An empty spot near a button | Chavela | Startle, then peek back. A tap on a cat (Minina by the seal) is not an empty spot, and the confirm link never starts anything. |
 | Door frame | Misha | One scratch. |
 | Star on the door | Kira | Bat it, watch it drop. |
 
@@ -174,8 +190,8 @@ After every act the invitation is readable again:
 
 - Countdown numbers return upright and still show the real time.
 - The QR settles flat, uncovered, and scannable. A cat may sit on the frame, not on the code.
-- A phone cannot scan a code that is already on its own screen. Under the image, `Guardar QR` shares the file when the browser can share files, and otherwise downloads it. The guest can then open it in their bank app or show it on another screen. The site does not invent a bank deep link: the hosts supplied an image, not a payment URI, and the bank is unknown. The control is absent while the image is missing. Tapping `Guardar QR` does not play Nana's tilt.
-- The QR sits on a white plate in both themes. It stays an ordinary image, so a long press can still save it where share and download are not available, such as some in-app browsers. The drag surface does not capture a press that starts on the QR.
+- A phone cannot scan a code that is already on its own screen. `Guardar QR` saves the bank's own QR image (see *The gift QR*): it shares the file when the browser can share files, and otherwise downloads it. The guest can then open it in their bank app or show it on another screen. The site opens no bank deep link. The control is absent while the payload is empty. Tapping `Guardar QR` does not play Delilah's tilt.
+- The QR is drawn on bone paper in both themes. A long press on the QR saves the bank's own image where sharing and downloading are unavailable, such as some in-app browsers: the image lies invisible over the drawing. The drag surface does not capture a press that starts on the QR.
 - Buttons stay easy to tap. A cat does not hold one down.
 - The verse, the date, and the address are never left hidden.
 
@@ -201,20 +217,21 @@ Noticing (every number here is a starting value in the tuning module, section 11
 | Legendario | 2.5 s |
 
 - While the music is playing, Misha waits 1.2 s.
-- Susto: if the camera moves faster than 600 px per second while he is inside the middle area, his `Saludar` hides and his wait starts again.
+- Chavela: if the camera moves faster than 600 px per second while she is inside the middle area, her `Saludar` hides and her wait starts again.
+- The three new cats have their own waits: Chona needs a little patience (2 s), Chori comes if you wait (3.2 s), and Minina notices you after a short stay on Confirmar (0.9 s).
 - `Saludar` stays while the cat is inside the middle area. It leaves 1 s after the cat leaves it.
 - Reduced motion uses the same rules. The camera still moves.
 - `Saludar` does not take focus when it appears. Its accessible name is `Saludar a {name}`.
 - A pure function decides noticing from the cat, whether it is inside the middle area, how long the camera has been still, the camera speed, and whether music is playing.
 - On the gate, whose camera never moves, the middle area is 94% of the screen: the gate cats rest in a band below the game.
 
-**Tus gatos** opens over the book (or the room) without leaving it. It is a dialog: focus moves into it, `Escape` closes it, and focus returns to the `Tus gatos` control. It shows `{n} de 7`, the number of cats in the current round. Cats ever greeted show name, rarity, and line, with a heart when they are in the current round. The others show a silhouette, the rarity, and `Aún no se acerca`. Misha and Kira are marked `Legendario`. From the second round on, it also shows `Vuelta {n}`.
+**Tus gatos** opens over the book (or the room) without leaving it. It is a dialog: focus moves into it, `Escape` closes it, and focus returns to the `Tus gatos` control. It shows `{n} de 10`, the number of cats in the current round out of all ten. Cats ever greeted show name, rarity, and line, with a heart when they are in the current round. The others show a silhouette, the rarity, and `Aún no se acerca`. Misha and Kira are marked `Legendario`. From the second round on, it also shows `Vuelta {n}`.
 
 Playing again:
 
 - `Jugar otra vez` exists only after the party is over, inside **Tus gatos**. The gate does not have it.
 - Activating it starts a new round. The current round empties, the round number goes up by one, and every cat can be greeted again.
-- Cats already met stay in **Tus gatos** with their lines. Nothing is forgotten. The count starts again at `0 de 7`.
+- Cats already met stay in **Tus gatos** with their lines. Nothing is forgotten. The count starts again at `0 de 10`.
 - It resets the cat round only. XP, levels, badges, and the pages found stay. A cat met before earns no XP when it is greeted again.
 
 The cat state is stored in `localStorage` under one key, shared by the gate and both invitations:
@@ -247,7 +264,7 @@ Misha and Kira answer a noticing guest with `¡A jugar!` instead of `Saludar` (d
 
 A light layer of play over the facts (design §6). It never gates a fact: every page can be reached at any time, by moving, by signpost, or by keyboard.
 
-- **The quest log** is on screen on an invitation, compact, top left (a badge toast takes its place for a moment): `Nivel {n}` with the level's title, an XP bar that fills from the level's floor toward the next level, `{n} XP`, `Páginas {n}/{total}`, and `Gatos {n}/7`. `total` is 6 while the party is current (every page but Llegada) and 3 after it. `Gatos` counts the cats ever met. The gate has no quest log.
+- **The quest log** is on screen on an invitation, compact, top left (a badge toast takes its place for a moment): `Nivel {n}` with the level's title, an XP bar that fills from the level's floor toward the next level, `{n} XP`, `Páginas {n}/{total}`, and `Gatos {n}/10`. `total` is 6 while the party is current (every page but Llegada) and 3 after it. `Gatos` counts the cats ever met. The gate has no quest log.
 - **Pages found.** A page counts as found once the camera comes to rest on it (the cover never counts), and in the book only once the cover has opened; gliding past a page does not count. The first time, the paper gives a little "fwip" and a stamp presses in: `¡Página encontrada!`. A page found on an earlier visit keeps its stamp.
 - **Levels**, from the XP so far:
 
@@ -273,7 +290,7 @@ A light layer of play over the facts (design §6). It never gates a fact: every 
 | Llegaste a la puerta | Familia found | 30 |
 | Tu primer gato | The first cat ever met | 20 |
 | Cuento completo | Every page that counts found | 100 |
-| Todos los gatos | All seven cats met | 150 |
+| Todos los gatos | All ten cats met | 150 |
 
 - **Cats.** Each cat met for the first time also earns XP by rarity: Común 20, Poco común 40, Legendario 100. Confirmar found is stored as a page but has no badge of its own; its badge comes from the tap.
 - **Toasts.** Each award shows as a toast in the quest log's corner, taking the quest log's place while it shows, one at a time, for a few seconds each: the badge's name and `+{n} XP` (only `+{n} XP` for a cat), and `¡Subiste a nivel {n}!` when that award raised the level. Toasts wait while a card is showing. Screen readers hear each toast once, in a polite live region.
@@ -296,7 +313,7 @@ Misha and Kira are beside the group, not inside a figure. They read as cats, clo
 
 The first time the door is in view on a visit, the figures fold up from the page and walk into the doorway, one after another, and rest. With reduced motion they simply stand. In the 3D book they are thin paper cutouts standing a little up the 3D doorway, just above the Familia card, backlit by its glow; they wait until the camera reaches Familia, then each folds up on its own spring and they walk in. The card keeps its line and the two cats, and tapping the 3D door starts Misha's scratch. In the flat room they are layered paper in the card's own door, and tapping the door frame starts Misha's scratch.
 
-The line under the door is `Papá, mamá, Miguelito y Mia. Misha y Kira vienen con ellos.`
+The line under the door is `La familia se hace más grande, y nos encantaría que nos acompañes.`
 
 Once every page that counts has been found, the doorway glows brighter.
 
@@ -318,7 +335,7 @@ The room takes its behavior from films and games, and copies neither art nor tex
 
 - **Evoland.** Moving through the book changes the medium, from a pencil sketch to ink to light.
 - **Pokémon**, from Red, Blue, and Yellow, through Gold, Silver, and Crystal, to Legends: Arceus. You move through a place, you meet creatures who are not copies of each other, and the rare ones take longer. The list is a tiny dex. The legendary encounter is a playful battle with HP bars and moves, and nobody can lose it.
-- **Inside Out.** Each cat is one feeling you can recognize from how they move. Joy rushes. Tenderness waits. Fear peeks. The picky one chooses a throne. The calm one barely stirs. Wonder watches closely.
+- **Inside Out.** Each cat is one feeling you can recognize from how they move. The flirt pounces. The cuddly one waits. Fear peeks. Play struts with the pick. Curiosity sniffs first. Energy races. The snuggler rolls over. Mischief bats at the seal. The calm one barely stirs. Wonder watches closely.
 - **An arcade game**, for the gate only: thirty seconds of catching yarn and hearts, with a score, a combo, and a best score. No bout and no weapons.
 - **Don't Starve and Tim Burton**, for the look: scratchy ink, paper cut-outs, and outlines that boil like hand-drawn animation. The art is original.
 
@@ -327,12 +344,11 @@ Host photos in `ideas/` set the black, pink, cat, and stroller. An `images/` fol
 ### Out of scope
 
 - Accounts, an RSVP database, forms that save answers, email delivery, and any progress stored off the device.
-- Taking or recording payments. The site only displays a QR image.
+- Taking or recording payments. The site only shows the bank's QR and lets the guest save the bank's own QR image.
 - A gift registry, a suggested amount, a bank name, or an account number.
 - A day picker, combat that can be lost, weapons, guns, an inventory of items, a blog, a photo gallery, or a playlist. The legendary battle is play, and nobody loses it. One ambience track is in scope. A library of songs is not.
 - Skulls, spikes, leather vests, chains, and other stock metal costume pieces.
 - Nintendo, Capcom, or Pixar characters, tiles, names, or sounds.
-- Generating a QR from a payment string.
 - Creating the GitHub repository. The hosts create it as `mia-babyshower`, public. The Pages workflow is already in `.github/workflows/pages.yml`. Turning on Pages in the repository settings happens when that repository exists. The steps are in `docs/stack-and-resources.md`.
 
 ## 4. How the book moves
@@ -418,9 +434,9 @@ Design §9. In the book, the camera frames the pages for any screen. Around it, 
 
 ### Music
 
-One track, provided later by the hosts, loops quietly under the gate and under the room. It is the room, not a prize. Quiet means the file itself is mastered quiet: iPhones ignore volume set by the page.
+One track, the host's own (`src/assets/audio/ambience.mp3`, 2 min 23 s at 256 kbps, 4.6 MB), loops quietly under the gate and under the room. It loads only when the guest turns music on (`preload="none"`). It is the room, not a prize. The file itself must be mastered quiet, because the code sets no volume and iOS ignores a page's volume: the file's own loudness is what guests hear.
 
-- Until the file is in the project, the music control is absent. No broken player.
+- Without the file, the music control is absent. No broken player.
 - The first visit does not start the sound by itself.
 - The guest turns it on with `Activar música`. The same control then reads `Silenciar música`. The choice is stored in `localStorage` and shared by the gate and both invitations.
 - On a later visit with the choice stored as on, the loop starts on the guest's first tap, drag, or key press, because browsers block sound before a gesture. Until it actually plays, the control reads `Activar música`.
@@ -469,7 +485,7 @@ The words "Mia's Baby Shower" are not on the site. The title is **Baby shower de
 
 The world is cats. Rock is the pick, the note, and the spotlight, not a costume. Safe and recognizable beside the cats: heart, star, thunder, crown, music note, guitar pick. A guest cannot see a skull, a spike, a vest, a weapon, or a fight.
 
-Each cat is recognizable at a glance: a different silhouette, a different feeling color, and one loop that belongs only to them. Luz is never still. Mimo is round and low. Susto is small and half-hidden. Bram is the one with the pick. Nana sits on the QR frame. Misha is long and calm, close to the door. Kira sits by that same door and watches the family come in.
+Each cat is recognizable at a glance: a different silhouette, a different coat or trait, a different feeling color, and one loop that belongs only to them. Mishona has a bow and lashes. Choni is curled and round. Chavela is small, black, and half-hidden. Kiri kiri is the tabby with the pick. Delilah is black, nose forward, on the QR frame. Chona is mid-leap. Chori is round and belly-up. Minina is small and pure white. Misha is long and calm, close to the door. Kira sits by that same door and watches the family come in.
 
 The whole look is **a moonlit pop-up storybook in a cat's attic** (design §1, §3): Tim Burton and Don't Starve for the ink and the paper, Inside Out for the feeling colors, all original.
 
@@ -479,29 +495,32 @@ Cats, toys, and the family silhouettes are made for this site. A picture that do
 
 Each cat is one inline SVG drawing, rigged in parts: body, head, ears, eyes with blinking lids, and tail. Parts move on springs: breathing, blinking, ear twitches, a tail sway whose tip follows through, and a head turn when noticing. The playing, noticing, and staying states are the same drawing with a small change (pose, heart). Scratch, throw, and startle reuse that playing drawing. Exported PNGs are allowed only when they already match this section. They are not required.
 
-**Line boil** (design §4): the ink outlines jitter a few times a second, like hand-drawn animation, through an animated SVG turbulence filter. It is off with reduced motion. Each cat is a paper cut-out, with a rough paper margin and a soft shadow on the page. The family's paper figures share that paper edge and the double ink line, but their line does not boil.
+**Line boil** (design §4): the ink outlines jitter a few times a second, like hand-drawn animation, through an animated SVG turbulence filter. It is off with reduced motion, and on the gate while a round of the game plays. Each cat is a paper cut-out, with a rough paper margin and a soft shadow on the page. The family's paper figures share that paper edge and the double ink line, but their line does not boil.
 
 The family silhouettes are drawn as SVG paths. They are not a photograph run through `brightness(0)` or a similar filter. Filtering `ideas/dad.jpg` would keep a face, and the door has no faces. The photo is only the curl reference.
 
 Shared cat look:
 
-- One family style for all seven: scratchy double ink outlines, big and slightly mismatched eyes, spindly legs and spiral tails, a few stitch marks, and ink-black bodies, as in `ideas/IMG-20260926-WA0000.jpg` and `ideas/IMG-20260913-WA0018(1).jpg`. Mimo is the one exception: a blush body.
+- One family style for all ten: scratchy double ink outlines, big and slightly mismatched eyes, spindly legs and spiral tails, and a few stitch marks. Each cat wears its family's coat: the Misha family (Misha, Mishona, Choni, Chona, Chori) white with silver-gray patches, each variant shifting the patches a little; the Kira family (Kira, Kiri kiri) a brown-gray tabby with tiger stripes and white paws; Delilah and Chavela black; Minina pure white. Misha has green eyes and Kira and Kiri kiri amber-green ones; every other cat's eyes are its feeling color. Light coats keep their edge on the bone paper with the ink outline and a soft shade along their lower edge.
 - Readable as a silhouette at about 64 pixels. No tiny patterns that disappear on a phone.
-- One feeling color per cat, from the table below. It shows in the eyes, the glow, the collar charm, the collectible card, and the battle screen. The colors are starting values in the tuning module.
+- One feeling color per cat, from the table below. It shows in the eyes (except Misha's, Kira's, and Kiri kiri's, which keep the real cats' colors), the glow, the collar charm, the collectible card, and the battle screen. The colors are starting values in the tuning module.
 - The stage draws the cat: pencil gray in boceto, ink with its feeling color muted in tinta, and full color with a glow in luz.
 - No text in the image. No photo texture. No copied game or film character.
-- No skulls, spikes, vests, or weapons. Bows stay light: Mimo alone wears a small bow.
+- No skulls, spikes, vests, or weapons. Bows stay light: Mishona alone wears a small bow.
 - Three states, same cat in each: playing, noticing the guest, and staying (a small heart). The noticing state is when `Saludar` (or `¡A jugar!`) may appear.
 
 | Cat | Feeling | Feeling color | On ink | Silhouette cue | Loop |
 | --- | --- | --- | --- | --- | --- |
-| Luz | Alegría | `#F5C542` sunny gold | 11.7:1 | Round head, high tail | Pounces and chases. Bats a countdown digit. Almost never sits. |
-| Mimo | Ternura | `#F28DB2` rose | 8.4:1 | Low and round, blush body, a small bow | Curls up and slow-blinks on the corner of a card. If the guest waits, the head lifts. |
-| Susto | Temor | `#A98BEA` violet | 6.9:1 | Small, ears back | Hides and peeks. Jumps at nothing, then peeks back. |
-| Bram | Ímpetu | `#F2784B` ember | 6.9:1 | Stocky, lightning tail tip, a guitar pick | Struts, flicks the pick, scratches the countdown frame, flops. |
-| Nana | Delicadeza | `#7FD9B0` mint | 11.3:1 | Upright, crown-shaped ears | Grooms on her throne, the QR frame. Sniffs the code and steps off it. |
-| Misha | Calma | `#8EB8F0` moon blue | 9.3:1 | Long, calm | Glows by the door. One scratch on the door frame. Turns the head sooner when music is playing. |
-| Kira | Asombro | `#5FD4D0` star teal | 10.7:1 | Slim, tall | Glows by the door. Bats the star off the door, watches it drop. |
+| Mishona | Coquetería | `#F5C542` sunny gold | 11.7:1 | Misha's coat, round head, high swishy tail, a bow and lashes | Pounces and chases. Bats a countdown digit. Almost never sits. |
+| Choni | Cariño | `#F28DB2` rose | 8.4:1 | Misha's coat, low and round, curled with a heart | Curls up and slow-blinks on the corner of a card. If the guest waits, the head lifts. |
+| Chavela | Temor | `#A98BEA` violet | 6.9:1 | Black, small, ears back | Hides and peeks. Jumps at nothing, then peeks back. |
+| Kiri kiri | Juego | `#F2784B` ember | 6.9:1 | Kira's tabby coat, stocky, white paws, a guitar pick | Struts, flicks the pick, scratches the countdown frame, flops. |
+| Delilah | Curiosidad | `#7FD9B0` mint | 11.3:1 | Black, upright, nose forward | Grooms on the gift box, the QR frame. Sniffs the code and steps off it. |
+| Chona | Energía | `#B8E05A` chartreuse | 12.6:1 | Misha's coat, mid-leap | Races in a short arc, skids, looks back. |
+| Chori | Apapacho | `#F6B48C` apricot | 10.7:1 | Misha's coat, round, belly-up, paws in the air | Rolls over slowly. |
+| Minina | Travesura | `#E48FE0` orchid | 8.4:1 | Small, pure white, pink nose | Bats at the wax seal's ribbon, pounces. |
+| Misha | Calma | `#8EB8F0` moon blue | 9.3:1 | White with silver-gray patches, long, calm | Glows by the door. One scratch on the door frame. Turns the head sooner when music is playing. |
+| Kira | Asombro | `#5FD4D0` star teal | 10.7:1 | Long-furred brown-gray tabby, white chin, chest, and paws, slim, tall | Glows by the door. Bats the star off the door, watches it drop. |
 
 Toys and page objects share the palette: yarn, box, heart, star, guitar pick, the countdown, the QR frame, the door. A thrown object travels a short arc and returns. Scratch marks fade. Nothing stays on top of the words or the QR code.
 
@@ -537,7 +556,7 @@ Texture (design §3):
 - A faint vignette: the pages' edges age toward a darker tint.
 - No flat rounded "SaaS cards". Cards are torn, folded, or pinned paper.
 
-Bows stay light: Mimo's small bow, and none on the family silhouettes. Floral garlands and sweet script stay out.
+Bows stay light: Mishona's small bow, and none on the family silhouettes. Floral garlands and sweet script stay out.
 
 Typography (design §3): three open-licensed, self-hosted faces that cover every Spanish character.
 
@@ -568,26 +587,26 @@ Room:
 - Verse citation: `Salmo 127:3`
 - Place line: `Av. Prolongación Beni (Entre 6to y 7mo anillo). Calle 12 de Abril S/N`
 - City line: `Santa Cruz de la Sierra, Bolivia`
-- Gift lead: `Lo más importante es que vengas.`
-- Gift offer: `Si quieres tener un detalle, puedes transferir con este QR. El monto lo eliges tú.`
+- Gift line: `El mayor regalo es poder contar con tu presencia, pero si deseas dar un presente, lo aceptamos con mucho gusto. Puedes usar este QR.`
 - QR alternative text: `Código QR para transferir un regalo a Mia`
 - QR pending: `El QR estará aquí pronto.`
 - QR save: `Guardar QR`
+- QR save hint: `Toca el gatito para guardar el QR en tu celular.`
 - Confirm control: `Confirmar por WhatsApp`
 - Map control: `Ver en el mapa`
 - Signposts: `Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`
-- Collection: `Tus gatos`
+- Collection: `Tus gatos`, with its badge `{n}/{total}`
 - Close the collection: `Cerrar`
 - Greet: `Saludar`
 - Caught: `Se quedó contigo: {name}.`
 - Not yet: `Aún no se acerca`
-- Round count: `{n} de 7`
+- Round count: `{n} de {total}`
 - Round number: `Vuelta {n}`
 - Play again: `Jugar otra vez`
 - Post-party hero line: `Gracias por celebrar con nosotros la llegada de Mia.`
 - Relive line: `La fiesta ya pasó, pero los gatos siguen aquí. Revive el momento.`
-- Door line: `Papá, mamá, Miguelito y Mia. Misha y Kira vienen con ellos.`
-- Theme names: `Oscuro` and `Claro`
+- Door line: `La familia se hace más grande, y nos encantaría que nos acompañes.`
+- Theme names: `Oscuro` and `Claro` (the moon's and the sun's hidden names)
 - Countdown labels: `Días`, `Horas`, `Minutos`, `Segundos`
 - Rarities: `Común`, `Poco común`, `Legendario`
 - Cat names and lines: the table in section 3
@@ -595,7 +614,7 @@ Room:
 Pages and the game layer (design §13):
 
 - Page found: `¡Página encontrada!`
-- Quest log: `Páginas {n}/{total}`, `Gatos {n}/7`, `Nivel {n}`, `{n} XP`
+- Quest log: `Páginas {n}/{total}`, `Gatos {n}/{total}`, `Nivel {n}`, `{n} XP`
 - Level titles, for levels 1 to 5: `Visitante curioso`, `Amigo de los gatos`, `Guardián del cuento`, `Invitado de honor`, `Leyenda de la casa`
 - Level up: `¡Subiste a nivel {n}!`
 - Badges: `Abriste el cuento`, `La palabra`, `Guardaste la fecha`, `Encontraste el lugar`, `Invitación sellada`, `Encontraste el regalo`, `QR guardado`, `Llegaste a la puerta`, `Tu primer gato`, `Cuento completo`, `Todos los gatos`
@@ -652,6 +671,8 @@ Accessible names (read by screen readers, not shown):
 - The room: `Invitación`
 - The signpost group: `Ir a`
 - The theme control group: `Tema`
+- The theme buttons: `Oscuro` and `Claro`, visually hidden beside the moon and the sun; the active one is pressed.
+- The `Tus gatos` button: `Tus gatos`, described by its badge `{n}/{total}`.
 - The **Tus gatos** dialog: `Tus gatos`
 - The battle dialog: `¡{name} quiere jugar!`. Its moves are a group named `¿Qué vas a hacer?`, and its two bars are meters named `Energía de juego` and `Paciencia`.
 - Each `¡A jugar!` button is described by its cat's name, so the two at the door can be told apart.
@@ -708,14 +729,15 @@ A guest can switch between dark and light, and the browser remembers.
 
 ### US-4 — See the gift QR (P1, R1)
 
-**Independent test:** Render Presente with a fixture image and with no image.
+**Independent test:** Render Presente with the stored payload and with an empty one; decode the screen drawing and the committed bank image with `jsqr`.
 
 **Acceptance scenarios:**
 
-1. **Given** the QR image is present, **When** the guest can see Presente, **Then** that image is visible on a white plate, at least the minimum QR size from the tuning module (220 CSS pixels) on screen, with the alternative text from section 6. In the book it is drawn larger, so a page at its smallest scale still shows it at that size.
-2. **Given** the QR file is missing, **When** Presente renders, **Then** it shows `El QR estará aquí pronto.` and no broken image and no generated code.
-3. **Given** Presente, **When** it renders, **Then** it shows the gift lead and offer, and it does not name an amount, a bank, or an account.
-4. **Given** the QR image is present, **When** the guest activates `Guardar QR`, **Then** the browser shares that image file if it can, and otherwise downloads it. No bank URI is opened.
+1. **Given** the payload, **When** the guest can see Presente, **Then** the QR is drawn as SVG on bone paper, at least the minimum QR size from the tuning module (220 CSS pixels) on screen, with the alternative text from section 6, three rounded finder eyes, and the cat emblem. In the book it is drawn larger, so a page at its smallest scale still shows it at that size.
+2. **Given** an empty payload, **When** Presente renders, **Then** it shows `El QR estará aquí pronto.` and no QR and no `Guardar QR`.
+3. **Given** Presente, **When** it renders, **Then** it shows the gift line, and it does not name an amount, a bank, or an account.
+4. **Given** the payload, **When** the guest activates `Guardar QR`, **Then** the browser shares the bank's own QR image, `src/assets/qr-bank.png`, as `qr-regalo-mia.png` if it can, and otherwise downloads it under that name. No bank URI is opened.
+5. **Given** the screen drawing at 220 px (its emblem left light) in either theme, and the committed bank image, **When** each is decoded, **Then** each decodes to the stored payload exactly; the bank image is the pinned file, a version-13 code with its ECI marker, fully opaque, with a white quiet zone of at least 4 modules.
 
 ### US-5 — Find the place, then see the party end (P1, R1)
 
@@ -778,18 +800,19 @@ The book starts as a sketch, becomes ink, and ends in light. It is a 3D book whe
 
 **Acceptance scenarios:**
 
-1. **Given** an empty state, **When** the guest greets Luz, **Then** the stored state is `{ caught: ["luz"], round: ["luz"], rounds: 1 }` and the page shows `Se quedó contigo: Luz.`, `Común`, and `Siempre encuentra algo que perseguir.`
-2. **Given** Luz is already in the current round, **When** the guest greets Luz again, **Then** the state is unchanged.
+1. **Given** an empty state, **When** the guest greets Mishona, **Then** the stored state is `{ caught: ["luz"], round: ["luz"], rounds: 1 }` and the page shows `Se quedó contigo: Mishona.`, `Común`, and `Se arregla los bigotes antes de saludarte.`
+2. **Given** Mishona is already in the current round, **When** the guest greets Mishona again, **Then** the state is unchanged.
 3. **Given** the invitation, **When** the guest wins the battle with Misha (US-14), **Then** `misha` is stored and the page shows `Legendario` and `Está en calma, y está en casa.`
 4. **Given** the invitation, **When** the guest wins the battle with Kira, **Then** `kira` is stored and the page shows `Legendario` and `Mira la puerta, y se queda cerca.`
 5. **Given** the gate, **When** it renders, **Then** Misha and Kira are not there, and neither is the family door.
 6. **Given** two cats already stored, **When** the guest opens either invitation, **Then** those two show their lines and no third id is added until a new greet.
-7. **Given** the gate, **When** the guest greets Mimo, **Then** `mimo` is stored, and Bram is not on the gate.
+7. **Given** the gate, **When** the guest greets Choni, **Then** `mimo` is stored, and Kiri kiri is not on the gate.
 8. **Given** **Tus gatos** for a cat not yet greeted, **When** it renders, **Then** the guest sees the rarity and `Aún no se acerca`, and does not see that cat's line.
 9. **Given** the default waits and a Común cat inside the middle area, **When** the camera has been still for 0.5 s, **Then** the cat is noticing. At 0.4 s it is not.
-10. **Given** Susto noticing, **When** the camera moves faster than 600 px per second while he is inside the middle area, **Then** he is not noticing and his wait starts again.
+10. **Given** Chavela noticing, **When** the camera moves faster than 600 px per second while she is inside the middle area, **Then** she is not noticing and her wait starts again.
 11. **Given** Misha inside the middle area, **When** music is playing, **Then** he notices after 1.2 s. Without music, after 2.5 s.
 12. **Given** stored data with an unknown id, a duplicate, or unreadable JSON, **When** the page loads, **Then** those entries are dropped and the page renders.
+13. **Given** a `mia-cats` saved before the cats were renamed (the ids `luz`, `mimo`, `susto`, `bram`, `nana`, `misha`, `kira`), **When** the page loads, **Then** those cats are kept, shown under their new names, and the three new cats show as not yet met.
 
 ### US-10 — Play at the gate (P2, redesign)
 
@@ -799,9 +822,9 @@ The gate is a screen with cats and a small arcade game. The game's rules are US-
 
 **Acceptance scenarios:**
 
-1. **Given** the gate and motion allowed, **When** it is showing, **Then** both sentences, `Toca para jugar`, and Luz are visible.
-2. **Given** the guest activates `Toca para jugar`, **When** the round plays, **Then** the seconds left start at `30 s` and both sentences stay visible. The roaming Luz steps aside while she is the catcher; Mimo and Susto stay.
-3. **Given** a round, **When** its time runs out, **Then** `¡Se acabó el tiempo!` and `Jugar otra vez` show, a best score is stored under `mia-gate-best`, both sentences are still visible, and Luz is back.
+1. **Given** the gate and motion allowed, **When** it is showing, **Then** both sentences, `Toca para jugar`, and Mishona are visible.
+2. **Given** the guest activates `Toca para jugar`, **When** the round plays, **Then** the seconds left start at `30 s` and both sentences stay visible. The roaming Mishona steps aside while she is the catcher; Choni and Chavela stay.
+3. **Given** a round, **When** its time runs out, **Then** `¡Se acabó el tiempo!` and `Jugar otra vez` show, a best score is stored under `mia-gate-best`, both sentences are still visible, and Mishona is back.
 4. **Given** reduced motion, **When** the gate renders, **Then** both sentences are visible, the cats are still, and there is no game to start.
 
 ### US-11 — Hear the room when I ask (P2, R3)
@@ -812,7 +835,7 @@ One ambience track, off until the guest turns it on, then remembered.
 
 **Acceptance scenarios:**
 
-1. **Given** no track file, **When** the gate or an invitation renders, **Then** there is no music control and no audio element.
+1. **Given** no track file, **When** the gate or an invitation renders, **Then** there is no music control and no audio element. (The host's track is in the project, so the control shows.)
 2. **Given** a track file and no saved choice, **When** the page renders, **Then** the control reads `Activar música` and the audio is paused.
 3. **Given** a track file, **When** the guest activates `Activar música`, **Then** the audio source is that file, playback is requested, and the control reads `Silenciar música`.
 4. **Given** sound was turned on, **When** the guest opens the other link or the gate later, **Then** playback is requested on the guest's first tap, drag, or key press, and the control reads `Silenciar música` only once playback has started.
@@ -826,13 +849,14 @@ One ambience track, off until the guest turns it on, then remembered.
 
 **Acceptance scenarios:**
 
-1. **Given** the gate and motion allowed, **When** it renders, **Then** Luz, Mimo, and Susto are present, and so are the yarn, the box, and a heart.
-2. **Given** an invitation and motion allowed, **When** it renders, **Then** Luz, Mimo, Susto, Bram, Nana, Misha, and Kira are present, and the family door shows the faceless paper family (dad with a fuller afro, Miguelito and Mia with smaller curly outlines, mom with straight hair), both legendary cats beside them, and the line `Papá, mamá, Miguelito y Mia. Misha y Kira vienen con ellos.`
+1. **Given** the gate and motion allowed, **When** it renders, **Then** Mishona, Choni, and Chavela are present, and so are the yarn, the box, and a heart.
+2. **Given** an invitation and motion allowed, **When** it renders, **Then** all ten cats are present on their pages, and the family door shows the faceless paper family (dad with a fuller afro, Miguelito and Mia with smaller curly outlines, mom with straight hair), both legendary cats beside them, and the line `La familia se hace más grande, y nos encantaría que nos acompañes.`
 3. **Given** the invitation countdown, **When** the guest taps it, **Then** a cat bats or scratches it, the numbers wobble, and they settle back to the real time, still readable.
-4. **Given** the QR, **When** Nana is on its frame or the guest taps it, **Then** the code may tilt and then lies flat and uncovered.
-5. **Given** Susto, **When** the moment plays, **Then** Susto startles at an empty spot and comes back. No other creature appears.
+4. **Given** the QR, **When** Delilah is on its frame or the guest taps it, **Then** the code may tilt and then lies flat and uncovered.
+5. **Given** Chavela, **When** the moment plays, **Then** Chavela startles at an empty spot and comes back. No other creature appears.
 6. **Given** reduced motion, **When** either page renders, **Then** the cats that belong there are visible and they do not roam, scratch in a loop, or throw things on their own.
 7. **Given** the family door comes into view for the first time on a visit with motion allowed, **When** it shows, **Then** the paper figures fold up from the page and walk into the doorway once; with reduced motion they are simply standing, and tapping the door frame still starts Misha's scratch.
+8. **Given** the party is over, **When** either invitation renders, **Then** the four pages left hold all ten cats: Chavela, Chona, and Minina on Llegada; Choni, Delilah, and Chori on Palabra; Mishona and Kiri kiri on Cuándo; Misha and Kira at the door.
 
 ### US-13 — Relive the party (P2, R2, live before `2026-10-18T00:00:00-04:00`)
 
@@ -843,7 +867,7 @@ After the party, the page thanks the guest, and the cats can be met again.
 **Acceptance scenarios:**
 
 1. **Given** Saturday at or after its cutoff, **When** the room renders, **Then** Llegada shows the post-party hero line and the relive line, and does not show the invitation hero line.
-2. **Given** the party is over and the state `{ caught: ["luz", "mimo", "nana"], round: ["luz", "mimo", "nana"], rounds: 1 }`, **When** the guest activates `Jugar otra vez`, **Then** the state is `{ caught: ["luz", "mimo", "nana"], round: [], rounds: 2 }`, and **Tus gatos** shows `0 de 7` and `Vuelta 2`.
+2. **Given** the party is over and the state `{ caught: ["luz", "mimo", "nana"], round: ["luz", "mimo", "nana"], rounds: 1 }`, **When** the guest activates `Jugar otra vez`, **Then** the state is `{ caught: ["luz", "mimo", "nana"], round: [], rounds: 2 }`, and **Tus gatos** shows `0 de 10` and `Vuelta 2`.
 3. **Given** a new round, **When** a cat met before notices the guest, **Then** `Saludar` is offered again. Greeting adds it to `round` and does not add a second copy to `caught`.
 4. **Given** a clock before the cutoff, **When** **Tus gatos** opens, **Then** there is no `Jugar otra vez`.
 5. **Given** the gate, **When** **Tus gatos** opens, **Then** there is no `Jugar otra vez`.
@@ -863,7 +887,7 @@ Misha and Kira join through a playful battle that nobody can lose (section 3, *T
 5. **Given** the cat's energy reaches zero, **When** the finisher line has played (it is in the live region), **Then** focus moves to the one button, labeled `Se quedó contigo: {name}.`; activating it closes the dialog, stores the cat in `mia-cats` exactly as a greeting does, and shows `Legendario` in the live region and on a `Legendario` card.
 6. **Given** a battle, **When** the guest activates `Huir` or presses Escape before the win, **Then** the dialog closes after `Te fuiste sin hacer ruido.`, nothing is stored, and the cat offers `¡A jugar!` again.
 7. **Given** a battle, **When** it is open, **Then** the page behind is inert and **Tus gatos** does not open. **Given** **Tus gatos** open, **When** `¡A jugar!` is activated, **Then** no battle starts.
-8. **Given** a normal greeting, **When** it happens, **Then** the card shows the cat's name and rarity (`rarity-comun` for Luz); a tap sends it away, and it also leaves on its own after the greeting time. The card is hidden from screen readers.
+8. **Given** a normal greeting, **When** it happens, **Then** the card shows the cat's name and rarity (`rarity-comun` for Mishona); a tap sends it away, and it also leaves on its own after the greeting time. The card is hidden from screen readers.
 
 ### US-15 — Find pages, earn badges, and level up (P2, redesign)
 
@@ -873,14 +897,14 @@ The game layer in section 3. It never gates a fact.
 
 **Acceptance scenarios:**
 
-1. **Given** an invitation, **When** it renders, **Then** the quest log shows `Nivel 1`, `Páginas 0/6`, and `Gatos 0/7`. **Given** the gate, **Then** there is no quest log.
+1. **Given** an invitation, **When** it renders, **Then** the quest log shows `Nivel 1`, `Páginas 0/6`, and `Gatos 0/10`. **Given** the gate, **Then** there is no quest log.
 2. **Given** the camera glides to Cuándo from `La fecha` and rests there, **When** it has rested, **Then** the quest log reads `Páginas 1/6`, a toast shows `Guardaste la fecha` and `+30 XP`, the page is stamped `¡Página encontrada!`, and `mia-progress` is `{ pages: ["cuando"], badges: ["fecha"], xp: 30 }`. A page the camera only passes is not counted.
 3. **Given** a clock at or after the cutoff, **When** the guest reaches Familia, **Then** the quest log counts out of 3 and the toast shows `Llegaste a la puerta`.
 4. **Given** an invitation, **When** the guest activates `Confirmar por WhatsApp`, **Then** WhatsApp still opens at once, the wax seal presses, and `Invitación sellada` (`+50 XP`) is earned. **When** the guest activates `Guardar QR`, **Then** `QR guardado` (`+20 XP`) is earned.
 5. **Given** an invitation, **When** the guest presses Tab, **Then** nothing is earned; **When** the guest presses an arrow key, drags, or uses the wheel once the book is ready, **Then** `Abriste el cuento` (`+10 XP`) is earned once. A signpost earns nothing, and so does a move while the book is still loading.
 6. **Given** several awards at once, **When** they show, **Then** one toast shows at a time, each for the toast time, and the award that raised the level adds `¡Subiste a nivel {n}!`.
-7. **Given** a first greeting, **When** the card shows, **Then** the cat's XP and `Tu primer gato` are stored, `Gatos 1/7` shows, and the toasts wait until the card has gone. A cat met before, greeted again in a new round, adds no XP.
-8. **Given** progress, **When** a badge's event happens again, **Then** it is not earned twice. Every page that counts found earns `Cuento completo`; the seventh cat earns `Todos los gatos`.
+7. **Given** a first greeting, **When** the card shows, **Then** the cat's XP and `Tu primer gato` are stored, `Gatos 1/10` shows, and the toasts wait until the card has gone. A cat met before, greeted again in a new round, adds no XP.
+8. **Given** progress, **When** a badge's event happens again, **Then** it is not earned twice. Every page that counts found earns `Cuento completo`; the tenth cat earns `Todos los gatos`.
 9. **Given** junk, unknown values, or a broken shape under `mia-progress`, **When** the page loads, **Then** the bad data is dropped and the page renders.
 10. **Given** the map and the gift box, **When** their pages come into view, before they are found, **Then** they are open, with the address and the QR visible. With reduced motion every object is already open.
 
@@ -907,8 +931,8 @@ The gate game's rules (section 3, *The guest gate*).
 - **BR-2.** Facts live in one content module: a shared block plus two day records, keyed by `n4vk` and `q8lm`. Components read that module. Numbers and colors live in the tuning module (BR-21).
 - **BR-3.** The WhatsApp number in the link is `59176632451`. The message is encoded with `encodeURIComponent` and includes that day's date and `16:00`.
 - **BR-4.** Confirmation is a handoff to WhatsApp. The site does not record yes, no, names, or headcount.
-- **BR-5.** The payment QR is one static image for both days. The site does not create a QR and does not send the guest to a payment processor.
-- **BR-6.** Presente leads with presence, then the QR, then the line that the guest chooses the amount.
+- **BR-5.** The payment QR is one bank payload for both days, stored in the content module. The site draws the screen QR from that payload, and `Guardar QR` saves the bank's own QR image, which decodes to the same payload. The site does not send the guest to a payment processor.
+- **BR-6.** Presente leads with presence, then the QR, in one line.
 - **BR-7.** Theme is `dark` or `light`, stored in `localStorage` under its own key, separate from the cats and from the music choice.
 - **BR-8.** The event countdown uses that day's start instant in `America/La_Paz`. Saturday is `2026-10-17T16:00:00-04:00`. Sunday is `2026-10-18T16:00:00-04:00`.
 - **BR-9.** `n4vk` is Saturday. `q8lm` is Sunday. Every other opening is the gate. The clock never selects a day.
@@ -916,7 +940,7 @@ The gate game's rules (section 3, *The guest gate*).
 - **BR-11.** The place line, the city, the map, the confirm control, the gift copy, the QR, `Guardar QR`, the countdown, and the `El lugar`, `Confirmar`, and `El regalo` signposts render only while `now` is strictly before that day's cutoff. They are omitted together. From the cutoff on, the page is in the party-over state.
 - **BR-12.** Progress along the book (or, in the flat room, horizontal camera position) maps to the three stages: boceto, tinta, and luz. Landmark text is HTML in every stage. It is not gated on greeting a cat, on reaching a stage, on finding a page, or on a badge; the pages' objects open as soon as their page is in view.
 - **BR-13.** The 3D book, roaming, line boil, the battle's wipe, the depth layers, and the gate game yield to `prefers-reduced-motion`: the guest gets the flat room with no canvas, and the gate shows no game. The book also yields to a failed WebGL start, a failure after it starts loading, a first frame that has not come within the load timeout, a lost WebGL context, and a screen shorter than 640 px; the flat room then opens on the guest's page. The pages, the camera, the words, the greets, the battle, and the cat list do not.
-- **BR-14.** The cat state is `{ caught: string[], round: string[], rounds: number }` under one `localStorage` key. An id is appended to `caught` once, in first-greet order, and to `round` once per round. Ids come only from the seven in section 3. On load, unknown ids, duplicates, and unreadable data are dropped.
+- **BR-14.** The cat state is `{ caught: string[], round: string[], rounds: number }` under one `localStorage` key. An id is appended to `caught` once, in first-greet order, and to `round` once per round. Ids come only from the ten in section 3; the ids of the renamed cats did not change. On load, unknown ids, duplicates, and unreadable data are dropped.
 - **BR-15.** `Saludar` is offered only for a cat that is present on that page, noticing the guest, and not in the current round. Loading the page does not greet anyone. Misha and Kira are present only on an invitation, at the family door.
 - **BR-16.** The site collects no analytics and sets no tracking cookies. The only `localStorage` keys are:
   - `mia-cats`: the cat state in BR-14.
@@ -927,8 +951,8 @@ The gate game's rules (section 3, *The guest gate*).
 
   If storage throws, the page still renders and the visit simply does not persist.
 - **BR-17.** Both days use the pin `-17.73170923809386, -63.15786528996242` and the place wording in section 6.
-- **BR-18.** The cast is the seven cats plus the gate toys and the invitation toys in section 3. Skulls, spikes, vests, weapons, guns, and fighting poses are not in the book or on the gate. The one battle is the playful legendary battle (BR-24): its moves are a yarn ball, cuddles, and a purr.
-- **BR-19.** At most one audio file plays, looping, mastered quiet. It starts only after the guest turns it on, or, on a later visit if they already did, at the guest's first gesture. A greeting does not play its own sound.
+- **BR-18.** The cast is the ten cats plus the gate toys and the invitation toys in section 3. Skulls, spikes, vests, weapons, guns, and fighting poses are not in the book or on the gate. The one battle is the playful legendary battle (BR-24): its moves are a yarn ball, cuddles, and a purr.
+- **BR-19.** At most one audio file plays, looping, mastered quiet: the file itself must be quiet, because the code sets no volume and iOS ignores a page's volume. It starts only after the guest turns it on, or, on a later visit if they already did, at the guest's first gesture. A greeting does not play its own sound.
 - **BR-20.** The page viewport does not scroll horizontally. The camera moves inside the book (or the flat room) by drag, touch, wheel, and arrow keys. Keyboard focus inside a page brings the focused control into view.
 - **BR-21.** Every number and color that tunes the feel lives in one tuning module: sizes, speeds, waits, thresholds, parallax, glide, the QR size, the theme tokens, the feeling colors, the 3D book (camera path, pop-up springs, lights, stages), the battle's numbers, the XP, levels, and badges, the gate game, and the large-screen growth. Components and tests read it. Changing a value there never requires a component change. Every guest-facing string lives in the content module (BR-2).
 - **BR-22.** `Jugar otra vez` exists only in the party-over state, on an invitation. It empties `round`, adds one to `rounds`, and keeps `caught`.
@@ -945,7 +969,7 @@ The gate game's rules (section 3, *The guest gate*).
 - **FR-4.** The system MUST show the event countdown, following US-6.
 - **FR-5.** The system MUST offer `Ver en el mapa` only while the place is visible.
 - **FR-6.** The system MUST link confirmation to WhatsApp using BR-3, only on an invitation, and only while the party is current.
-- **FR-7.** The system MUST show the QR image or the pending sentence, following US-4, only while the party is current.
+- **FR-7.** The system MUST show the gift QR drawn from its payload, with `Guardar QR` saving the bank's own QR image, or the pending sentence, following US-4, only while the party is current.
 - **FR-8.** The system MUST let the guest choose dark or light and restore that choice later, on the gate and on both invitations.
 - **FR-9.** The system MUST show the 3D book with its stages, following US-7, falling back to the flat room as BR-13 says, with original cats and the toys in BR-18.
 - **FR-10.** The system MUST stay usable from 320px wide through a 2560px monitor, with the HUD, dialogs, and flat-room cards growing on large screens (section 4, *Large screens*). The page does not scroll sideways. The camera moves by mouse drag, touch drag, wheel, and arrow keys, following BR-20.
@@ -969,13 +993,13 @@ The gate game's rules (section 3, *The guest gate*).
 
 ### Product
 
-- Static site only. The QR image, once added, is public.
+- Static site only. The gift QR's payload and the bank's QR image are public.
 - Guest-facing copy is Spanish, from section 6.
 - Code, test names, and this spec are English.
 - Timezone: `America/La_Paz` (Bolivia, UTC−4, no daylight saving).
 - The spoken place is the Prolongación Beni line in section 6. The map pin remains the coordinates already confirmed.
-- The QR image file is still to be added. Until then the pending sentence is shown.
-- The ambience track is still to be added. Until then the music control is hidden.
+- The gift QR is the bank's payload, stored in the content module, and the saved image is the bank's own (`src/assets/qr-bank.png`). The bank's QR expires on 27 September 2027. The pending sentence shows only if the payload is empty.
+- The ambience track is the host's own, in the repo.
 - Clearing site data clears the cat state, the game layer's progress, and the best gate score. A browser may also clear them on its own (see *Coming back*). `Jugar otra vez` starts a new round and does not erase the list or the progress.
 - The repository `mia-babyshower` is public. The invite codes, the address, and everything in `docs/` can be read by anyone. The gate is a courtesy, not a secret.
 - `ideas/` is in `.gitignore` before the first commit, so the photos never enter git history. The folder stays on disk as a reference.
@@ -998,10 +1022,12 @@ Versions below are the set chosen on 2026-09-26 after checking peer dependencies
 | tailwindcss and @tailwindcss/vite | 4.3.3 |
 | vitest | 5.0.1 |
 | @fontsource/mystery-quest, @fontsource/alegreya, @fontsource/pixelify-sans | 5.3.0, self-hosted, SIL Open Font License |
+| qrcode-generator | 2.0.4, the encoder for the gift QR on the page, in the entry chunk |
+| jsqr, pngjs, @types/pngjs | 1.4.0, 7.0.0, 6.0.5: tests only, to decode the gift QR. The tests type-check with Node's types in their own `tsconfig.test.json`; the app does not see them. |
 
 - React with Vite, TypeScript in strict mode.
 - Three.js through React Three Fiber and drei, for the 3D book: the attic, the book, the paper pieces, the lights, fog, and dust. No game engine. The book is a separate chunk, loaded with a dynamic import behind the HTML cover, so it is not in the first download and never delays the first paint.
-- Cats are SVG in every stage and in both rooms. The book places the same seven drawings on its pages as HTML, not a second cast.
+- Cats are SVG in every stage and in both rooms. The book places the same ten drawings on its pages as HTML, not a second cast.
 - Tailwind CSS 4. Theme tokens are CSS variables fed from the tuning module. No second styling system.
 - Vitest and React Testing Library cover the acceptance scenarios that do not need real layout. The manual checks in section 12 cover the rest. No end-to-end suite in this version.
 - One `index.html`.
@@ -1020,10 +1046,10 @@ Versions below are the set chosen on 2026-09-26 after checking peer dependencies
 
 - WCAG 2.2 AA for contrast, control names, keyboard movement, and reduced motion.
 - The page `lang` is `es`.
-- At most the seven cats and the invitation toys in section 3 are on an invitation. The gate shows three cats.
+- At most the ten cats and the invitation toys in section 3 are on an invitation. The gate shows three cats.
 - The first paint is the cover (or the gate sentences) from `index.html`, readable before any script runs. Target: on a throttled check (4× CPU slowdown, Fast 3G) the cover is visible in under 2 s.
 - The book uses simple geometries and shared materials, at most one light casting shadows (the candle at the door), and a pixel ratio capped at 1.75. A low device gets no shadow map and a cap of 1.25 (see *Three levels*). It renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. Its shadow map is redrawn only while the paper that casts it moves. Target: 60 frames per second, 30 at the least.
-- The QR is sharp, on a white plate with quiet space around it, at least the minimum QR size, and is not blurred or tinted.
+- The QR is sharp: SVG, the palette's ink on bone paper, with a quiet zone of 4 modules, at least the minimum QR size, and not blurred. The saved image is the bank's own, with a white quiet zone.
 - Landmark text is HTML in every stage. The gate sentences stay readable in every phase of the game.
 - The drag surface allows pinch zoom.
 - The countdown is not announced by screen readers as it ticks.
@@ -1040,8 +1066,9 @@ Shared:
 | Place | `Av. Prolongación Beni (Entre 6to y 7mo anillo). Calle 12 de Abril S/N` |
 | City | `Santa Cruz de la Sierra, Bolivia` |
 | Map URL | `https://www.google.com/maps/search/?api=1&query=-17.73170923809386,-63.15786528996242` |
-| QR image | `src/assets/qr.png`, detected at build time. Absent until the hosts add the file. |
-| Ambience track | `src/assets/audio/ambience.mp3`, detected at build time. Absent until the hosts add the file. |
+| Gift QR payload | `shared.giftQr`: the Banco Ganadero payload, verbatim (see *The gift QR*). Empty would show the pending sentence. |
+| Saved QR image | `src/assets/qr-bank.png`: the bank's own QR, padded with a white quiet zone. `Guardar QR` saves it as `qr-regalo-mia.png`. |
+| Ambience track | `src/assets/audio/ambience.mp3`, the host's track, detected at build time. |
 | Site URL | `VITE_SITE_URL` in `.env`: `https://el-jochi.github.io/mia-babyshower/`. `index.html` uses it as `%VITE_SITE_URL%` for the share preview. |
 | Share preview | Section 6 |
 | Post-party copy | Section 6 |
@@ -1105,14 +1132,15 @@ Every value below is a starting value, chosen by judgment before the first build
 | Level 3 | Parallax travel across the flat room | `160px` times each layer's rate, `0.2` (the wall) to `0.85` (the floor) |
 | Device tier | A low device | `2` GB of memory or less, or `2` cores or fewer; only where the browser reports its memory |
 | Device tier | On a low device | No shadow map, half the stars, fireflies, and dust, ambient motion at `0.6` |
-| Performance | Draw calls per frame | At most `100` in the book, `60` at level 2. One accepted exception: on desktop, the frames that redraw the candle shadow while a page folds reach about `105`; phones stay at or below about `85` |
+| Performance | Draw calls per frame | At most `100` in the book, `60` at level 2. One accepted exception: on desktop, the frames that redraw the candle shadow while a page folds reach about `106` with dad's guitar (it adds three calls; measured). Phones stay at or below about `88`, an estimate: the earlier measured ceiling of about `85` plus the guitar's three calls (at rest at Familia on a phone-size screen, `46` to `47` were measured) |
 | Family | Fold-up, walk-in, and stagger on the card | `700ms`, `1100ms`, `200ms` |
 | Family | Dad's height in the 3D doorway | `1.45` world units |
 | Noticing | Middle area of the viewport | `60%` |
 | Noticing | Camera counts as still below | `40 px/s` |
 | Noticing | Wait: Común, Poco común, Legendario | `500ms`, `1500ms`, `2500ms` |
 | Noticing | Misha's wait while music plays | `1200ms` |
-| Noticing | Susto's rush speed | `600 px/s` |
+| Noticing | Chavela's rush speed | `600 px/s` |
+| Noticing | Chona's, Chori's, and Minina's own waits | `2000ms`, `3200ms`, `900ms` |
 | Noticing | `Saludar` stays after the cat leaves the area | `1000ms` |
 | Noticing | Middle area on the gate | `94%` |
 | Card | Stays after a greeting | `4500ms` |
@@ -1132,8 +1160,9 @@ Every value below is a starting value, chosen by judgment before the first build
 | Gate game | Share of drops that are hearts | `30%` |
 | Gate game | Combo cap | `×5` |
 | Gate game | Largest time step | `100ms` |
-| Gate game | Mimo cheers from | combo `×3` |
+| Gate game | Choni cheers from | combo `×3` |
 | QR | Minimum size | `220px` (drawn at `245px` in the book, so a page at its smallest scale shows `220px`) |
+| QR | The code on the page | error correction `Q` (version 18), a quiet zone of `4` modules, the cat emblem about `0.22` of the code's width and at most `5%` of its area |
 | Colors | Theme tokens | Section 16 |
 | Colors | Feeling colors | Section 5 |
 
@@ -1142,16 +1171,16 @@ Every value below is a starting value, chosen by judgment before the first build
 | Id | Proves | Test focus |
 | --- | --- | --- |
 | US-8, FR-14, FR-17, BR-9, BR-10 | Only the two codes open a party | `resolveInvite` for both codes and for missing or junk codes; gate has no date |
-| US-10, US-12, FR-17, BR-26 | The gate is a screen with cats and a game | Ready, playing, and over with both sentences visible; the catcher Luz steps aside while playing; no game with reduced motion; Luz, Mimo, and Susto are present; Bram is absent |
+| US-10, US-12, FR-17, BR-26 | The gate is a screen with cats and a game | Ready, playing, and over with both sentences visible; the catcher Mishona steps aside while playing; every gate cat holds still while playing; no game with reduced motion; Mishona, Choni, and Chavela are present; Kiri kiri is absent; no React render per animation frame |
 | US-1, FR-1, FR-2, FR-3, FR-10 | The room can be read | Landmarks, verse, one date, signpost target, no overlapping cards in the layout function |
 | US-1, FR-11, BR-20 | Keyboard and screen reader | Focus brings a control into view; controls have the accessible names in section 6 |
-| US-2, FR-8, BR-7 | Theme choice sticks | Toggle and its own storage key; contrast of every token pair in use |
+| US-2, FR-8, BR-7 | Theme choice sticks | Toggle and its own storage key; contrast of every token pair in use; the moon and the sun keep their names for screen readers, and the Tus gatos badge counts the cats met |
 | US-3, FR-6, BR-3 | WhatsApp names the right day | Exact decoded message; absent on the gate |
-| US-4, FR-7, BR-5, BR-6 | One shared QR | Image or pending sentence; no QR library |
+| US-4, FR-7, BR-5, BR-6 | One shared QR, and it scans | The drawing on the page decodes to the payload at 220 px in both themes' colors, and with every module under the emblem flipped; the emblem clears every finder and alignment pattern and covers at most 5%; `Guardar QR` shares or downloads the bank's image, pinned by its SHA-256, which decodes to the payload (version 13, its ECI marker, opaque, a quiet zone of 4 modules or more); the pending sentence for an empty payload |
 | US-5, FR-5, FR-15, FR-21, BR-11 | Party current, then over | Map href before the cutoff; address, confirm, QR, countdown, and their signposts absent after it; switch without reload |
 | US-6, FR-4, BR-8 | Countdown math | Fake timers against each start instant; no countdown after the cutoff |
 | US-7, FR-9, FR-25, BR-12, BR-13 | Sketch, ink, then light, in a book that never gates the facts | Stage from position; the cover first, the world waiting behind it; the flat room when the world fails, stalls, loses its WebGL context, or the screen turns too short, on the guest's page; the flat room with no canvas with reduced motion or without WebGL, and over the live attic on a short screen; the page scale floor and the book's QR size; the preload decision; the first paint in `index.html` picks the cover, the post-party cover, or the gate sentences |
-| US-9, FR-16, FR-19, BR-14, BR-15 | Cats persist and stay distinct | Greet once per round; noticing waits; bad stored data dropped; Misha and Kira are `Legendario` and absent from the gate; lines hidden until greeted |
+| US-9, FR-16, FR-19, BR-14, BR-15 | Cats persist and stay distinct | Greet once per round; noticing waits, the new cats' own waits too; bad stored data dropped; a `mia-cats` saved with the old ids still loads; ten cats, 2 Común, 6 Poco común, and 2 Legendario; Misha and Kira are `Legendario` and absent from the gate; lines hidden until greeted; counts out of ten; after the party the four pages hold all ten |
 | US-13, FR-21, BR-22 | Relive the party | Post-party lines; `Jugar otra vez` empties the round and keeps `caught`; absent before the cutoff and on the gate |
 | US-11, FR-18, BR-19 | Ambience waits for a yes | No control without a file; paused until activated; starts at the first gesture on a later visit; refused playback shows `Activar música` |
 | US-14, FR-23, BR-24 | A battle nobody loses | Moves, the fixed answer order, the floor at 1, the win and its card, `Huir` saves nothing, Escape, one dialog at a time, the live region |
@@ -1161,6 +1190,7 @@ Every value below is a starting value, chosen by judgment before the first build
 | FR-20, BR-21, FR-10 | One tuning source, and large screens | Tests import values from the tuning module; the screen growth and the flat room's growing card caps; the head's growing pixel matches the tuning |
 | FR-22, BR-23 | Share preview | `index.html` has the `og:` tags, an absolute image URL, no date, and `noindex` |
 | FR-12, FR-13 | Static build, one content source | Preview serves `/` and both query links |
+| Section 3, *The lived-in attic* | Dad's guitar | The Mockingbird's outline (closed, both cutaways open, extrudes cleanly), its three materials, the placement test at every station and glide, and the draw-call budget with its meshes |
 
 How a cat moves, how the 3D book looks, and how the pages frame on large screens are reviewed by looking at the page, with screenshots at 390, 768, 1440, 1920, and 2560 px in both themes. They are not asserted with screenshot tests.
 
@@ -1169,7 +1199,8 @@ Manual checks, on real phones, before each release:
 - iPhone Safari, Android Chrome, and a link opened from inside WhatsApp.
 - At 320px, 390px, tablet, desktop, and 2560px widths: landmark text is readable, actions are tappable, and the page does not scroll sideways (US-1 AC3).
 - The book opens and moves smoothly on a mid-range phone, and a phone with reduced motion turned on gets the flat room.
-- The QR scans from a second phone, and a saved copy opens in a bank app (US-4).
+- The gate game plays smoothly on a mid-range phone (section 3, *The guest gate*).
+- The page's QR scans with the Banco Ganadero app from a second phone, and the saved `qr-regalo-mia.png` opens from the app's gallery import; both open the transfer to the right account (US-4).
 - The WhatsApp message with the link shows the preview card (BR-23).
 - The door reads as dad, mom, Miguelito, and Mia, with Misha and Kira beside them (US-12 AC2).
 
@@ -1198,7 +1229,7 @@ Manual checks, on real phones, before each release:
 - The party-over state starts at the midnight after the party. The address stays through the evening.
 - One cat state per browser, shared by the gate and both links.
 - The numbers and colors in the tuning module are starting values. The hosts tune them after the first build.
-- Seven cats is the whole cast. Rarity is fixed, not random. Misha and Kira are the only `Legendario` cats.
+- Ten cats is the whole cast. Rarity is fixed, not random. Misha and Kira are the only `Legendario` cats.
 - Misha and Kira stay visible and happy at the door on every invitation visit. Greeting them adds them to **Tus gatos**. The door does not wait for other cats.
 - Dad, Miguelito, and Mia are the curly silhouettes. Dad’s hair has grown since `ideas/dad.jpg` and tends toward an afro, so his outline is the tallest and fullest. Mom is the straight-haired silhouette. Miguelito and Mia are curly at a child’s height and at the smallest height. No faces are drawn.
 - Greeting cannot fail. A cat who is not ready simply does not offer `Saludar` yet. The legendary battle cannot be lost.
@@ -1214,10 +1245,10 @@ Manual checks, on real phones, before each release:
 
 These arrive later and do not change the rules:
 
-1. The QR image file. The hosts create it without a fixed amount, reusable, and expiring after 18 October 2026 or never.
-2. The ambience track, mastered quiet.
-3. The GitHub repository `EL-JOCHI/mia-babyshower`. The account already serves Pages at `el-jochi.github.io` (the Miguelito invitation). The workflow file is already in the project. After the repo exists, set Pages to GitHub Actions, as `docs/stack-and-resources.md` describes.
-4. After the parties, the commit that removes the address.
+1. The GitHub repository `EL-JOCHI/mia-babyshower`. The account already serves Pages at `el-jochi.github.io` (the Miguelito invitation). The workflow file is already in the project. After the repo exists, set Pages to GitHub Actions, as `docs/stack-and-resources.md` describes.
+2. After the parties, the commit that removes the address.
+
+The gift QR (its payload and the bank's image) and the ambience track are in the project. The bank's QR expires on 27 September 2027; a new bank QR would mean a new payload and a new saved image (see `docs/publishing.md`).
 
 Inspiration images for the cats were expected in `images/` and are not in the project yet. When they are added, silhouettes can follow them.
 
@@ -1242,7 +1273,7 @@ Color tokens (in the tuning module), Burton pink noir (design §3):
 | Plum | `#3C1F3D` | Panels in the dark theme, shadows, fog |
 | Candle | `#F2B84B` | Light sources, legendary gold |
 | Page rose | `#A3285A` | Accent text on the parchment pages, in both themes |
-| Paper white | `#FFFFFF` | Fresh paper: pinned notes, the letter, the QR plate |
+| Paper white | `#FFFFFF` | Fresh paper: pinned notes and the letter; the white coats (the Misha family's and Minina's) |
 
 The feeling colors are in section 5. Each theme maps these tokens to its field, text, accent, panels, lines, buttons, and pages; a unit test holds every text pair to AA (US-2 AC4).
 
@@ -1250,7 +1281,7 @@ The four looks (section 3, *The moods*) are mixes of these tokens and the feelin
 
 Scratch, throw, and startle reuse the cat's playing picture. No extra pose files.
 
-Share preview: `public/og-image.jpg`, 1200×630, a JPEG under 300 KB. It shows the title in Mystery Quest and the seven cats on the ink field, in their feeling colors, with no date and no place. The implementer makes it from the site's own art. The favicon is a small cat in the same palette. `theme-color` is `#140E14`.
+Share preview: `public/og-image.jpg`, 1200×630, a JPEG under 300 KB. It shows the title in Mystery Quest and the ten cats in their coats on the ink field, each with its feeling-color glow, with no date and no place. The implementer makes it from the site's own art. The favicon is a small cat in the same palette. `theme-color` is `#140E14`.
 
 ### Release plan
 
@@ -1270,9 +1301,9 @@ The first build, already on `main`, covers R1 and more: the room with its earlie
 
 **The redesign — the pop-up book.** The 3D book with its cover, camera path, pop-up pages, and boceto, tinta, and luz; the Burton pink noir look, fonts, and textures; the rigged cats with line boil; the collectible cards and the legendary battle; the quest log, badges, XP, and levels; the gate game; large screens; and the flat room as the fallback (US-7, US-10, US-14, US-15, US-16). It ships by pushing `main` once `npm test`, the build, and the manual checks pass: before the links go out if it is ready, and otherwise as a later push that updates the site behind the same links. Polish continues after it ships.
 
-**R2 — before the first party, 17 October 2026.** The party-over state with the post-party lines and `Jugar otra vez` must be live before `2026-10-18T00:00:00-04:00` (built in the first build and kept by the redesign). The QR image, once the hosts add it.
+**R2 — before the first party, 17 October 2026.** The party-over state with the post-party lines and `Jugar otra vez` must be live before `2026-10-18T00:00:00-04:00` (built in the first build and kept by the redesign). The gift QR: the bank's payload and image are in the project.
 
-**R3 — optional, before the first party.** Music, once the track arrives.
+**R3 — optional, before the first party.** Music: the host's track is in the project.
 
 **After the parties.** The commit that removes the address (section 10).
 

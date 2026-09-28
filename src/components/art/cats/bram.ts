@@ -1,20 +1,37 @@
 import type { CatDrawing } from './types'
 
-// Bram (Ímpetu): stocky, a notched ear, cool heavy lids, a lightning tail tip, and a guitar pick.
+// Kiri kiri (Juego): the playful Kira. Kira's brown-gray tabby coat with tiger stripes, a white
+// muzzle and chest, white paws, and amber-green eyes (tuning.cats.eyes). Stocky, a notched ear, cool
+// heavy lids, and a guitar pick on the collar.
 export const bram: CatDrawing = {
+  coat: {
+    kind: 'kira',
+    body: [
+      { d: 'M50 66 C 55 70, 65 70, 70 66 C 72 76, 67 86, 60 90 C 53 86, 48 76, 50 66 Z', paint: 'white' },
+      {
+        d: 'M30 80 C 34 81, 35 84, 34 87 M28 100 C 32 101, 33 104, 32 107 M91 80 C 87 81, 86 84, 87 87 M93 92 C 89 93, 88 96, 89 99 M80 70 C 79 74, 79 77, 80 80 M40 70 C 41 74, 41 77, 40 80',
+        paint: 'stripe',
+      },
+    ],
+    head: [
+      { d: 'M54 29 C 55 32, 55 35, 54 38 M60 27 L 60 36 M66 29 C 65 32, 65 35, 66 38', paint: 'stripe' },
+      { d: 'M35 48 L 41 49 M36 52 L 41 52 M85 48 L 79 49 M84 52 L 79 52', paint: 'stripe' },
+      { d: 'M52 55 C 54 51, 66 51, 68 55 C 69 61, 65 66, 60 66 C 55 66, 51 61, 52 55 Z', paint: 'white' },
+    ],
+    paws: 'white',
+  },
   ground: { cx: 60, rx: 36 },
   tail: {
     d: 'M92 101 C 104 99, 109 90, 106 79',
-    tip: 'M106 79 C 105 75, 105 72, 106 70',
+    tip: 'M106 79 C 105 72, 98 70, 98 76 C 98 80, 103 80, 103 77',
     width: 5,
     root: [92, 101],
     joint: [106, 79],
-    tipExtra: { d: 'M104 73 L 112 60 L 105 61 L 111 46 L 97 64 L 104 63 L 100 74 Z', paint: 'feel' },
   },
   body: {
     d: 'M44 65 C 30 71, 24 87, 26 101 C 27 109, 34 112, 44 112 L 78 112 C 88 112, 95 109, 95 100 C 96 86, 90 71, 76 65 Z',
     origin: [60, 112],
-    stitches: 'M31 88 C 33 94, 33 99, 32 104 M29 91 l6 0 M29 96 l6 0 M29 101 l6 0',
+    stitches: 'M31 88.5 C 32.5 91.5, 32.5 94.5, 31.5 97.5 M29 90.5 l6 0 M29 93.5 l6 0 M29 96.5 l6 0',
   },
   legs: [
     { d: 'M48 91 C 47 99, 46 105, 46 110', width: 4, paw: [45, 110] },

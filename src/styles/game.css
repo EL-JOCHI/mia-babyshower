@@ -230,17 +230,28 @@
   touch-action: none;
 }
 
+/* Spec §5: the frame loop writes each drop slot's and the catcher's transform itself (no layout, no
+   React render per frame). A slot shows the toy its data-kind names, or nothing. The moving drops
+   keep no ink boil: a filter on a moving element repaints every frame. */
 .gate-game-drop {
   position: absolute;
-  transform: translate(-50%, -50%);
-  filter: url(#ink-boil);
+  left: 0;
+  top: 0;
   line-height: 0;
+  will-change: transform;
+}
+
+.gate-game-drop[data-kind=''],
+.gate-game-drop[data-kind='yarn'] .gate-game-drop-heart,
+.gate-game-drop[data-kind='heart'] .gate-game-drop-yarn {
+  display: none;
 }
 
 .gate-game-catcher {
   position: absolute;
-  transform: translate(-50%, -50%);
-  transition: left var(--catcher-ms) linear;
+  left: 0;
+  top: 0;
+  will-change: transform;
 }
 
 .gate-game-side {

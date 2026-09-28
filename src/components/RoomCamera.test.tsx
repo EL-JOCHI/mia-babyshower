@@ -11,7 +11,7 @@ import { computeLayout, landmarksFor, type LandmarkId } from '../logic/layout'
 import { tierCount } from '../logic/deviceTier'
 import { hasWebGL } from '../logic/webgl'
 import { cssColor, tuning } from '../tuning'
-import { beforeSatCutoff, beforeSunCutoff, renderRoom } from '../test/helpers'
+import { beforeSatCutoff, beforeSunCutoff, renderRoom, satCutoff } from '../test/helpers'
 import { backdropCanvas, bookCanvas } from '../world/canvasSettings'
 import { WorldRoom } from './WorldRoom'
 
@@ -149,7 +149,7 @@ describe('camera input (§4, BR-20)', () => {
   })
 
   it('does not drag when the press starts on a link, a button, or the QR', () => {
-    renderRoom({ qrUrl: '/qr.png' })
+    renderRoom()
     const x0 = cameraX()
     drag(screen.getByRole('link', { name: copy.map }), [300, 400], [100, 400])
     drag(screen.getByRole('button', { name: copy.qrSave }), [300, 400], [100, 400])
@@ -246,7 +246,7 @@ function worldRoom(props: Partial<ComponentProps<typeof WorldRoom>> = {}) {
       onGreet={vi.fn()}
       onChallenge={vi.fn()}
       musicPlaying={false}
-      qrUrl={undefined}
+      qrPayload={shared.giftQr}
       progress={emptyProgress}
       onEvent={vi.fn()}
       theme="dark"
@@ -300,6 +300,20 @@ describe('the 3D book and its fallback (design §2)', () => {
     expect(screen.getByText(copy.hero)).toBeInTheDocument()
     expect(await screen.findByTestId('room-mid')).toBeInTheDocument()
     expect(cover()).toBeNull()
+  })
+
+  // Review Focus 4, in the book: the same four pages hold all ten cats after the party.
+  it('keeps all ten cats on the four pages left after the party, in the book too (spec §3)', async () => {
+    world.mode = 'ready'
+    renderWorldRoom({ now: satCutoff })
+    await bookReady()
+    const perched = (id: LandmarkId) =>
+      [...document.querySelectorAll(`[data-landmark-id="${id}"] [data-cat-id]`)].map((el) => el.getAttribute('data-cat-id')).sort()
+    expect(perched('llegada')).toEqual(['chona', 'minina', 'susto'])
+    expect(perched('palabra')).toEqual(['chori', 'mimo', 'nana'])
+    expect(perched('cuando')).toEqual(['bram', 'luz'])
+    expect(perched('familia')).toEqual(['kira', 'misha'])
+    expect(document.querySelectorAll('[data-landmark-id] [data-cat-id]')).toHaveLength(10)
   })
 
   it('uses the flat room with reduced motion', () => {
@@ -386,7 +400,7 @@ describe('the 3D book and its fallback (design §2)', () => {
         onGreet={vi.fn()}
         onChallenge={vi.fn()}
         musicPlaying={false}
-        qrUrl={undefined}
+        qrPayload={shared.giftQr}
         progress={emptyProgress}
         onEvent={vi.fn()}
         theme="light"
@@ -443,7 +457,7 @@ describe('the 3D book and its fallback (design §2)', () => {
 
   it('draws the QR in the book large enough to stay at its minimum size on a page at its smallest', async () => {
     world.mode = 'ready'
-    renderWorldRoom({ qrUrl: '/qr.png' })
+    renderWorldRoom()
     await bookReady()
     expect(worldSurface().style.getPropertyValue('--qr-px')).toBe(`${bookQrPx}px`)
     expect(screen.getByRole('img', { name: copy.qrAlt }).style.width).toBe(`var(--qr-px, ${tuning.qr.minPx}px)`)
@@ -976,7 +990,7 @@ describe('a low-tier device (spec §8, Review Focus 5)', () => {
   })
 
   it('draws the book with no shadow map and fewer particles, and still shows every fact', async () => {
-    renderWorldRoom({ qrUrl: '/qr.png' })
+    renderWorldRoom()
     await bookReady()
     expect(screen.getByTestId('world')).toHaveAttribute('data-tier', 'low')
     expect(bookCanvas('low').shadows).toBe(false)

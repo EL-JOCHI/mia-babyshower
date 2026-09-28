@@ -1,7 +1,23 @@
 import type { CatDrawing } from './types'
 
-// Mimo (Ternura): low and round, curled up, with a blush body, sleepy lids, and a small bow.
+// Choni (Cariño): the cuddly Misha, low and round, curled up with a little heart, in Misha's
+// white-and-silver coat, with sleepy lids.
 export const mimo: CatDrawing = {
+  coat: {
+    kind: 'misha',
+    body: [
+      { d: 'M66 77 C 76 76, 88 79, 95 85 C 93 94, 83 97, 75 93 C 69 90, 64 84, 66 77 Z', paint: 'patch' },
+      { d: 'M86 100 C 92 98, 100 100, 104 104 C 102 110, 94 113, 88 110 Z', paint: 'patch' },
+    ],
+    head: [
+      {
+        d: 'M22 60 L 68 60 L 68 79 C 64 76, 59 75, 55 76 C 52 72, 48 70, 45 70 C 42 70, 39 72, 37 76 C 32 75, 26 76, 22 79 Z',
+        paint: 'patch',
+      },
+    ],
+    ears: 'mark',
+    tail: 'mark',
+  },
   ground: { cx: 64, rx: 40 },
   tail: {
     d: 'M98 103 C 102 112, 88 115, 72 114 C 62 113, 54 113, 47 112',
@@ -14,23 +30,18 @@ export const mimo: CatDrawing = {
   body: {
     d: 'M30 96 C 28 84, 44 77, 64 77 C 86 77, 102 85, 102 97 C 102 106, 95 112, 83 112 L 44 112 C 34 112, 30 106, 30 96 Z',
     origin: [66, 112],
-    stitches: 'M70 78 C 76 82, 80 88, 81 95 M70 83 l5 -3 M74 88 l5 -3 M77 93 l5 -2',
+    stitches: 'M60 80 C 58 86, 58 92, 60 98 M58 83 l5 1 M57 88 l5 0 M58 93 l5 -1',
   },
   legs: [
     { d: 'M36 101 L 35 109', width: 3.2, paw: [34, 109] },
     { d: 'M52 102 L 53 110', width: 3.2, paw: [54, 110] },
   ],
-  collar: { d: 'M31 95 Q 44 102, 58 95', charm: 'heart', at: [45, 101] },
+  // The collar shows behind her head, so her little heart hangs in view on her side.
+  collar: { d: 'M58 78 Q 68 85, 63 98', charm: 'heart', at: [68.5, 93] },
   head: {
     d: 'M25 85 C 24 72, 33 64, 45 64 C 57 64, 65 72, 64 84 C 64 94, 56 100, 44 100 C 32 100, 25 94, 25 85 Z',
     origin: [46, 97],
     turn: -7,
-    // The bow sits on her right ear.
-    extras: [
-      { d: 'M60 60 L 52 55 C 51 59, 51 62, 52 65 Z', paint: 'rose' },
-      { d: 'M60 60 L 68 55 C 69 59, 69 62, 68 65 Z', paint: 'rose' },
-      { d: 'M57.6 60 a2.4 2.4 0 1 0 4.8 0 a2.4 2.4 0 1 0 -4.8 0 Z', paint: 'deepRose' },
-    ],
   },
   ears: {
     l: {

@@ -6,10 +6,10 @@ import type { PropInstances, PropMaterialKey, PropModel, PropPart } from './type
 // Spec §5: the props shared by both moods, in the pink-noir paper style: flat shapes, slightly
 // crooked. Each factory is pure: the same call draws the same prop, in its own space, feet on y = 0.
 
-type Pieces = Partial<Record<PropMaterialKey, THREE.BufferGeometry[]>>
+export type Pieces = Partial<Record<PropMaterialKey, THREE.BufferGeometry[]>>
 
 // Each material's pieces merged into one geometry.
-function parts(pieces: Pieces): PropPart[] {
+export function parts(pieces: Pieces): PropPart[] {
   return (Object.entries(pieces) as [PropMaterialKey, THREE.BufferGeometry[]][])
     .filter(([, list]) => list.length > 0)
     .map(([material, list]) => ({ material, geometry: merge(list) }))

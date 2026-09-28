@@ -2,7 +2,7 @@
 // Copy is Spanish and comes verbatim from requirements §6. Code stays English.
 
 export type DayId = 'sat' | 'sun'
-export type CatId = 'luz' | 'mimo' | 'susto' | 'bram' | 'nana' | 'misha' | 'kira'
+export type CatId = 'luz' | 'mimo' | 'susto' | 'bram' | 'nana' | 'chona' | 'chori' | 'minina' | 'misha' | 'kira'
 export type Rarity = 'comun' | 'pocoComun' | 'legendario'
 export type CatPage = 'gate' | 'invitation'
 
@@ -30,6 +30,12 @@ export const shared = {
   mapUrl: 'https://www.google.com/maps/search/?api=1&query=-17.73170923809386,-63.15786528996242',
   timezone: 'America/La_Paz',
   clockTime: '16:00',
+  // Spec §2: the Banco Ganadero transfer QR's payload, verbatim, decoded locally from the host's
+  // QR (a version-13 code). It holds no readable name or account number. The screen draws it in the
+  // invitation's style; Guardar QR saves the bank's own image, src/assets/qr-bank.png, which decodes
+  // to this same text (controller ruling 1). The bank's QR expires on 27 September 2027.
+  giftQr:
+    'OT2Cu6AJdj75fvrf5Cw+Tp66oN98EjzvOGWbFVd9icyzcc3KE9GoUMIQJVnMpmjMFG8TqUumfb2+GMCElZMNIpyHNOVxQ2lfmZpEhz1LD8+241Y83+rRkwh1dIGPGXm5qqnpyJ1f+M62e+rpy9UjVMWB8GNyl8Opslvo1h/rUMTBah8ZjSpOrwQ+40u6I/WTrbAFX2N563XmUcOZMv6LKHtOcVM8Z6VAyZbUYrLgqoFcF5SAusQe5C0D4dmEkiS7RUWYa0KDCRJ8BgkBrFDlVf2n9xhcbAQMZ5MNXA+4SOjQe4pa8VmuZRrR4Pxrx6Xt/eJE6xZCRWG28f9cg3RhJQ==|169CFCA97CD583D173238CAA',
 } as const
 
 export const days: Record<DayId, DayRecord> = {
@@ -54,23 +60,23 @@ export const days: Record<DayId, DayRecord> = {
 export const cats: readonly CatRecord[] = [
   {
     id: 'luz',
-    name: 'Luz',
-    feeling: 'Alegría',
+    name: 'Mishona',
+    feeling: 'Coquetería',
     rarity: 'comun',
     pages: ['gate', 'invitation'],
-    line: 'Siempre encuentra algo que perseguir.',
+    line: 'Se arregla los bigotes antes de saludarte.',
   },
   {
     id: 'mimo',
-    name: 'Mimo',
-    feeling: 'Ternura',
+    name: 'Choni',
+    feeling: 'Cariño',
     rarity: 'comun',
     pages: ['gate', 'invitation'],
-    line: 'Le gusta que te quedes un rato.',
+    line: 'Se acurruca a tu lado y ronronea bajito.',
   },
   {
     id: 'susto',
-    name: 'Susto',
+    name: 'Chavela',
     feeling: 'Temor',
     rarity: 'pocoComun',
     pages: ['gate', 'invitation'],
@@ -78,19 +84,43 @@ export const cats: readonly CatRecord[] = [
   },
   {
     id: 'bram',
-    name: 'Bram',
-    feeling: 'Ímpetu',
+    name: 'Kiri kiri',
+    feeling: 'Juego',
     rarity: 'pocoComun',
     pages: ['invitation'],
-    line: 'Hace ruido y después se queda.',
+    line: 'Tira la púa, la persigue y vuelve por más.',
   },
   {
     id: 'nana',
-    name: 'Nana',
-    feeling: 'Delicadeza',
+    name: 'Delilah',
+    feeling: 'Curiosidad',
     rarity: 'pocoComun',
     pages: ['invitation'],
-    line: 'Elige un solo lugar, y ese es el suyo.',
+    line: 'Todo lo huele primero, hasta el QR.',
+  },
+  {
+    id: 'chona',
+    name: 'Chona',
+    feeling: 'Energía',
+    rarity: 'pocoComun',
+    pages: ['invitation'],
+    line: 'Llega corriendo y no se queda quieta.',
+  },
+  {
+    id: 'chori',
+    name: 'Chori',
+    feeling: 'Apapacho',
+    rarity: 'pocoComun',
+    pages: ['invitation'],
+    line: 'Redondita, tranquila y siempre con hambre.',
+  },
+  {
+    id: 'minina',
+    name: 'Minina',
+    feeling: 'Travesura',
+    rarity: 'pocoComun',
+    pages: ['invitation'],
+    line: 'Pequeñita, blanca y lista para jugar.',
   },
   {
     id: 'misha',
@@ -128,11 +158,11 @@ export const copy = {
   moveHint: 'Muévete para explorar',
   verse: 'Los hijos son una herencia de parte de Jehová.',
   verseCitation: 'Salmo 127:3',
-  giftLead: 'Lo más importante es que vengas.',
-  giftOffer: 'Si quieres tener un detalle, puedes transferir con este QR. El monto lo eliges tú.',
+  gift: 'El mayor regalo es poder contar con tu presencia, pero si deseas dar un presente, lo aceptamos con mucho gusto. Puedes usar este QR.',
   qrAlt: 'Código QR para transferir un regalo a Mia',
   qrPending: 'El QR estará aquí pronto.',
   qrSave: 'Guardar QR',
+  qrHint: 'Toca el gatito para guardar el QR en tu celular.',
   confirm: 'Confirmar por WhatsApp',
   map: 'Ver en el mapa',
   signposts: {
@@ -144,15 +174,17 @@ export const copy = {
     familia: 'La familia',
   },
   collection: 'Tus gatos',
+  // Spec §4: the Tus gatos badge, cats met out of all of them.
+  collectionCount: (n: number, total: number) => `${n}/${total}`,
   close: 'Cerrar',
   greet: 'Saludar',
   greetName: (name: string) => `Saludar a ${name}`,
   caught: (name: string) => `Se quedó contigo: ${name}.`,
   notYet: 'Aún no se acerca',
-  roundCount: (n: number) => `${n} de 7`,
+  roundCount: (n: number, total: number) => `${n} de ${total}`,
   roundNumber: (n: number) => `Vuelta ${n}`,
   playAgain: 'Jugar otra vez',
-  doorLine: 'Papá, mamá, Miguelito y Mia. Misha y Kira vienen con ellos.',
+  doorLine: 'La familia se hace más grande, y nos encantaría que nos acompañes.',
   themeDark: 'Oscuro',
   themeLight: 'Claro',
   countdownLabels: { days: 'Días', hours: 'Horas', minutes: 'Minutos', seconds: 'Segundos' },
@@ -167,7 +199,7 @@ export const copy = {
 export const gameCopy = {
   pageFound: '¡Página encontrada!',
   pages: (n: number, total: number) => `Páginas ${n}/${total}`,
-  cats: (n: number) => `Gatos ${n}/7`,
+  cats: (n: number, total: number) => `Gatos ${n}/${total}`,
   level: (n: number) => `Nivel ${n}`,
   xp: (n: number) => `${n} XP`,
   levelTitles: ['Visitante curioso', 'Amigo de los gatos', 'Guardián del cuento', 'Invitado de honor', 'Leyenda de la casa'],

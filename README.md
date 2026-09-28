@@ -1,6 +1,6 @@
 # 🐾 Baby shower de Mia
 
-An interactive web invitation for Mia's baby shower 👶💖. It is a **pop-up storybook in a cat's attic** 📖🌙: a 3D book whose pages pop up as guests travel through it. Saturday's link opens it under the moon and Sunday's in a golden dusk, and its pages go from pencil sketch to ink to candlelight. Guests find the date, the place, the RSVP, and the gift QR on its pages. Along the way they meet seven hand-drawn cats 🐱, collect their cards, and play with the two legendary ones. At the end, the family, as paper pop-ups, folds up and walks in through a lit door. 🚪✨
+An interactive web invitation for Mia's baby shower 👶💖. It is a **pop-up storybook in a cat's attic** 📖🌙: a 3D book whose pages pop up as guests travel through it. Saturday's link opens it under the moon and Sunday's in a golden dusk, and its pages go from pencil sketch to ink to candlelight. Guests find the date, the place, the RSVP, and the gift QR on its pages. Along the way they meet ten hand-drawn cats 🐱, the family's own, collect their cards, and play with the two legendary ones. At the end, the family, as paper pop-ups, folds up and walks in through a lit door. 🚪✨
 
 > **Source of truth:** [`docs/requirements.md`](docs/requirements.md). Every behavior, string, and rule comes from there.
 
@@ -25,25 +25,29 @@ The **guest gate** says the invitation is for special guests and must be opened 
 - 📖 **Travel through a 3D pop-up book.** The cover opens on the first move. Drag, use the wheel or the arrow keys, or tap a signpost (`Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`). Each page folds up out of the book as the camera arrives.
 - 🌙🌅 **A mood per day.** Saturday is a moonlit night, Sunday a golden dusk, each in a lighter (`Claro`) and a darker (`Oscuro`) look, lit from the first page. Saturday has a turning star mobile, a paper star garland, and a moonbeam; Sunday has swaying paper lanterns, fireflies at dusk, and a golden beam.
 - ✏️ **Sketch → ink → light.** The book's pop-up paper and the cats start as a pencil sketch (boceto), gain ink (tinta), and end lit by candles (luz) near the family door.
-- 🏠 **A lived-in attic.** A crib under the round window, a bookshelf, a yarn basket, a rocking chair, old trunks, a crooked lamp, a cat bed, a scratching post, and curtains, all in paper and ink.
+- 🏠 **A lived-in attic.** A crib under the round window, a bookshelf, a yarn basket, a rocking chair, old trunks, a crooked lamp, a cat bed, a scratching post, curtains, and dad's gold-top B.C. Rich Mockingbird 🎸 leaning in the corner by the family door, all in paper and ink.
 - 📱 **3D for almost everyone.** Short or sideways screens and slow loads get the readable flat room over the live 3D attic; no WebGL gets it over a layered paper diorama of the attic.
 - ⏳ **Watch the countdown** on a melting candle with flip-card digits.
 - 📍 **Unroll a treasure map** and 💬 **confirm on WhatsApp** with a wax seal, with a message that names their day.
-- 🎁 **Open a gift box** to see the QR, and save it with `Guardar QR`: it shares the image, or downloads it if sharing isn't available.
-- 🐱 **Meet seven cats.** Original Burton-style paper cats with rigs and a hand-drawn "line boil". Each has a feeling color, a rarity, and a line you only learn after greeting them. Wait near a cat and `Saludar` appears. Every greeting flips in a **collectible card**. Greeted cats are kept in **Tus gatos** on that browser.
+- 🎁 **Open a gift box** to see the bank's QR, drawn in the invitation's style with a cat in the middle, and tap the cat button `Guardar QR` to save the bank's own QR image (`qr-regalo-mia.png`) for any bank app: it shares the file, or downloads it if sharing isn't available.
+- 🐱 **Meet ten cats.** Burton-style paper cats with rigs and a hand-drawn "line boil": Misha and Kira drawn as the real cats, and their family in their coats (white with silver-gray patches, brown-gray tabby, black, and pure white). Each has a feeling color, a rarity, and a line you only learn after greeting them. Wait near a cat and `Saludar` appears. Every greeting flips in a **collectible card**. Greeted cats are kept in **Tus gatos** on that browser.
 - ⚔️ **Play with the legends.** Misha and Kira answer with `¡A jugar!`: a playful Pokémon-style battle with yarn, cuddles, and purrs. Nobody can lose.
 - 🏅 **Quest log, badges, and XP.** Pages found, cats met, levels from `Visitante curioso` to `Leyenda de la casa`, and eleven badges, each earned once.
-- 🕹️ **Gate game.** On the gate, catch yarn and hearts with Luz for 30 seconds, build a combo, and beat your best score.
+- 🕹️ **Gate game.** On the gate, catch yarn and hearts with Mishona for 30 seconds, build a combo, and beat your best score. It runs smoothly: the frame loop moves the drops itself, and the cats hold still until the round ends.
 - 🐾 **Play.** Tap the countdown, the verse, the QR, the door, or a toy and a cat reacts.
-- 🎵 **Turn on music**, once the hosts add a track.
+- 🎵 **Turn on music**: the host's track, loaded only when asked.
+- 🌗 **Icons.** A moon and a sun switch Oscuro and Claro; a cat's head with a `n/10` badge opens **Tus gatos**. Screen readers still hear the words. The music button stays text.
 
 | Cat | Feeling | Color | Rarity |
 | --- | --- | --- | --- |
-| ☀️ Luz | Alegría | sunny gold | Común |
-| 🌸 Mimo | Ternura | rose | Común |
-| 👀 Susto | Temor | violet | Poco común |
-| ⚡ Bram | Ímpetu | ember | Poco común |
-| 👑 Nana | Delicadeza | mint | Poco común |
+| 🎀 Mishona | Coquetería | sunny gold | Común |
+| 💗 Choni | Cariño | rose | Común |
+| 👀 Chavela | Temor | violet | Poco común |
+| 🎸 Kiri kiri | Juego | ember | Poco común |
+| 👃 Delilah | Curiosidad | mint | Poco común |
+| ⚡ Chona | Energía | chartreuse | Poco común |
+| 🐟 Chori | Apapacho | apricot | Poco común |
+| 🧶 Minina | Travesura | orchid | Poco común |
 | 🌙 Misha | Calma | moon blue | Legendario |
 | ⭐ Kira | Asombro | star teal | Legendario |
 
@@ -104,8 +108,8 @@ Then open:
 
 Two files hold everything you're likely to adjust. Components read them, so a change there never needs a component change.
 
-- 🎚️ **`src/tuning.ts`**: every number and color. The palette and the feeling colors, the four mood looks, the 3D book (camera path, pop-up springs, lights, fog, dust, paper pieces), the attic's props and each mood's props, the paper family, the live attic and the paper diorama, the device tiers, the stage thresholds (boceto → tinta → luz), how long each cat takes to notice you, the cats' rig timings, the battle's numbers, XP and levels, the gate game, large-screen growth, room and card sizes, and the QR size.
-- 📝 **`src/content.ts`**: every guest-facing string (Spanish), the dates and times, the address, the map link, the WhatsApp number and messages, the cats' names, feelings, rarities, and lines, and the game, battle, and gate-game copy. Keep it in sync with §6 of the spec.
+- 🎚️ **`src/tuning.ts`**: every number and color. The palette and the feeling colors, the four mood looks, the 3D book (camera path, pop-up springs, lights, fog, dust, paper pieces), the attic's props and each mood's props, the paper family, the live attic and the paper diorama, the device tiers, the stage thresholds (boceto → tinta → luz), how long each cat takes to notice you, the cats' rig timings, the battle's numbers, XP and levels, the gate game, large-screen growth, room and card sizes, and the QR's size, error correction, and cat emblem.
+- 📝 **`src/content.ts`**: every guest-facing string (Spanish), the dates and times, the address, the map link, the WhatsApp number and messages, the gift QR's payload, the cats' names, feelings, rarities, and lines, and the game, battle, and gate-game copy. Keep it in sync with §6 of the spec.
 
 💡 **Preview the after-party look:** temporarily set Saturday's `overFrom` in `src/content.ts` to a past date, then open `?e=n4vk`. Don't commit that change.
 
@@ -113,14 +117,12 @@ Two files hold everything you're likely to adjust. Components read them, so a ch
 
 ## 🖼️ Host files
 
-| File | Where it goes | Until it exists |
+| File | Where it is | Notes |
 | --- | --- | --- |
-| 🎁 Gift QR (PNG) | `src/assets/qr.png` | The page shows "El QR estará aquí pronto." |
-| 🎵 Ambience track (MP3, mastered quiet) | `src/assets/audio/ambience.mp3` | The music control is hidden |
+| 🏦 The bank's gift QR (PNG) | `src/assets/qr-bank.png` | The host's cropped Banco Ganadero QR, padded with a white quiet zone. `Guardar QR` saves it as `qr-regalo-mia.png`. Its SHA-256 is pinned in a test, so it cannot change by accident. |
+| 🎵 Ambience track (MP3) | `src/assets/audio/ambience.mp3` | The host's track, in the repo. Detected at build time; without it the music control is hidden. |
 
-Both are detected at build time. Add the file, commit, and push.
-
-🏦 **Making the QR:** create it in your bank app **without a fixed amount**, **reusable**, and **expiring after 18 October 2026** (or never).
+🔳 **The QR on the page** is drawn from its payload (the Banco Ganadero QR, decoded locally): `shared.giftQr` in `src/content.ts`. The bank's QR expires on **27 September 2027**. Scan the page's QR and the saved `qr-regalo-mia.png` with the Banco Ganadero app before sending the links.
 
 📸 `ideas/` holds the host reference photos. It is in `.gitignore` and must never be committed.
 
@@ -133,14 +135,15 @@ src/
   content.ts        📝 copy and facts (the content module)
   tuning.ts         🎚️ numbers and colors (the tuning module)
   headMeta.ts       🔗 share preview, theme variables, pre-paint theme, and the first-paint cover (injected into index.html)
-  assets.ts         🖼️ detects the QR and music files
+  assets.ts         🖼️ detects the music file
+  assets/           🏦 qr-bank.png (the bank's QR, what Guardar QR saves), 🎵 audio/ambience.mp3 (the host's track)
   index.css         🎨 tokens, fonts, HUD, dialogs, battle, gate, the book's cover
   styles/           🎨 pages.css (the pop-up pages and their objects), game.css (quest log, toasts, gate game), family.css (the paper family), diorama.css (the paper diorama and the live attic's layer)
-  logic/            🧠 pure functions + tests: invite code, party over, countdown, layout, screen scale, stages, path, noticing, cats, battle, progress, gate game, moods, levels, device tiers
+  logic/            🧠 pure functions + tests: invite code, party over, countdown, layout, screen scale, stages, path, noticing, cats, battle, progress, gate game, moods, levels, device tiers, the gift QR's matrix and emblem
   hooks/            🪝 clock, theme, camera, world camera, noticing, acts, music, cat state, progress, gate best, page hidden
-  components/       🧩 App, WorldRoom, FlatRoom, PaperDiorama, Pages, PageCard, CandleCountdown, TreasureMap, WaxSealConfirm, GiftBox, Gate, GateGame, Battle, CardReveal, QuestLog, BadgeToasts, Collection, Cat, FamilyDoor, PaperFamily, …
-    art/            🐈‍⬛ CatSprite (the seven rigged cats), InkDefs (line boil, paper edge), cats/ (one drawing per cat), family.ts (the four paper figures)
-  world/            🧊 the lazy 3D chunk: World, Backdrop (the live attic), CameraRig, Station (pop-up pages), FamilyCutouts, Book, Attic, WindowSky, Props and props/ (the attic's furniture), MoodProps, Fireflies, StageLighting, MoodLights, Dust, palettes, paper textures
+  components/       🧩 App, WorldRoom, FlatRoom, PaperDiorama, Pages, PageCard, CandleCountdown, TreasureMap, WaxSealConfirm, GiftBox, GiftQr, Gate, GateGame, Battle, CardReveal, QuestLog, BadgeToasts, Collection, Cat, FamilyDoor, PaperFamily, …
+    art/            🐈‍⬛ CatSprite (the ten rigged cats in their coats), InkDefs (line boil, paper edge), cats/ (one drawing per cat), family.ts (the four paper figures)
+  world/            🧊 the lazy 3D chunk: World, Backdrop (the live attic), CameraRig, Station (pop-up pages), FamilyCutouts, Book, Attic, WindowSky, Props and props/ (the attic's furniture and dad's guitar), MoodProps, Fireflies, StageLighting, MoodLights, Dust, palettes, paper textures
 public/
   og-image.jpg      📣 WhatsApp preview (1200×630)
   favicon.svg       🐱
@@ -156,7 +159,7 @@ docs/
 
 ## 🧱 Tech stack
 
-⚛️ React 19 · ⚡ Vite 8 · 🟦 TypeScript 6 (strict) · 🎨 Tailwind CSS 4 · 🧊 Three.js + React Three Fiber + drei (a lazy chunk behind the cover) · ✅ Vitest + Testing Library · 🔤 Mystery Quest, Alegreya, and Pixelify Sans (self-hosted, OFL).
+⚛️ React 19 · ⚡ Vite 8 · 🟦 TypeScript 6 (strict) · 🎨 Tailwind CSS 4 · 🧊 Three.js + React Three Fiber + drei (a lazy chunk behind the cover) · 🔳 qrcode-generator (the gift QR on the page) · ✅ Vitest + Testing Library (and jsqr and pngjs, to decode the QR in tests) · 🔤 Mystery Quest, Alegreya, and Pixelify Sans (self-hosted, OFL).
 
 No router, no state library, no animation library, no game engine, no analytics. The only storage is five `localStorage` keys on the guest's own browser: `mia-cats`, `mia-theme`, `mia-music`, `mia-progress`, and `mia-gate-best`.
 

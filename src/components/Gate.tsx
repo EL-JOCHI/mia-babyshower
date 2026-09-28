@@ -27,8 +27,10 @@ const spots: Partial<Record<CatId, CSSProperties>> = tuning.gateScreen.catSpots
 // visible above the game in every phase, and with reduced motion.
 export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) {
   const root = useRef<HTMLElement | null>(null)
-  // Luz is the catcher while a round plays, so her roaming, greetable self steps aside; Mimo and
-  // Susto stay greetable throughout.
+  // Mishona is the catcher while a round plays, so her roaming, greetable self steps aside; Choni
+  // and Chavela stay greetable throughout. While it plays every gate cat holds still (controller
+  // ruling 3): no ink boil here, and `.gate.is-playing` stops their rig loops (src/index.css), so no
+  // cat's paper-cut and boil filters redraw on every frame of the game.
   const [playing, setPlaying] = useState(false)
   const noticing = useNoticing({
     catIds: gateCats,
@@ -46,7 +48,7 @@ export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) 
   }
 
   return (
-    <main ref={root} className="gate era-color">
+    <main ref={root} className={`gate era-color${playing ? ' is-playing' : ''}`}>
       <div className="gate-sentences">
         <p className="gate-sentence">{copy.gate[0]}</p>
         <p className="gate-sentence">{copy.gate[1]}</p>
@@ -76,7 +78,7 @@ export function Gate({ reducedMotion, catState, onGreet, musicPlaying }: Props) 
               noticing={Boolean(noticing[id])}
               inRound={catState.round.includes(id)}
               acting={acting[id]}
-              still={reducedMotion}
+              still={reducedMotion || playing}
               onGreet={onGreet}
               size={tuning.catSize.gate}
             />

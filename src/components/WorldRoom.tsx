@@ -75,7 +75,7 @@ interface PagesProps {
   onGreet: (id: CatId) => void
   onChallenge: (id: BattleCat) => void
   musicPlaying: boolean
-  qrUrl: string | undefined
+  qrPayload: string
   progress: Progress
   onEvent: (event: ProgressEvent) => void
   standing: readonly LandmarkId[]
@@ -104,7 +104,7 @@ const BookPages = memo(function BookPages({
   onGreet,
   onChallenge,
   musicPlaying,
-  qrUrl,
+  qrPayload,
   progress,
   onEvent,
   standing,
@@ -129,7 +129,7 @@ const BookPages = memo(function BookPages({
     onGreet,
     onChallenge,
     musicPlaying,
-    qrUrl,
+    qrPayload,
     progress,
     onEvent,
     standing,
@@ -195,7 +195,7 @@ function BookRoom({
   onGreet,
   onChallenge,
   musicPlaying,
-  qrUrl,
+  qrPayload,
   progress,
   onEvent,
   theme,
@@ -368,7 +368,7 @@ function BookRoom({
           onGreet={onGreet}
           onChallenge={onChallenge}
           musicPlaying={musicPlaying}
-          qrUrl={qrUrl}
+          qrPayload={qrPayload}
           progress={progress}
           onEvent={onEvent}
           standing={standing}
@@ -453,7 +453,7 @@ function FlatLevels({
       onGreet={room.onGreet}
       onChallenge={room.onChallenge}
       musicPlaying={room.musicPlaying}
-      qrUrl={room.qrUrl}
+      qrPayload={room.qrPayload}
       progress={room.progress}
       onEvent={room.onEvent}
       onFirstMove={room.onFirstMove}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ambienceUrl, qrImageUrl } from '../assets'
-import type { CatId } from '../content'
+import { ambienceUrl } from '../assets'
+import { shared, type CatId } from '../content'
 import { useCatState } from '../hooks/useCatState'
 import { useReducedMotion } from '../hooks/useMediaQuery'
 import { useMusic } from '../hooks/useMusic'
@@ -25,13 +25,14 @@ import { WorldRoom } from './WorldRoom'
 
 interface Props {
   search?: string
-  qrUrl?: string
+  // Spec §2: the gift QR's payload (an empty one shows the pending line).
+  qrPayload?: string
   musicUrl?: string
 }
 
 // One page. The opening comes from the query string once; the clock, theme, cats, and music
 // are the only live inputs (§10 Quality bar).
-export function App({ search = window.location.search, qrUrl = qrImageUrl, musicUrl = ambienceUrl }: Props) {
+export function App({ search = window.location.search, qrPayload = shared.giftQr, musicUrl = ambienceUrl }: Props) {
   const opening = useMemo(() => resolveInvite(search), [search])
   const now = useNow()
   const reducedMotion = useReducedMotion()
@@ -141,6 +142,7 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
           onOpenCollection={openCollection}
           collectionOpen={collectionOpen}
           collectionButtonRef={collectionButton}
+          catsMet={cats.state.caught.length}
           quest={quest}
         />
         {opening.kind === 'gate' ? (
@@ -156,7 +158,7 @@ export function App({ search = window.location.search, qrUrl = qrImageUrl, music
             onGreet={onGreet}
             onChallenge={onChallenge}
             musicPlaying={musicPlaying}
-            qrUrl={qrUrl}
+            qrPayload={qrPayload}
             progress={progress}
             onEvent={dispatch}
             onFirstMove={onFirstMove}

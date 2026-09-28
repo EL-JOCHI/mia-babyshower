@@ -159,7 +159,7 @@ describe('US-15 Moving and reaching pages in the flat room (design §6)', () => 
     const glide = () => advance(tuning.camera.glideMs + 50)
 
     it('opens the map and the gift box as soon as their pages come into view, before they are found', () => {
-      renderRoom({ qrUrl: '/qr.png' })
+      renderRoom()
       // Both pages start off screen, so their objects wait to play.
       expect(document.querySelector('.treasure-map')).not.toHaveClass('is-unrolled')
       expect(document.querySelector('.gift-box')).not.toHaveClass('is-open')
@@ -210,20 +210,21 @@ describe('US-15 Moving and reaching pages in the flat room (design §6)', () => 
   })
 
   it('opens the gift box when something inside it takes focus', () => {
-    renderRoom({ qrUrl: '/qr.png' })
+    renderRoom()
     act(() => screen.getByRole('button', { name: copy.qrSave }).focus())
     expect(document.querySelector('.gift-box')).toHaveClass('is-open')
   })
 
-  it('shows the pending sentence inside the box when there is no QR', () => {
-    renderRoom({ qrUrl: undefined })
+  it('shows the pending sentence inside the box when the payload is empty', () => {
+    renderRoom({ qrPayload: '' })
     expect(document.querySelector('.gift-box')).toContainElement(screen.getByText(copy.qrPending))
   })
 
   it('reports Guardar QR and Confirmar por WhatsApp as progress events', () => {
+    // The bank's image never arrives here, so Guardar QR neither shares nor downloads.
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
     try {
-      const { onEvent } = renderRoom({ qrUrl: '/qr.png' })
+      const { onEvent } = renderRoom()
       fireEvent.click(screen.getByRole('button', { name: copy.qrSave }))
       expect(onEvent).toHaveBeenCalledWith({ type: 'savedQr' })
       fireEvent.click(screen.getByRole('link', { name: copy.confirm }))
@@ -255,27 +256,49 @@ describe('US-3 Confirm the correct day on WhatsApp', () => {
 })
 
 describe('US-4 See the gift QR', () => {
-  it('shows the image with its alternative text, on a plate at the minimum size (AC1)', () => {
-    renderRoom({ qrUrl: '/qr-fixture.png' })
-    const img = screen.getByRole('img', { name: copy.qrAlt })
-    expect(img).toHaveAttribute('src', '/qr-fixture.png')
-    expect(img).toHaveAttribute('width', String(tuning.qr.minPx))
-    expect(img.closest('.qr-plate')).not.toBeNull()
+  it('draws the QR from its payload, with its alternative text, on a plate at the minimum size (AC1, spec §2)', () => {
+    renderRoom()
+    const qr = screen.getByRole('img', { name: copy.qrAlt })
+    expect(qr.tagName.toLowerCase()).toBe('svg')
+    expect(qr).toHaveAttribute('width', String(tuning.qr.minPx))
+    expect(qr.closest('.qr-plate')).not.toBeNull()
+    // Three rounded finder eyes (a ring and a pupil each), the modules, and the cat emblem.
+    expect(qr.querySelectorAll('.gift-qr-eye')).toHaveLength(6)
+    expect(qr.querySelector('.gift-qr-modules')).not.toBeNull()
+    expect(qr.querySelector('.gift-qr-emblem')).not.toBeNull()
   })
 
-  it('shows the pending sentence, no image, and no Guardar QR when the file is missing (AC2)', () => {
-    renderRoom({ qrUrl: undefined })
+  it('shows the pending sentence, no QR, and no Guardar QR when the payload is empty (AC2)', () => {
+    renderRoom({ qrPayload: '' })
     expect(screen.getByText(copy.qrPending)).toBeInTheDocument()
     expect(screen.queryByRole('img', { name: copy.qrAlt })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: copy.qrSave })).not.toBeInTheDocument()
+    expect(screen.queryByText(copy.qrHint)).not.toBeInTheDocument()
   })
 
-  it('leads with presence and the offer, and names no amount, bank, or account (AC3)', () => {
+  it('leads with presence in one line, and names no amount, bank, or account (AC3, spec §4)', () => {
     renderRoom()
-    expect(screen.getByText(copy.giftLead)).toBeInTheDocument()
-    expect(screen.getByText(copy.giftOffer)).toBeInTheDocument()
+    const gift = within(landmark('presente') as HTMLElement)
+    expect(gift.getByText(copy.gift)).toBeInTheDocument()
+    expect(copy.gift).toBe(
+      'El mayor regalo es poder contar con tu presencia, pero si deseas dar un presente, lo aceptamos con mucho gusto. Puedes usar este QR.',
+    )
     const text = landmark('presente')?.textContent ?? ''
     expect(text).not.toMatch(/Bs\.?|\d+\s?bs|banco|cuenta/i)
+    expect(text).not.toContain(shared.giftQr)
+  })
+
+  it('makes Guardar QR a cat button: a drawn cat face with a download arrow beside the text, and the hint below', () => {
+    renderRoom()
+    const button = screen.getByRole('button', { name: copy.qrSave })
+    expect(button.querySelector('svg.gift-save-cat')).toHaveAttribute('aria-hidden', 'true')
+    expect(button.querySelector('.gift-save-cat-arrow')).not.toBeNull()
+    expect(button).toHaveTextContent(copy.qrSave)
+    const hint = screen.getByText(copy.qrHint)
+    expect(copy.qrHint).toBe('Toca el gatito para guardar el QR en tu celular.')
+    expect(button.compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // Delilah still perches on the gift box.
+    expect(document.querySelector('.gift-box .qr-perch [data-cat-id="nana"]')).not.toBeNull()
   })
 })
 
@@ -298,7 +321,7 @@ describe('US-5 Find the place, then see the party end', () => {
     expect(screen.queryByText(shared.city)).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: copy.map })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: copy.confirm })).not.toBeInTheDocument()
-    expect(screen.queryByText(copy.giftOffer)).not.toBeInTheDocument()
+    expect(screen.queryByText(copy.gift)).not.toBeInTheDocument()
     expect(screen.queryByText(copy.qrPending)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: copy.qrSave })).not.toBeInTheDocument()
     expect(screen.queryByTestId('countdown')).not.toBeInTheDocument()
@@ -309,7 +332,7 @@ describe('US-5 Find the place, then see the party end', () => {
   }
 
   it('removes the place, confirm, gift, countdown, and their signposts at the Saturday cutoff (AC3)', () => {
-    renderRoom({ day: 'sat', now: satCutoff, qrUrl: '/qr.png' })
+    renderRoom({ day: 'sat', now: satCutoff })
     expectOver()
   })
 
@@ -366,9 +389,9 @@ describe('US-7 Move from sketch to light', () => {
 })
 
 describe('US-12 Watch the cats play (invitation)', () => {
-  it('has all seven cats and the family door line (AC2)', () => {
+  it('has all ten cats and the family door line (AC2)', () => {
     renderRoom()
-    for (const name of ['Luz', 'Mimo', 'Susto', 'Bram', 'Nana', 'Misha', 'Kira']) {
+    for (const name of ['Mishona', 'Choni', 'Chavela', 'Kiri kiri', 'Delilah', 'Chona', 'Chori', 'Minina', 'Misha', 'Kira']) {
       expect(screen.getByRole('img', { name })).toBeInTheDocument()
     }
     expect(screen.getByText(copy.doorLine)).toBeInTheDocument()
@@ -376,6 +399,39 @@ describe('US-12 Watch the cats play (invitation)', () => {
     expect(document.querySelector('.figure-mom')).not.toBeNull()
     expect(document.querySelector('.figure-miguelito')).not.toBeNull()
     expect(document.querySelector('.figure-mia')).not.toBeNull()
+  })
+
+  // Spec §3: each cat on its page before the party, and all ten on the four pages left after it.
+  const perched = (id: string) =>
+    [...(landmark(id)?.querySelectorAll('[data-cat-id]') ?? [])].map((el) => el.getAttribute('data-cat-id')).sort()
+
+  it('perches each cat on its page before the party', () => {
+    renderRoom()
+    expect(perched('llegada')).toEqual(['chona'])
+    expect(perched('palabra')).toEqual(['mimo'])
+    expect(perched('cuando')).toEqual(['bram', 'luz'])
+    expect(perched('donde')).toEqual(['chori'])
+    expect(perched('confirmar')).toEqual(['minina', 'susto'])
+    expect(perched('presente')).toEqual(['nana'])
+    expect(perched('familia')).toEqual(['kira', 'misha'])
+  })
+
+  // Review Focus 4: ten cats on four pages after the party.
+  it.each([
+    ['sat', satCutoff],
+    ['sun', sunCutoff],
+  ] as const)('keeps all ten cats on the four pages left after the %s party', (day, now) => {
+    renderRoom({ day, now })
+    expect(perched('llegada')).toEqual(['chona', 'minina', 'susto'])
+    expect(perched('palabra')).toEqual(['chori', 'mimo', 'nana'])
+    expect(perched('cuando')).toEqual(['bram', 'luz'])
+    expect(perched('familia')).toEqual(['kira', 'misha'])
+    const all = ['llegada', 'palabra', 'cuando', 'familia'].flatMap(perched)
+    expect(all).toHaveLength(10)
+    expect(new Set(all).size).toBe(10)
+    // Each page's perches are separate spots: no two cats share one.
+    const spots = [...document.querySelectorAll('.perch')].map((el) => el.className)
+    expect(new Set(spots).size).toBe(spots.length)
   })
 
   it('draws the family as faceless paper figures in three layers, whose top copy has no outline (spec §6)', () => {
@@ -417,7 +473,7 @@ describe('US-12 Watch the cats play (invitation)', () => {
     })
 
     it('tilts the QR when tapped, then lays it flat again (AC4)', () => {
-      renderRoom({ qrUrl: '/qr.png' })
+      renderRoom()
       const plate = document.querySelector('.qr-plate')!
       fireEvent.click(plate)
       expect(plate).toHaveClass('is-tilting')
@@ -427,18 +483,26 @@ describe('US-12 Watch the cats play (invitation)', () => {
     })
 
     it('does not play the tilt from Guardar QR', () => {
-      renderRoom({ qrUrl: '/qr.png' })
+      renderRoom()
       vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
       fireEvent.click(screen.getByRole('button', { name: copy.qrSave }))
       expect(document.querySelector('.qr-plate')).not.toHaveClass('is-tilting')
       vi.unstubAllGlobals()
     })
 
-    it('startles Susto at an empty spot near the button, and never from the link itself (AC5)', () => {
+    it('startles Chavela at an empty spot near the button, and never from the link itself (AC5)', () => {
       renderRoom()
       const spot = document.querySelector('.confirm-spot') as HTMLElement
       fireEvent.click(spot)
       expect(document.querySelector('.cat-susto')).toHaveClass('act-startle')
+    })
+
+    it('does not startle Chavela from a tap on Minina by the seal, nor from the link (spec §3)', () => {
+      renderRoom()
+      fireEvent.click(document.querySelector('.perch-confirmar-minina .cat-figure')!)
+      expect(document.querySelector('.cat-susto')).not.toHaveClass('act-startle')
+      fireEvent.click(screen.getByRole('link', { name: copy.confirm }))
+      expect(document.querySelector('.cat-susto')).not.toHaveClass('act-startle')
     })
 
     it("starts Misha's scratch from the door frame, with the paper family in the doorway (spec §6)", () => {
@@ -465,9 +529,9 @@ describe('US-9 noticing and greeting in the room', () => {
   it('offers Saludar after the rarity wait, and greets on activation', () => {
     catsInView()
     const { onGreet } = renderRoom()
-    expect(screen.queryByRole('button', { name: 'Saludar a Luz' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Saludar a Mishona' })).not.toBeInTheDocument()
     advance(tuning.noticing.waitMs.comun + tuning.noticing.tickMs)
-    const button = screen.getByRole('button', { name: 'Saludar a Luz' })
+    const button = screen.getByRole('button', { name: 'Saludar a Mishona' })
     expect(button).toHaveTextContent(copy.greet)
     expect(screen.queryByRole('button', { name: 'Saludar a Kira' })).not.toBeInTheDocument()
     fireEvent.click(button)
@@ -478,8 +542,8 @@ describe('US-9 noticing and greeting in the room', () => {
     catsInView()
     renderRoom({ catState: { caught: ['luz'], round: ['luz'], rounds: 1 } })
     advance(3000)
-    expect(screen.queryByRole('button', { name: 'Saludar a Luz' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Saludar a Mimo' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Saludar a Mishona' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Saludar a Choni' })).toBeInTheDocument()
   })
 
   it('offers Misha sooner while music plays', () => {

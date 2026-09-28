@@ -120,6 +120,75 @@
     border-radius: 0;
   }
 
+  /* Spec §4: the icon buttons (the sun, the moon, and Tus gatos), each a touch target of at least
+     44 px. Their names are visually hidden text. */
+  .hud-icon-button {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    min-width: calc(44 * var(--ui-px));
+    min-height: calc(44 * var(--ui-px));
+    padding: 0 calc(8 * var(--ui-px));
+  }
+
+  .theme-icon,
+  .hud-cat {
+    display: block;
+    width: calc(24 * var(--ui-px));
+    height: calc(24 * var(--ui-px));
+    overflow: visible;
+  }
+
+  .theme-icon-fill {
+    fill: currentColor;
+  }
+
+  .theme-icon-echo {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+    opacity: 0.35;
+  }
+
+  .theme-icon-line {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .hud-cat-head {
+    fill: var(--field);
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+  }
+
+  .hud-cat-eye {
+    fill: currentColor;
+  }
+
+  .hud-cat-nose {
+    fill: var(--rose);
+  }
+
+  /* Tus gatos' count, a small badge on the cat's shoulder. */
+  .hud-badge {
+    position: absolute;
+    right: calc(-6 * var(--ui-px));
+    bottom: calc(-6 * var(--ui-px));
+    min-width: calc(22 * var(--ui-px));
+    padding: calc(2 * var(--ui-px)) calc(5 * var(--ui-px));
+    border-radius: 999px;
+    background: var(--button-bg);
+    color: var(--button-ink);
+    font-family: var(--font-game);
+    font-size: calc(11 * var(--ui-px));
+    line-height: 1.1;
+    text-align: center;
+    white-space: nowrap;
+  }
+
   .hud-button[aria-pressed='true'] {
     background: var(--button-bg);
     color: var(--button-ink);
@@ -268,6 +337,39 @@
     bottom: -44px;
   }
 
+  /* Spec §3: the new cats. Chona leaps over Inicio's top edge; Minina joins her below it after the
+     party. Inicio is the first page, where the camera cannot pan further left, so both sit well
+     inside the card's width, in the middle of the screen where a cat can notice the guest. */
+  .perch-llegada-chona {
+    left: 50%;
+    top: -52px;
+    margin-left: 28px;
+  }
+
+  .perch-llegada-minina {
+    left: 50%;
+    bottom: -44px;
+    margin-left: -96px;
+  }
+
+  .perch-palabra-chori {
+    right: -24px;
+    bottom: -40px;
+  }
+
+  /* Chori sprawls on the treasure map's corner. */
+  .perch-donde-chori {
+    left: -22px;
+    bottom: -36px;
+  }
+
+  /* Minina bats at the wax seal, beside it on the letter. */
+  .perch-confirmar-minina {
+    left: 50%;
+    top: 22px;
+    margin-left: 22px;
+  }
+
   .perch-confirmar-susto {
     left: -44px;
     top: 50%;
@@ -303,7 +405,8 @@
   .perch-familia-misha .saludar,
   .perch-familia-kira .saludar,
   .perch-palabra-mimo .saludar,
-  .perch-cuando-bram .saludar {
+  .perch-cuando-bram .saludar,
+  .perch-llegada-chona .saludar {
     top: -20px;
     bottom: auto;
   }
@@ -321,7 +424,8 @@
   }
 
   /* The cat sprite (design §4): a paper cut-out drawn in pencil, ink, or light. Colors are theme
-     and palette variables; the sprite sets --feel, --feel-muted, --pencil, and --mimo-body itself. */
+     and palette variables; the sprite sets --feel, --feel-muted, --eye, --eye-muted, --pencil, and
+     its coat's --coat, --coat-shade, --coat-mark, and --coat-white itself (spec §3 Coats). */
   .ink-defs {
     position: absolute;
     width: 0;
@@ -343,7 +447,11 @@
     overflow: visible;
     --cat-line: var(--shadow);
     --cat-edge: color-mix(in oklab, var(--bone) 80%, transparent);
-    --cat-fill: var(--cat-body);
+    --cat-fill: var(--coat);
+    --cat-shade: var(--coat-shade);
+    --cat-mark: var(--coat-mark);
+    --cat-white: var(--coat-white);
+    --cat-iris: var(--eye);
     --cat-detail: color-mix(in oklab, var(--bone) 72%, transparent);
     --cat-eye-white: var(--bone);
     --cat-pupil: var(--shadow);
@@ -355,12 +463,16 @@
 
   .cat-sprite.stage-tinta {
     --cat-tone: var(--feel-muted);
+    --cat-iris: var(--eye-muted);
   }
 
   .cat-sprite.stage-boceto {
     --cat-line: var(--pencil);
     --cat-edge: var(--pencil);
     --cat-fill: var(--cat-paper);
+    --cat-shade: var(--cat-paper);
+    --cat-mark: var(--pencil);
+    --cat-white: var(--cat-paper);
     --cat-detail: var(--pencil);
     --cat-eye-white: var(--cat-paper);
     --cat-pupil: var(--pencil);
@@ -370,12 +482,14 @@
     --cat-echo: var(--pencil);
   }
 
-  .cat-sprite-mimo:not(.stage-boceto) {
-    --cat-fill: var(--mimo-body);
+  /* The light coats (the Misha family, the Kira family, and Minina) keep their edge on the bone
+     paper with ink: ink tube edges and paw pads, and ink whiskers and stitches. */
+  .cat-sprite.coat-misha:not(.stage-boceto),
+  .cat-sprite.coat-kira:not(.stage-boceto),
+  .cat-sprite.coat-white:not(.stage-boceto) {
     --cat-edge: var(--shadow);
     --cat-detail: color-mix(in oklab, var(--shadow) 70%, transparent);
     --cat-inner: var(--rose);
-    --cat-nose: var(--deep-rose);
   }
 
   .cat-sprite.stage-luz {
@@ -386,6 +500,58 @@
     fill: var(--cat-fill);
     stroke: var(--cat-line);
     stroke-linejoin: round;
+  }
+
+  /* A coat part (spec §3 Coats): the shade under it, the coat, its marks, then the ink outline. */
+  .cat-coat-shade {
+    fill: var(--cat-shade);
+  }
+
+  .cat-coat {
+    fill: var(--cat-fill);
+  }
+
+  .cat-mark-patch {
+    fill: var(--cat-mark);
+    stroke: none;
+  }
+
+  .cat-mark-white {
+    fill: var(--cat-white);
+    stroke: none;
+  }
+
+  .cat-mark-stripe {
+    fill: none;
+    stroke: var(--cat-mark);
+    stroke-linecap: round;
+  }
+
+  /* In pencil the patches are only sketched. */
+  .stage-boceto .cat-mark-patch,
+  .stage-boceto .cat-mark-white {
+    fill: none;
+    stroke: var(--pencil);
+  }
+
+  .cat-outline {
+    fill: none;
+    stroke: var(--cat-line);
+    stroke-linejoin: round;
+  }
+
+  .cat-ear-mark {
+    fill: var(--cat-mark);
+  }
+
+  .stage-boceto .cat-ear-mark {
+    fill: var(--cat-fill);
+  }
+
+  .cat-lash {
+    fill: none;
+    stroke: var(--cat-line);
+    stroke-linecap: round;
   }
 
   .cat-tube-line,
@@ -408,9 +574,21 @@
     stroke: var(--cat-fill);
   }
 
+  .cat-tube-mark {
+    stroke: var(--cat-mark);
+  }
+
+  .stage-boceto .cat-tube-mark {
+    stroke: var(--cat-fill);
+  }
+
   .cat-paw-pad {
     fill: var(--cat-fill);
     stroke: var(--cat-edge);
+  }
+
+  .cat-paw-white {
+    fill: var(--cat-white);
   }
 
   .cat-echo,
@@ -438,7 +616,7 @@
   }
 
   .cat-iris {
-    fill: var(--cat-tone);
+    fill: var(--cat-iris);
   }
 
   .stage-boceto .cat-iris {
@@ -656,6 +834,32 @@
     animation:
       cat-bob var(--breath) ease-in-out infinite,
       nana-groom-head var(--behavior) ease-in-out infinite;
+  }
+
+  /* Chona races in a short arc, skids, and looks back (spec §3). */
+  .cat-chona.is-roaming .cat-figure {
+    transform-origin: 50% 100%;
+    animation: chona-dash var(--behavior) ease-in-out infinite;
+  }
+
+  /* Chori rolls over slowly, paws in the air, breathing slow. */
+  .cat-chori.is-roaming .cat-figure {
+    transform-origin: 50% 90%;
+    animation: chori-roll var(--behavior) ease-in-out infinite;
+  }
+
+  .cat-chori.is-roaming .cat-body {
+    animation-duration: calc(var(--breath) * 1.4);
+  }
+
+  /* Minina bats at the seal's ribbon, then pounces. */
+  .cat-minina.is-roaming .pose-playing .cat-paw {
+    animation: minina-bat var(--behavior) ease-in-out infinite;
+  }
+
+  .cat-minina.is-roaming .cat-figure {
+    transform-origin: 50% 100%;
+    animation: minina-pounce var(--behavior) ease-in-out infinite;
   }
 
   .cat-misha.is-roaming .cat-sprite.stage-luz,
@@ -1334,6 +1538,15 @@
     animation: gate-wander-susto 13s ease-in-out infinite;
   }
 
+  /* Controller ruling 3: a cat's rig loops (breath, blink, ears, tail) run under its paper-cut and
+     ink-boil filters, so every frame they move redraws those filters, on the main thread and on the
+     GPU. While a round plays the gate's cats hold still at rest (Gate stops their boil too); they
+     still wander, cheer, and startle, which move whole layers without redrawing them. */
+  .gate.is-playing .cat-sprite,
+  .gate.is-playing .cat-sprite * {
+    animation: none;
+  }
+
   /* The gate cats now rest in a footer band clear of the game panel (tuning.gateScreen.catSpots),
      with the panel above and the viewport's bottom edge below. Saludar pops up over the cat's own
      head, like the door and top-edge perches, instead of below where there's no room to spare. */
@@ -1737,6 +1950,82 @@
   }
   64% {
     transform: rotate(-4deg) translateY(2px);
+  }
+}
+
+/* Chona races off in a short arc, lands, skids, looks back over her shoulder, and trots back. */
+@keyframes chona-dash {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1, 1);
+  }
+  18% {
+    transform: translate(6px, -10px) rotate(-6deg);
+  }
+  34% {
+    transform: translate(14px, 0) scale(1.08, 0.92);
+  }
+  44% {
+    transform: translate(18px, 0) scale(1.1, 0.88) rotate(4deg);
+  }
+  56%,
+  74% {
+    transform: translate(18px, 0) scale(-1, 1);
+  }
+  88% {
+    transform: translate(6px, 0) scale(1, 1);
+  }
+}
+
+/* Chori rocks from side to side on her back, slowly. */
+@keyframes chori-roll {
+  0%,
+  50%,
+  100% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-10deg) translateX(-3px);
+  }
+  70% {
+    transform: rotate(9deg) translateX(3px);
+  }
+}
+
+/* Minina's paw swats twice toward the seal. */
+@keyframes minina-bat {
+  0%,
+  30%,
+  60%,
+  100% {
+    rotate: 0deg;
+  }
+  36%,
+  48% {
+    rotate: 50deg;
+  }
+  42% {
+    rotate: 30deg;
+  }
+}
+
+@keyframes minina-pounce {
+  0%,
+  60%,
+  100% {
+    transform: translate(0, 0) scale(1, 1);
+  }
+  66% {
+    transform: translate(1px, 0) scale(1.08, 0.9);
+  }
+  74% {
+    transform: translate(-6px, -10px) scale(0.94, 1.08) rotate(-6deg);
+  }
+  82% {
+    transform: translate(-10px, 0) scale(1.08, 0.92);
+  }
+  92% {
+    transform: translate(-3px, 0);
   }
 }
 

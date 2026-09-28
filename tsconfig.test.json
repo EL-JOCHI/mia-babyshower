@@ -1,0 +1,12 @@
+{
+  // The tests, their setup and helpers, and the code they import: the app's settings plus Node's types
+  // (tests read files with node:fs) and the jest-dom matchers. The app itself type-checks without
+  // them (tsconfig.app.json).
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["vite/client", "@testing-library/jest-dom/vitest", "node"]
+  },
+  "include": ["src"],
+  "exclude": []
+}

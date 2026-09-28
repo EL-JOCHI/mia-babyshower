@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { gameCopy } from '../content'
+import { cats as allCats, gameCopy } from '../content'
 import { levelFor } from '../logic/progress'
 import { tuning } from '../tuning'
 
@@ -7,7 +7,7 @@ export interface QuestLogProps {
   // Pages found, out of the pages that count now.
   pages: number
   total: number
-  // Cats ever met, out of seven.
+  // Cats ever met, out of every cat (spec §3: the count comes from the cats list).
   cats: number
   xp: number
 }
@@ -39,7 +39,7 @@ export function QuestLog({ pages, total, cats, xp }: QuestLogProps) {
       <p className="quest-counts">
         <span className="quest-xp">{gameCopy.xp(xp)}</span>
         <span>{gameCopy.pages(pages, total)}</span>
-        <span>{gameCopy.cats(cats)}</span>
+        <span>{gameCopy.cats(cats, allCats.length)}</span>
       </p>
     </div>
   )

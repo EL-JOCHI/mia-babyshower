@@ -28,7 +28,7 @@ export interface RoomProps {
   // Misha and Kira's ¡A jugar! opens the legendary battle (design §7).
   onChallenge: (id: BattleCat) => void
   musicPlaying: boolean
-  qrUrl: string | undefined
+  qrPayload: string
   // The game layer (design §6): pages found and badges so far, and where page events go.
   progress: Progress
   onEvent: (event: ProgressEvent) => void
@@ -106,7 +106,7 @@ export function FlatRoom({
   onGreet,
   onChallenge,
   musicPlaying,
-  qrUrl,
+  qrPayload,
   progress,
   onEvent,
   onFirstMove,
@@ -160,7 +160,7 @@ export function FlatRoom({
     onGreet,
     onChallenge,
     musicPlaying,
-    qrUrl,
+    qrPayload,
     progress,
     onEvent,
     standing,

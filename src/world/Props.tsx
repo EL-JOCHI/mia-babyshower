@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { tokens, tuning } from '../tuning'
-import type { WorldPalette } from './palette'
+import { colorFrom, type WorldPalette } from './palette'
 import { glowTexture } from './paperTextures'
 import { buildProps, disposeBuiltProps } from './props/build'
 import type { PropMaterialKey } from './props/types'
@@ -27,7 +27,15 @@ function createMaterials() {
     tinted: new THREE.MeshLambertMaterial({ flatShading: true }),
     // The crooked lamp glows by its own color only (spec §5).
     lamp: new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }),
+    // Dad's guitar keeps its own colors in every look; the look's light falls on them.
+    gold: lit(),
+    rosewood: lit(),
+    pickup: lit(),
   }
+  const { colors } = tuning.world.props.guitar
+  byKey.gold.color.copy(colorFrom(colors.gold))
+  byKey.rosewood.color.copy(colorFrom(colors.rosewood))
+  byKey.pickup.color.copy(colorFrom(colors.pickup))
   return {
     byKey,
     ink: new THREE.LineBasicMaterial({ color: tokens.ink, transparent: true, opacity: tuning.world.props.inkOpacity }),

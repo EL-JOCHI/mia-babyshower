@@ -1,5 +1,5 @@
 import type { ReactNode, RefObject } from 'react'
-import { copy, days, shared, type CatId, type DayId } from '../content'
+import { catIds, copy, days, shared, type CatId, type DayId } from '../content'
 import { useActs, type ActId, type ActiveActs } from '../hooks/useActs'
 import { useNoticing } from '../hooks/useNoticing'
 import type { BattleCat } from '../logic/battle'
@@ -35,7 +35,7 @@ interface PagesInput {
   // The pages standing, or in view, now: their objects open at once, found or not (design §10:
   // the facts are never gated). Once open, an object stays open.
   standing: readonly LandmarkId[]
-  qrUrl: string | undefined
+  qrPayload: string
   // Reduced motion: every object is already open and settled.
   still: boolean
   // In the book, the family stands in the 3D doorway above the card (spec §6): the card drops its
@@ -54,7 +54,7 @@ export function Pages({
   onEvent,
   progress,
   standing,
-  qrUrl,
+  qrPayload,
   still,
   familyInWorld,
 }: PagesInput): Record<LandmarkId, ReactNode> {
@@ -82,7 +82,10 @@ export function Pages({
           <p className="hero">{copy.hero}</p>
         )}
         <p className="move-hint">{copy.moveHint}</p>
+        {cats('chona', 'perch-llegada-chona')}
+        {/* After the party (spec §3), Chavela and Minina move here from Confirmar. */}
         {partyOver && cats('susto', 'perch-llegada-susto')}
+        {partyOver && cats('minina', 'perch-llegada-minina')}
       </PageCard>
     ),
     // An illuminated manuscript page, with a candle flickering beside the verse.
@@ -94,7 +97,9 @@ export function Pages({
         </blockquote>
         <Candle wax={tuning.objects.candle.verseWax} className="verse-candle" />
         {cats('mimo', 'perch-palabra-mimo')}
+        {/* After the party (spec §3), Delilah and Chori move here from Presente and Dónde. */}
         {partyOver && cats('nana', 'perch-palabra-nana')}
+        {partyOver && cats('chori', 'perch-palabra-chori')}
       </PageCard>
     ),
     // The date and 16:00 pinned to the page, then the melting candle, the flip-card countdown,
@@ -130,6 +135,7 @@ export function Pages({
         <TreasureMap unrolled={open('donde')}>
           <Location />
         </TreasureMap>
+        {cats('chori', 'perch-donde-chori')}
       </PageCard>
     ),
     confirmar: (
@@ -141,13 +147,14 @@ export function Pages({
           onEmptySpotTap={() => play('sustoStartle')}
         >
           {cats('susto', 'perch-confirmar-susto')}
+          {cats('minina', 'perch-confirmar-minina')}
         </Confirmation>
       </PageCard>
     ),
     presente: (
       <PageCard id="presente" found={found('presente')}>
         <Gift
-          qrUrl={qrUrl}
+          qrPayload={qrPayload}
           open={open('presente')}
           tilting={Boolean(active.nanaSit)}
           onQrTap={() => play('nanaSit')}
@@ -181,7 +188,8 @@ export function Pages({
   }
 }
 
-const roomCats: readonly CatId[] = ['luz', 'mimo', 'susto', 'bram', 'nana', 'misha', 'kira']
+// Every cat is in the room (spec §3: ten cats).
+const roomCats: readonly CatId[] = catIds
 const roomActs: readonly ActId[] = [
   'luzBat',
   'bramScratch',
@@ -202,7 +210,7 @@ interface RoomPagesOptions {
   onGreet: (id: CatId) => void
   onChallenge: (id: BattleCat) => void
   musicPlaying: boolean
-  qrUrl: string | undefined
+  qrPayload: string
   progress: Progress
   onEvent: (event: ProgressEvent) => void
   standing: readonly LandmarkId[]
@@ -225,7 +233,7 @@ export function usePages({
   onGreet,
   onChallenge,
   musicPlaying,
-  qrUrl,
+  qrPayload,
   progress,
   onEvent,
   standing,
@@ -263,6 +271,6 @@ export function usePages({
     </div>
   )
 
-  const content = Pages({ day, now, partyOver, acts, cats, onEvent, progress, standing, qrUrl, still: reducedMotion, familyInWorld })
+  const content = Pages({ day, now, partyOver, acts, cats, onEvent, progress, standing, qrPayload, still: reducedMotion, familyInWorld })
   return { content, playAct: acts.play }
 }

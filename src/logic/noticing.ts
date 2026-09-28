@@ -20,7 +20,8 @@ export const idleNotice: NoticeTimer = { stillMs: 0, noticing: false, lingerMs: 
 
 export function noticeWaitMs(catId: CatId, musicPlaying: boolean, t: NoticingTuning = tuning.noticing): number {
   if (catId === 'misha' && musicPlaying) return t.mishaMusicWaitMs
-  return t.waitMs[catById(catId).rarity]
+  const own: Partial<Record<CatId, number>> = t.catWaitMs
+  return own[catId] ?? t.waitMs[catById(catId).rarity]
 }
 
 function rushed(input: NoticeInput, t: NoticingTuning): boolean {

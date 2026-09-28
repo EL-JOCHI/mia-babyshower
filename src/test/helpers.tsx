@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react'
 import { vi } from 'vitest'
 import { FlatRoom } from '../components/FlatRoom'
-import type { CatId, DayId } from '../content'
+import { shared, type CatId, type DayId } from '../content'
 import type { BattleCat } from '../logic/battle'
 import { emptyCatState, type CatState } from '../logic/catState'
 import { emptyProgress, type Progress } from '../logic/progress'
@@ -21,7 +21,7 @@ interface RoomOptions {
   onGreet?: (id: CatId) => void
   onChallenge?: (id: BattleCat) => void
   musicPlaying?: boolean
-  qrUrl?: string
+  qrPayload?: string
   progress?: Progress
 }
 
@@ -38,7 +38,7 @@ export function renderRoom(options: RoomOptions = {}) {
     onGreet,
     onChallenge,
     musicPlaying: options.musicPlaying ?? false,
-    qrUrl: options.qrUrl,
+    qrPayload: options.qrPayload ?? shared.giftQr,
     progress: options.progress ?? emptyProgress,
     onEvent,
     onFirstMove,

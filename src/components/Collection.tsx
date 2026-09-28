@@ -45,7 +45,7 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
         <div className="collection-header">
           <h2 id="collection-title">{copy.collection}</h2>
           <p className="collection-count">
-            <span>{copy.roundCount(state.round.length)}</span>
+            <span>{copy.roundCount(state.round.length, cats.length)}</span>
             {state.rounds > 1 && <span className="collection-round">{copy.roundNumber(state.rounds)}</span>}
           </p>
           <button type="button" className="hud-button collection-close" onClick={onClose}>

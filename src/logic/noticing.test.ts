@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { catIds } from '../content'
 import { tuning } from '../tuning'
 import { idleNotice, isNoticing, noticeWaitMs, stepNotice, type NoticeInput } from './noticing'
 
@@ -68,6 +69,25 @@ describe('noticing waits (§3 Noticing, US-9 AC9–11)', () => {
     const left = run({ ...base, inZone: false }, n.lingerMs - 100, 100, noticed)
     expect(left.noticing).toBe(true)
     expect(run({ ...base, inZone: false }, 100, 100, left).noticing).toBe(false)
+  })
+
+  it('gives the three new cats their own waits: Chona a little patience, Chori a long wait, Minina a short one (spec §3)', () => {
+    const own = n.catWaitMs
+    expect(noticeWaitMs('chona', false)).toBe(own.chona)
+    expect(noticeWaitMs('chori', false)).toBe(own.chori)
+    expect(noticeWaitMs('minina', false)).toBe(own.minina)
+    expect(own.chona).toBeGreaterThan(pocoComun)
+    expect(own.chori).toBeGreaterThan(own.chona)
+    expect(own.minina).toBeLessThan(pocoComun)
+    // Music only hurries Misha.
+    expect(noticeWaitMs('chori', true)).toBe(own.chori)
+    const chori: NoticeInput = { ...base, catId: 'chori' }
+    expect(run(chori, own.chori - 100).noticing).toBe(false)
+    expect(run(chori, own.chori).noticing).toBe(true)
+  })
+
+  it('has a noticing rule for every cat', () => {
+    for (const id of catIds) expect(noticeWaitMs(id, false), id).toBeGreaterThan(0)
   })
 
   it('agrees with the single-shot check', () => {

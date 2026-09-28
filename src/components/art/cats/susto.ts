@@ -1,7 +1,9 @@
 import type { CatDrawing } from './types'
 
-// Susto (Temor): small, ears flat back, huge eyes, a scruffy cowlick. Hides, then peeks.
+// Chavela (Temor): Susto's shy, peeking look in a black coat. Small, ears flat back, huge eyes, a
+// scruffy cowlick. Hides, then peeks.
 export const susto: CatDrawing = {
+  coat: { kind: 'black' },
   ground: { cx: 60, rx: 19 },
   tail: {
     d: 'M74 108 C 83 110, 88 105, 87 99',

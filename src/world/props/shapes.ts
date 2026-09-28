@@ -54,3 +54,20 @@ export function merge(geometries: THREE.BufferGeometry[]): THREE.BufferGeometry 
   if (!merged) throw new Error('The attic props could not be merged')
   return merged
 }
+
+// A geometry's draw groups, each as a geometry of its own (an extrusion's caps, then its sides),
+// ready to merge. Disposes the original.
+export function splitGroups(geometry: THREE.BufferGeometry): THREE.BufferGeometry[] {
+  const flat = geometry.index ? geometry.toNonIndexed() : geometry
+  const pieces = flat.groups.map(({ start, count }) => {
+    const piece = new THREE.BufferGeometry()
+    for (const [name, attribute] of Object.entries(flat.attributes)) {
+      const size = attribute.itemSize
+      piece.setAttribute(name, new THREE.BufferAttribute(attribute.array.slice(start * size, (start + count) * size), size))
+    }
+    return piece
+  })
+  if (flat !== geometry) flat.dispose()
+  geometry.dispose()
+  return pieces
+}

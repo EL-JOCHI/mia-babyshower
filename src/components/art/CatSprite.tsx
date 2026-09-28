@@ -2,7 +2,7 @@ import { memo, useId, type CSSProperties, type ReactNode } from 'react'
 import type { CatId } from '../../content'
 import type { Stage } from '../../logic/era'
 import { cssColor, feelingColors, tuning } from '../../tuning'
-import { catDrawings, type CatDrawing, type CharmKind, type Extra, type EyeSpec, type Xy } from './cats'
+import { catDrawings, type CatDrawing, type CharmKind, type CoatMark, type Extra, type EyeSpec, type Xy } from './cats'
 
 export type CatPose = 'playing' | 'noticing' | 'staying'
 
@@ -23,14 +23,47 @@ const origin = ([x, y]: Xy) => `${x}px ${y}px`
 // How far above the paw a front leg meets the body, in drawing units.
 const shoulder = 22
 
-// A tube: an edge stroke with the fill stroke inside it, so thin legs and tails get outlines.
-function Tube({ d, width, edge }: { d: string; width: number; edge: 'line' | 'edge' }) {
+// A tube: an edge stroke with the fill stroke inside it, so thin legs and tails get outlines. A
+// marked tube wears the coat's mark color (Misha's gray tail).
+function Tube({ d, width, edge, mark = false }: { d: string; width: number; edge: 'line' | 'edge'; mark?: boolean }) {
   return (
     <>
       <path d={d} className={`cat-tube-${edge}`} strokeWidth={width + tuning.cats.line * 1.6} />
-      <path d={d} className="cat-tube-fill" strokeWidth={width} />
+      <path d={d} className={mark ? 'cat-tube-fill cat-tube-mark' : 'cat-tube-fill'} strokeWidth={width} />
     </>
   )
+}
+
+// Spec §3 Coats: one part of the coat (the body or the head). The shade fills the shape; the coat,
+// moved up and to the left, covers all of it but a soft band along the bottom and the right; the
+// marks (patches, stripes, white) lie on top, all clipped to the shape. The ink outline is drawn
+// over it by the caller.
+function CoatPart({ d, marks, clipId }: { d: string; marks: readonly CoatMark[] | undefined; clipId: string }) {
+  const { shade, stripe } = tuning.cats
+  return (
+    <>
+      <clipPath id={clipId}>
+        <path d={d} />
+      </clipPath>
+      <path d={d} className="cat-coat-shade" />
+      <g clipPath={`url(#${clipId})`}>
+        <path d={d} className="cat-coat" transform={`translate(${-shade.dx} ${-shade.dy})`} />
+        {marks?.map((mark) => (
+          <path
+            key={mark.d}
+            d={mark.d}
+            className={`cat-mark cat-mark-${mark.paint}`}
+            strokeWidth={mark.paint === 'stripe' ? stripe : tuning.cats.detail}
+          />
+        ))}
+      </g>
+    </>
+  )
+}
+
+// The ink outline of a coat part, drawn over its coat.
+function Outline({ d }: { d: string }) {
+  return <path d={d} className="cat-outline" strokeWidth={tuning.cats.line} />
 }
 
 // The lighter second pass of the scratchy double outline, offset beside the ink stroke.
@@ -83,6 +116,26 @@ function Charm({ kind, at: [x, y] }: { kind: CharmKind; at: Xy }) {
         className="cat-charm-shape"
         strokeWidth={w}
       />
+    ),
+    bolt: (
+      <path
+        d={`M${x + 1.5} ${y - 6} L ${x - 3.5} ${y + 1} L ${x - 0.2} ${y + 1} L ${x - 1.5} ${y + 6} L ${x + 3.5} ${y - 1} L ${x + 0.2} ${y - 1} Z`}
+        className="cat-charm-shape"
+        strokeWidth={w}
+      />
+    ),
+    fish: (
+      <path
+        d={`M${x - 4.5} ${y} C ${x - 2.5} ${y - 3.5}, ${x + 1.5} ${y - 3.5}, ${x + 2.5} ${y} C ${x + 1.5} ${y + 3.5}, ${x - 2.5} ${y + 3.5}, ${x - 4.5} ${y} Z M${x + 2.5} ${y} L ${x + 5.5} ${y - 3} L ${x + 5.5} ${y + 3} Z`}
+        className="cat-charm-shape"
+        strokeWidth={w}
+      />
+    ),
+    yarn: (
+      <>
+        <circle cx={x} cy={y} r={4} className="cat-charm-shape" strokeWidth={w} />
+        <path d={`M${x - 3.4} ${y - 1.6} Q ${x} ${y + 1} ${x + 3.4} ${y - 1.6} M${x - 3.2} ${y + 1.8} Q ${x} ${y + 4.2} ${x + 3.2} ${y + 1.8}`} className="cat-charm-ray" strokeWidth={w} />
+      </>
     ),
     bell: (
       <path
@@ -179,15 +232,15 @@ function Heart({ at: [x, y] }: { at: Xy }) {
   )
 }
 
-function Tail({ tail, edge }: { tail: CatDrawing['tail']; edge: 'line' | 'edge' }) {
+function Tail({ tail, edge, mark }: { tail: CatDrawing['tail']; edge: 'line' | 'edge'; mark: boolean }) {
   return (
     <g className="cat-tail" style={{ transformOrigin: origin(tail.root) }}>
       <g className="cat-tail-tip" style={{ transformOrigin: origin(tail.joint) }}>
-        <Tube d={tail.tip} width={tail.width * 0.85} edge={edge} />
+        <Tube d={tail.tip} width={tail.width * 0.85} edge={edge} mark={mark} />
         {tail.tipExtra && <Paint extra={tail.tipExtra} />}
         <Echo d={tail.tip} />
       </g>
-      <Tube d={tail.d} width={tail.width} edge={edge} />
+      <Tube d={tail.d} width={tail.width} edge={edge} mark={mark} />
       <Echo d={tail.d} />
     </g>
   )
@@ -196,18 +249,22 @@ function Tail({ tail, edge }: { tail: CatDrawing['tail']; edge: 'line' | 'edge' 
 function Drawing({ d, pose, uid }: { d: CatDrawing; pose: CatPose; uid: string }) {
   const line = tuning.cats.line
   const tailEdge = d.tail.front ? 'edge' : 'line'
+  const { coat } = d
+  const tailMark = coat.tail === 'mark'
+  const pawClass = coat.paws === 'white' ? 'cat-paw-pad cat-paw-white' : 'cat-paw-pad'
   return (
     <>
-      {!d.tail.front && <Tail tail={d.tail} edge={tailEdge} />}
+      {!d.tail.front && <Tail tail={d.tail} edge={tailEdge} mark={tailMark} />}
       <g className="cat-body" style={{ transformOrigin: origin(d.body.origin) }}>
-        <path d={d.body.d} className="cat-shape" strokeWidth={line} />
+        <CoatPart d={d.body.d} marks={coat.body} clipId={`${uid}-body`} />
+        <Outline d={d.body.d} />
         <Echo d={d.body.d} />
         <Detail d={d.body.stitches} />
         {d.legs.map((leg) => {
           const limb = (
             <>
               <Tube d={leg.d} width={leg.width} edge="edge" />
-              <ellipse cx={leg.paw[0]} cy={leg.paw[1]} rx={leg.width + 0.8} ry={leg.width * 0.62} className="cat-paw-pad" strokeWidth={tuning.cats.detail} />
+              <ellipse cx={leg.paw[0]} cy={leg.paw[1]} rx={leg.width + 0.8} ry={leg.width * 0.62} className={pawClass} strokeWidth={tuning.cats.detail} />
             </>
           )
           // The grooming paw swings up from the shoulder, a leg's length above the paw.
@@ -222,13 +279,18 @@ function Drawing({ d, pose, uid }: { d: CatDrawing; pose: CatPose; uid: string }
         <path d={d.collar.d} className="cat-collar" strokeWidth={line} />
         <Charm kind={d.collar.charm} at={d.collar.at} />
       </g>
-      {d.tail.front && <Tail tail={d.tail} edge={tailEdge} />}
+      {d.tail.front && <Tail tail={d.tail} edge={tailEdge} mark={tailMark} />}
       <g className="cat-head" style={{ transformOrigin: origin(d.head.origin) }}>
         {(['l', 'r'] as const).map((side) => {
           const ear = d.ears[side]
           return (
             <g key={side} className={`cat-ear-${side}`} style={{ transformOrigin: origin(ear.origin) }}>
-              <path d={ear.d} className="cat-shape" strokeWidth={line} strokeLinejoin="round" />
+              <path
+                d={ear.d}
+                className={coat.ears === 'mark' ? 'cat-shape cat-ear-mark' : 'cat-shape'}
+                strokeWidth={line}
+                strokeLinejoin="round"
+              />
               {ear.inner && <path d={ear.inner} className="cat-ear-inner" />}
               <Echo d={ear.d} />
               {ear.knobs?.map(([x, y]) => (
@@ -237,7 +299,8 @@ function Drawing({ d, pose, uid }: { d: CatDrawing; pose: CatPose; uid: string }
             </g>
           )
         })}
-        <path d={d.head.d} className="cat-shape" strokeWidth={line} />
+        <CoatPart d={d.head.d} marks={coat.head} clipId={`${uid}-head`} />
+        <Outline d={d.head.d} />
         <Echo d={d.head.d} />
         {d.head.tufts && <Detail d={d.head.tufts} />}
         {d.eyes.map((eye, i) => (
@@ -251,6 +314,7 @@ function Drawing({ d, pose, uid }: { d: CatDrawing; pose: CatPose; uid: string }
             clipId={`${uid}-eye-${i}`}
           />
         ))}
+        {d.lashes && <path d={d.lashes} className="cat-lash" strokeWidth={tuning.cats.detail} />}
         <path
           d={`M${d.nose[0] - 2.6} ${d.nose[1] - 1.4} h5.2 l-2.6 3.2 z`}
           className="cat-nose"
@@ -287,11 +351,12 @@ function Silhouette({ d }: { d: CatDrawing }) {
   )
 }
 
-// The seven cats (design §4), one family of paper cut-outs. The rig's parts are named groups
+// The ten cats (design §4, spec §3), one family of paper cut-outs, each in its family's coat. The
+// rig's parts are named groups
 // (.cat-body, .cat-head, .cat-ear-l, .cat-ear-r, .cat-lid, .cat-tail) that CSS moves on springs:
 // breathing, blinking, ear twitches, and a tail sway whose tip follows through.
-// Memoized: the gate game's catcher and its reactions re-render every animation frame, but a
-// cat's own drawing only ever changes with its props.
+// Memoized: a cat's own drawing only ever changes with its props, so the rooms and the gate game
+// can re-render around it (on a greeting, a score, a combo) without redrawing it.
 export const CatSprite = memo(function CatSprite({
   id,
   stage,
@@ -304,12 +369,20 @@ export const CatSprite = memo(function CatSprite({
   const uid = useId()
   const c = tuning.cats
   const feel = feelingColors[id]
+  const eyes: Partial<Record<CatId, string>> = c.eyes
+  const eye = eyes[id] ?? feel
   const pencil = cssColor(c.pencil)
+  const coat = c.coats[d.coat.kind]
   const style = {
     '--feel': feel,
     '--feel-muted': cssColor([feel, pencil, 1 - c.tintaFeel]),
+    '--eye': eye,
+    '--eye-muted': cssColor([eye, pencil, 1 - c.tintaFeel]),
     '--pencil': pencil,
-    '--mimo-body': cssColor(c.mimoBody),
+    '--coat': cssColor(coat.coat),
+    '--coat-shade': cssColor(coat.shade),
+    '--coat-mark': cssColor(coat.mark),
+    '--coat-white': cssColor(coat.white),
     '--glow': `${(c.glowPx * size) / tuning.catSize.room}px`,
     // The size asked for, so a screen that grows its HUD can grow the cat with it (design §9).
     '--cat-size': size,
@@ -321,7 +394,14 @@ export const CatSprite = memo(function CatSprite({
     '--tail': `${c.tailMs}ms`,
     '--tail-follow': `${c.tailFollowMs}ms`,
   } as CSSProperties
-  const classes = ['cat-sprite', `cat-sprite-${id}`, `stage-${stage}`, `pose-${pose}`, silhouette ? 'is-silhouette' : '']
+  const classes = [
+    'cat-sprite',
+    `cat-sprite-${id}`,
+    `coat-${d.coat.kind}`,
+    `stage-${stage}`,
+    `pose-${pose}`,
+    silhouette ? 'is-silhouette' : '',
+  ]
   return (
     <svg
       className={classes.filter(Boolean).join(' ')}

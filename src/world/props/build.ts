@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { tuning, type PropName } from '../../tuning'
 import { bookshelf, catBed, crib, crookedLamp, curtains, rockingChair, scratchingPost, trunks, yarnBasket } from './factories'
+import { guitar } from './guitar'
 import { merge } from './shapes'
 import type { PropInstances, PropMaterialKey, PropModel } from './types'
 
@@ -14,6 +15,7 @@ export const propFactories: Record<PropName, () => PropModel> = {
   catBed,
   scratchingPost,
   curtains,
+  guitar,
 }
 
 export interface BuiltProps {

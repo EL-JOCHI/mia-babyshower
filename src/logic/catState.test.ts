@@ -45,6 +45,12 @@ describe('sanitizeCatState (BR-14, US-9 AC12)', () => {
     ).toEqual({ caught: ['luz', 'kira'], round: ['kira'], rounds: 3 })
   })
 
+  it('still loads a collection saved before the rename: the old IDs are the renamed cats (spec §3)', () => {
+    const old = { caught: ['luz', 'mimo', 'susto', 'bram', 'nana', 'misha', 'kira'], round: ['nana', 'kira'], rounds: 2 }
+    expect(sanitizeCatState(old)).toEqual(old)
+    expect(sanitizeCatState({ caught: ['chona', 'chori', 'minina'] }).caught).toEqual(['chona', 'chori', 'minina'])
+  })
+
   it('treats a stored list without a round as the first round', () => {
     expect(sanitizeCatState({ caught: ['mimo'] })).toEqual({ caught: ['mimo'], round: ['mimo'], rounds: 1 })
   })

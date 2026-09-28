@@ -77,6 +77,10 @@ describe('the props never cover a page (spec §5 Placement)', () => {
     expect(layouts.map(([, ids]) => ids.length)).toEqual([7, 4])
   })
 
+  it("checks dad's guitar with the other props (spec §6)", () => {
+    expect(boxes.map(({ name }) => name)).toContain('guitar')
+  })
+
   const cases = layouts.flatMap(([when, ids]) => screens.map(([width, height]) => [when, width, height, ids] as const))
 
   it.each(cases)('stay out of the camera corridor at every station and along every glide %s at %i×%i', (_when, width, height, ids) => {

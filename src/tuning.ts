@@ -76,6 +76,21 @@ export interface TierSettings {
   motionScale: number
 }
 
+// Spec §3 Coats: the coat each cat wears. The Misha family (Misha, Mishona, Choni, Chona, Chori) is
+// white with silver-gray patches; the Kira family (Kira, Kiri kiri) a brown-gray tabby with tiger
+// stripes and white paws; Delilah and Chavela are black; Minina is pure white.
+export type CoatKind = 'misha' | 'kira' | 'black' | 'white'
+
+// A coat's colors: the coat itself, the soft shade along its lower edge (so a light coat keeps its
+// edge on the bone paper), its marks (the Misha family's patches, the Kira family's stripes), and
+// its white parts (the Kira family's chin, chest, and paws).
+export interface CoatColors {
+  coat: ColorMix
+  shade: ColorMix
+  mark: ColorMix
+  white: ColorMix
+}
+
 // The lived-in attic's props (spec §5).
 export type PropName =
   | 'crib'
@@ -87,6 +102,7 @@ export type PropName =
   | 'catBed'
   | 'scratchingPost'
   | 'curtains'
+  | 'guitar'
 
 // Where a prop stands: [x, z] on the attic floor, turned `turn` radians about y, at `scale` times
 // the size its factory draws.
@@ -114,18 +130,21 @@ export interface GateGameConfig {
 export interface GateScreenConfig {
   // How far one arrow-key press nudges the catcher, as a share of the play field's width.
   catcherStep: number
-  // Luz, the catcher, and the falling drops, in px at the room size.
+  // Mishona, the catcher, and the falling drops, in px at the room size.
   catcherSize: number
   dropSize: number
-  // Mimo and Susto's little reactions beside the field, in px.
+  // Spec §5: the frame loop moves a fixed set of drop slots; there are never more drops falling at
+  // once than this (src/components/GateGame.test.tsx checks it against tuning.gateGame).
+  dropSlots: number
+  // Choni and Chavela's little reactions beside the field, in px.
   sideCatSize: number
   // The HUD's combo readout pulses for this long when the combo grows.
   pulseMs: number
-  // Mimo cheers once the combo reaches this.
+  // Choni cheers once the combo reaches this.
   cheerCombo: number
   cheerMs: number
   startleMs: number
-  // How long the catcher takes to slide to a new x (a CSS transition, not the game's own tick).
+  // How quickly the drawn catcher eases to the game's x: the frame loop's time constant, in ms.
   catcherTransitionMs: number
   // The panel (start button, HUD, field, result panel) paints above every roaming gate cat and its
   // Saludar pill (`.gate-spot`'s z-index is 2; `.saludar`'s is 4 — see src/index.css), whatever
@@ -153,7 +172,9 @@ export const tokens = {
   candle: '#F2B84B',
   // Palette ink as a constant (the theme's --ink flips with the theme): shadows under paper.
   shadow: '#140E14',
-  // Fresh paper, lighter than the page: pinned notes, the letter, the QR plate.
+  // Fresh paper, lighter than the page: the pinned notes, the letter, and the hourglass's glass (mixed
+  // with the page); and the white of the cats' coats (the Misha family, Minina, and the white chins,
+  // chests, and paws).
   paperWhite: '#FFFFFF',
   // Deep rose, deepened for text on aged parchment: 5.1:1 on the darkest page tint (pageShade).
   pageRose: '#A3285A',
@@ -227,6 +248,11 @@ export const feelingColors: Record<CatId, string> = {
   susto: '#A98BEA',
   bram: '#F2784B',
   nana: '#7FD9B0',
+  // Spec §3: the three new cats' own colors, in hues none of the others use (Chona's chartreuse,
+  // Chori's apricot, Minina's orchid), each light enough to read on ink.
+  chona: '#B8E05A',
+  chori: '#F6B48C',
+  minina: '#E48FE0',
   misha: '#8EB8F0',
   kira: '#5FD4D0',
 }
@@ -276,6 +302,9 @@ export const tuning = {
     zone: 0.6,
     stillSpeedPxPerS: 40,
     waitMs: { comun: 500, pocoComun: 1500, legendario: 2500 } satisfies Record<Rarity, number>,
+    // Spec §3: the new cats' own waits, in the same family as the rarity waits. Chona needs a little
+    // patience, Chori comes if you wait, and Minina notices you after a short stay on Confirmar.
+    catWaitMs: { chona: 2000, chori: 3200, minina: 900 } satisfies Partial<Record<CatId, number>>,
     mishaMusicWaitMs: 1200,
     sustoRushPxPerS: 600,
     lingerMs: 1000,
@@ -287,8 +316,22 @@ export const tuning = {
   cats: {
     // Pencil graphite on the cut-out paper: ink faded toward the paper.
     pencil: ['var(--shadow)', 'var(--cat-paper)', 0.32] as ColorMix,
-    // Mimo keeps a blush body.
-    mimoBody: [tokens.bone, tokens.rose, 0.5] as ColorMix,
+    // Spec §3 Coats. The black coats are the theme's cat body, as before. The light coats get a soft
+    // shade along their lower edge: the coat moved `shade.dx`, `shade.dy` up and to the left of the
+    // shade color shows it along the bottom and the right. Stripes are `stripe` wide.
+    coats: {
+      // Misha's white, and her silver-gray patches (from the host's photo of Misha).
+      misha: { coat: tokens.paperWhite, shade: [tokens.paperWhite, tokens.plum, 0.18], mark: '#A3A5AD', white: tokens.paperWhite },
+      // Kira's brown-gray tabby coat and her dark tiger stripes (from the host's photo of Kira).
+      kira: { coat: '#8A7C6C', shade: ['#8A7C6C', tokens.shadow, 0.3], mark: '#3A2F27', white: tokens.paperWhite },
+      black: { coat: 'var(--cat-body)', shade: 'var(--cat-body)', mark: 'var(--cat-body)', white: tokens.paperWhite },
+      white: { coat: tokens.paperWhite, shade: [tokens.paperWhite, tokens.plum, 0.18], mark: tokens.paperWhite, white: tokens.paperWhite },
+    } satisfies Record<CoatKind, CoatColors>,
+    shade: { dx: 2.2, dy: 3 },
+    stripe: 1.6,
+    // Spec §3: the real cats' eyes. Misha's are green (from the photo), Kira's and Kiri kiri's
+    // amber-green (from the photo). Every other cat's eyes are its feeling color.
+    eyes: { misha: '#9ACB5E', kira: '#C9C24E', bram: '#C9C24E' } satisfies Partial<Record<CatId, string>>,
     // In tinta the feeling color is muted toward pencil gray: this much of it shows.
     tintaFeel: 0.5,
     // The ink stroke, and the lighter second pass offset beside it.
@@ -302,13 +345,13 @@ export const tuning = {
     // The rig (ms). Blinks and ear twitches are staggered per cat so the family never moves in unison;
     // the tail tip follows the tail after `tailFollowMs`.
     breathMs: 3200,
-    blinkMs: { luz: 4100, mimo: 6000, susto: 4600, bram: 5200, nana: 5600, misha: 5900, kira: 4400 } satisfies Record<CatId, number>,
-    blinkDelayMs: { luz: 300, mimo: 1700, susto: 900, bram: 2300, nana: 1200, misha: 2900, kira: 600 } satisfies Record<CatId, number>,
-    earMs: { luz: 3700, mimo: 7300, susto: 2900, bram: 4900, nana: 6100, misha: 8300, kira: 5300 } satisfies Record<CatId, number>,
+    blinkMs: { luz: 4100, mimo: 6000, susto: 4600, bram: 5200, nana: 5600, chona: 3900, chori: 6600, minina: 4300, misha: 5900, kira: 4400 } satisfies Record<CatId, number>,
+    blinkDelayMs: { luz: 300, mimo: 1700, susto: 900, bram: 2300, nana: 1200, chona: 1500, chori: 2600, minina: 700, misha: 2900, kira: 600 } satisfies Record<CatId, number>,
+    earMs: { luz: 3700, mimo: 7300, susto: 2900, bram: 4900, nana: 6100, chona: 3300, chori: 7900, minina: 4100, misha: 8300, kira: 5300 } satisfies Record<CatId, number>,
     tailMs: 2600,
     tailFollowMs: 180,
     // Each cat's own behavior loop (design §4), while it roams the page.
-    behaviorMs: { luz: 2800, mimo: 6400, susto: 5200, bram: 4200, nana: 5400, misha: 4800, kira: 4800 } satisfies Record<CatId, number>,
+    behaviorMs: { luz: 2800, mimo: 6400, susto: 5200, bram: 4200, nana: 5400, chona: 3600, chori: 7200, minina: 3000, misha: 4800, kira: 4800 } satisfies Record<CatId, number>,
   },
   // Line boil (design §4): the ink outlines jitter a few times a second. The turbulence seed steps
   // through `seeds` values at `fps`. The paper cut-out grows a rough margin of `radius` around the
@@ -322,7 +365,24 @@ export const tuning = {
   card: { flipMs: 800, leaveMs: 420 },
   // The battle screen (design §7): the spiral wipe, the typewriter, the bars, and the win burst.
   battleScreen: { wipeMs: 700, typeMs: 26, linePauseMs: 520, barMs: 650, burstMs: 1400 },
-  qr: { minPx: 220 },
+  // Spec §2 The gift QR, on screen. Error correction Q (controller ruling 2: at H the payload needs
+  // version 20, about 2.1 CSS px a module at 220 px, and a 1× screenshot failed to decode; Q is
+  // version 18 and recovers 25%). Drawn in rounded runs `module` tall with rounded finder eyes (outer
+  // corner radius `eyeOuter`, inner `eyeInner`, the pupil's `eyePupil`, in modules), a quiet zone of
+  // `quiet` modules, and a cat emblem in the centre about `emblemShare` of the code's width, never
+  // more than `maxEmblemShare` of its area. Guardar QR saves the bank's own image instead
+  // (src/assets/qr-bank.png, controller ruling 1), so nothing here tunes the download.
+  qr: {
+    minPx: 220,
+    screenLevel: 'Q',
+    quiet: 4,
+    module: 1,
+    eyeOuter: 2,
+    eyeInner: 1.3,
+    eyePupil: 0.9,
+    emblemShare: 0.22,
+    maxEmblemShare: 0.05,
+  },
   acts: {
     throwMs: 900,
     autoMinMs: 7000,
@@ -383,6 +443,7 @@ export const tuning = {
     catcherStep: 0.06,
     catcherSize: 72,
     dropSize: 30,
+    dropSlots: 6,
     sideCatSize: 48,
     pulseMs: 420,
     cheerCombo: 3,
@@ -554,7 +615,43 @@ export const tuning = {
         catBed: { at: [9.2, -8.5], turn: 0.25, scale: 1.3 },
         scratchingPost: { at: [11.6, -7.6], turn: 0, scale: 1.3 },
         curtains: { at: [0, -9.85], turn: 0, scale: 1 },
+        // This work's spec §6: dad's guitar leans against the back wall at the Familia end of the
+        // attic, turned a little toward the Familia station's camera.
+        guitar: { at: [12.4, -9.35], turn: -0.2, scale: 1.7 },
       } satisfies Record<PropName, PropPlacement>,
+      // Dad's B.C. Rich Mockingbird Contour in gold top (spec §6), in its own units (about a metre
+      // long at scale 1): the body `depth` thick with a `bevel`, its outline drawn with
+      // `curveSegments` per curve; the neck from `neckFrom` to the nut at `nut`, `neckWidth` wide; the
+      // headstock up to `headTop`, `headWidth` wide; the two humbuckers centred at `pickupsAt`; the
+      // knobs at `knobsAt`. It leans back `lean` degrees against the wall. The neck joint, pickups,
+      // and knobs are measured from the host's photo, like the body's outline.
+      guitar: {
+        depth: 0.045,
+        bevel: 0.008,
+        curveSegments: 10,
+        neckFrom: 0.335,
+        nut: 0.86,
+        neckWidth: 0.05,
+        headTop: 1.02,
+        headWidth: 0.09,
+        pickupsAt: [0.31, 0.224],
+        knobsAt: [
+          [0.078, 0.207],
+          [0.105, 0.174],
+          [0.124, 0.141],
+          [0.093, 0.112],
+        ],
+        lean: 12,
+        colors: {
+          // The gold top and the gold hardware: the candle token itself (the host's photo), so it still
+          // reads gold under the dark looks' dim moonlight.
+          gold: tokens.candle,
+          // Dark rosewood for the neck, the headstock, and the body's sides (the host's photo).
+          rosewood: '#4A2A1E',
+          // The black humbuckers.
+          pickup: tokens.ink,
+        },
+      },
       books: 16,
       yarnBalls: 5,
       bookColors: [tokens.rose, tokens.deepRose, tokens.plum, tokens.candle, tokens.bone, feelingColors.misha, feelingColors.nana],
@@ -569,7 +666,8 @@ export const tuning = {
     // the book drew at rest in luz before this work (the attic, the book, its stations in view, and
     // the dust); `attic` is the attic's own meshes and its window (sky, halo, moon or sun). The new
     // props must fit in what is left.
-    budget: { book: 100, backdrop: 60, bookAtRest: 47, attic: 27, materials: 14 },
+    // `materials` grew by three for dad's guitar (this work's spec §6: at most three new materials).
+    budget: { book: 100, backdrop: 60, bookAtRest: 47, attic: 27, materials: 17 },
     // Spec §3: each mood's own props, in world units, with speeds in radians per second.
     mood: {
       // Saturday: a star-and-crescent mobile turning slowly over the crib, its string rising `hang`

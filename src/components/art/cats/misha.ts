@@ -1,7 +1,27 @@
 import type { CatDrawing } from './types'
 
-// Misha (Calma): long and calm, lying by the door with the tail up and slow, heavy lids.
+// Misha (Calma), as the real Misha: white with silver-gray patches (a gray cap over the ears and the
+// crown that comes down the sides of her face, with a white blaze rising between the eyes; gray
+// patches on the back and the flank; a gray tail),
+// a pink nose, green eyes (tuning.cats.eyes), and short fur. Long and calm, lying by the door, with
+// slow, heavy lids.
 export const misha: CatDrawing = {
+  coat: {
+    kind: 'misha',
+    body: [
+      { d: 'M30 80 C 38 77, 52 77, 60 80 C 62 86, 56 92, 46 92 C 36 92, 29 88, 30 80 Z', paint: 'patch' },
+      { d: 'M62 84 C 70 82, 80 84, 84 90 C 86 97, 78 101, 70 99 C 63 97, 60 90, 62 84 Z', paint: 'patch' },
+      { d: 'M14 96 C 16 88, 24 84, 30 86 C 32 92, 28 100, 20 102 Z', paint: 'patch' },
+    ],
+    head: [
+      {
+        d: 'M74 50 L 110 50 L 110 73 C 108 69, 106 66, 104 64 C 100 62, 97 62, 95 61 C 93.5 60, 92.5 58, 92 56.5 C 91.5 58, 90.5 60, 89 61 C 87 62, 84 62, 80 64 C 78 66, 76 69, 74 73 Z',
+        paint: 'patch',
+      },
+    ],
+    ears: 'mark',
+    tail: 'mark',
+  },
   ground: { cx: 60, rx: 46 },
   tail: {
     d: 'M20 97 C 8 89, 7 72, 13 60 C 16 53, 16 46, 18 39',

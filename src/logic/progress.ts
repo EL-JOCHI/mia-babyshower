@@ -1,4 +1,4 @@
-import { catById, type CatId } from '../content'
+import { catById, cats, type CatId } from '../content'
 import { tuning } from '../tuning'
 import type { LandmarkId } from './layout'
 
@@ -55,7 +55,7 @@ export function applyEvent(p: Progress, e: ProgressEvent): { progress: Progress;
       awards.push({ xp })
       next = { ...next, xp: next.xp + xp }
       next = earn(next, awards, 'primerGato')
-      if (e.metCount >= 7) next = earn(next, awards, 'todosLosGatos')
+      if (e.metCount >= cats.length) next = earn(next, awards, 'todosLosGatos')
       break
     }
   }
