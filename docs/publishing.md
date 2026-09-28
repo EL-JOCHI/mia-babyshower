@@ -103,7 +103,7 @@ Do this on real phones, not only on a computer: at least one iPhone and one mid-
 
 **The facts, without playing** (use only the signposts)
 
-- [ ] `La fecha`: `sábado 17 de octubre de 2026` (Sunday: `domingo 18 de octubre de 2026`), `16:00`, and the countdown.
+- [ ] `La fecha`: `sábado 17 de octubre de 2026` (Sunday: `domingo 18 de octubre de 2026`), `16:30`, and the countdown.
 - [ ] `El lugar`: the address, and `Ver en el mapa` opens the right pin.
 - [ ] `Confirmar`: `Confirmar por WhatsApp` opens a chat with **+591 76632451** and the message for that day.
 - [ ] `El regalo`: the one gift line, the QR drawn on bone paper with a cat in the middle, the cat button `Guardar QR`, and `Toca el gatito para guardar el QR en tu celular.` under it.

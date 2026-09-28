@@ -102,7 +102,7 @@ export function Pages({
         {partyOver && cats('chori', 'perch-palabra-chori')}
       </PageCard>
     ),
-    // The date and 16:00 pinned to the page, then the melting candle, the flip-card countdown,
+    // The date and 16:30 pinned to the page, then the melting candle, the flip-card countdown,
     // and the hourglass.
     cuando: (
       <PageCard id="cuando" found={found('cuando')}>

@@ -14,7 +14,7 @@ describe('whatsappUrl (US-3, BR-3)', () => {
     const text = new URL(whatsappUrl('sun')).searchParams.get('text') ?? ''
     expect(text).toBe(days.sun.whatsappMessage)
     expect(text).not.toContain('17 de octubre')
-    expect(text).toContain('16:00')
+    expect(text).toContain('16:30')
     expect(shared.whatsappNumber).toBe('59176632451')
   })
 })

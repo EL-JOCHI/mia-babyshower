@@ -28,7 +28,7 @@ describe('US-8 Enter only with the link I was sent', () => {
     expect(screen.getByText(copy.gate[0])).toBeInTheDocument()
     expect(screen.getByText(copy.gate[1])).toBeInTheDocument()
     const text = document.body.textContent ?? ''
-    for (const hidden of [days.sat.dateLine, days.sun.dateLine, shared.place, '16:00']) expect(text).not.toContain(hidden)
+    for (const hidden of [days.sat.dateLine, days.sun.dateLine, shared.place, '16:30']) expect(text).not.toContain(hidden)
     expect(screen.queryByRole('link', { name: copy.confirm })).not.toBeInTheDocument()
     expect(screen.queryByRole('img', { name: copy.qrAlt })).not.toBeInTheDocument()
     expect(document.querySelector('a[href*="wa.me"]')).toBeNull()

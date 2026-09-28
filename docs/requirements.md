@@ -44,8 +44,8 @@ One Vite site. One React page.
 
 | What the guest opened | What they see |
 | --- | --- |
-| `/?e=n4vk` | Saturday 17 October 2026, 16:00, the full book |
-| `/?e=q8lm` | Sunday 18 October 2026, 16:00, the full book |
+| `/?e=n4vk` | Saturday 17 October 2026, 16:30, the full book |
+| `/?e=q8lm` | Sunday 18 October 2026, 16:30, the full book |
 | `/`, a missing `e`, or any other `e` | The guest gate. Cats, the gate game, and **Tus gatos**. No date, no place, no WhatsApp, no QR. |
 
 The calendar does not choose a day. A bare GitHub Pages address is the gate, on every date, including years later.
@@ -73,7 +73,7 @@ On a real invitation the first thing on screen is the book's cover, in HTML: the
 
 1. **Llegada** — the book cover: the title, the hero line, and `Muévete para explorar`.
 2. **Palabra** — Salmo 127:3, the same verse as the example invitation, on an illuminated manuscript page with a candle flickering beside it.
-3. **Cuándo** — that day's date and `16:00`, pinned to the page, with a melting candle, an hourglass, and the countdown as flip-card digits. The candle is whole 30 days before the party and burns down toward a stub at the start.
+3. **Cuándo** — that day's date and `16:30`, pinned to the page, with a melting candle, an hourglass, and the countdown as flip-card digits. The candle is whole 30 days before the party and burns down toward a stub at the start.
 4. **Dónde** — a treasure map that unrolls, a pin that drops, the address, and `Ver en el mapa`. Only until the party is over.
 5. **Confirmar** — the invitation letter and `Confirmar por WhatsApp`, with a message that names this day. Tapping it presses a wax seal onto the letter while WhatsApp opens at once. Only until the party is over.
 6. **Presente** — one line, presence first, then a gift box whose ribbon unties and whose lid lifts to reveal the gift QR drawn in the invitation's style, with `Guardar QR` below as a cat button and its hint. Only until the party is over. See *The gift QR*.
@@ -124,14 +124,14 @@ A day's party is over at midnight at the end of its calendar day, Bolivia time. 
 When the party is over:
 
 - Dónde, Confirmar, and Presente are omitted, with their signposts. The address, the map, the confirm button, the gift copy, the QR, and `Guardar QR` are gone.
-- Cuándo keeps the date line and `16:00` as a memory. The countdown is gone.
+- Cuándo keeps the date line and `16:30` as a memory. The countdown is gone.
 - Llegada shows the post-party hero line and the relive line from section 6 in place of the hero line.
 - **Tus gatos** offers `Jugar otra vez`. See *Playing again*.
 - The landmarks left are Llegada, Palabra, Cuándo, and Familia. The cats and the door remain: all ten cats move onto those four pages (see *The cats*).
 - The quest log counts 3 pages: Palabra, Cuándo, and Familia.
 - Nothing says the address was removed.
 
-Between `16:00` and midnight on the party day, the countdown reads zero.
+Between `16:30` and midnight on the party day, the countdown reads zero.
 
 The page checks the clock every second. If the page is open at the cutoff, the party-over state applies without a reload.
 
@@ -651,18 +651,18 @@ Gate game (design §13):
 
 Saturday confirm message:
 
-`¡Hola! Quiero confirmar mi asistencia al baby shower de Mia el sábado 17 de octubre a las 16:00.`
+`¡Hola! Quiero confirmar mi asistencia al baby shower de Mia el sábado 17 de octubre a las 16:30.`
 
 Sunday confirm message:
 
-`¡Hola! Quiero confirmar mi asistencia al baby shower de Mia el domingo 18 de octubre a las 16:00.`
+`¡Hola! Quiero confirmar mi asistencia al baby shower de Mia el domingo 18 de octubre a las 16:30.`
 
 Date lines:
 
 - `sábado 17 de octubre de 2026`
 - `domingo 18 de octubre de 2026`
 
-Time line on both invitations: `16:00`
+Time line on both invitations: `16:30`
 
 Accessible names (read by screen readers, not shown):
 
@@ -690,13 +690,13 @@ Stories are ordered by priority. Each heading names its release from section 16.
 
 ### US-1 — Read my invitation by moving through the room (P1, R1)
 
-A guest with a real link can reach the verse, their date, 16:00, and, while the party is current, the place, without greeting a cat.
+A guest with a real link can reach the verse, their date, 16:30, and, while the party is current, the place, without greeting a cat.
 
 **Independent test:** Render each invitation before its midnight cutoff. Assert the landmarks, that day's date, the verse, and the address. Assert the other day's date is absent. Assert each signpost points at the matching landmark.
 
 **Acceptance scenarios:**
 
-1. **Given** Saturday and a clock before `2026-10-18T00:00:00-04:00`, **When** the room renders, **Then** Llegada, Palabra, Cuándo, Dónde, Confirmar, and Presente are all present, including the hero line, `Salmo 127:3`, `sábado 17 de octubre de 2026`, `16:00`, and the Prolongación Beni address.
+1. **Given** Saturday and a clock before `2026-10-18T00:00:00-04:00`, **When** the room renders, **Then** Llegada, Palabra, Cuándo, Dónde, Confirmar, and Presente are all present, including the hero line, `Salmo 127:3`, `sábado 17 de octubre de 2026`, `16:30`, and the Prolongación Beni address.
 2. **Given** Sunday and a clock before `2026-10-19T00:00:00-04:00`, **When** the room renders, **Then** the guest sees `domingo 18 de octubre de 2026` and does not see `17 de octubre`.
 3. **Given** a phone, tablet, and desktop width, **When** either room renders, **Then** landmark text is readable, actions are tappable, and the page itself does not scroll sideways.
 4. **Given** the signpost `La fecha`, **When** the guest activates it, **Then** the camera target is Cuándo.
@@ -759,9 +759,9 @@ A guest can switch between dark and light, and the browser remembers.
 
 1. **Given** a clock before that day's start, **When** the countdown renders, **Then** it shows non-negative days, hours, minutes, and seconds that match the difference.
 2. **Given** a clock at or after that start and before that day's cutoff, **When** the countdown renders, **Then** every unit is zero.
-3. **Given** Saturday, **When** it renders, **Then** the countdown targets `2026-10-17T16:00:00-04:00`.
-4. **Given** Sunday, **When** it renders, **Then** the countdown targets `2026-10-18T16:00:00-04:00`.
-5. **Given** a clock at or after that day's cutoff, **When** Cuándo renders, **Then** there is no countdown, and the date line and `16:00` are present.
+3. **Given** Saturday, **When** it renders, **Then** the countdown targets `2026-10-17T16:30:00-04:00`.
+4. **Given** Sunday, **When** it renders, **Then** the countdown targets `2026-10-18T16:30:00-04:00`.
+5. **Given** a clock at or after that day's cutoff, **When** Cuándo renders, **Then** there is no countdown, and the date line and `16:30` are present.
 
 ### US-7 — Move from sketch to light (P1; stage mapping R1, the 3D book with the redesign)
 
@@ -929,12 +929,12 @@ The gate game's rules (section 3, *The guest gate*).
 
 - **BR-1.** Two invitations share one room, one place, one clock time, one phone number, one QR, and one cat list on the browser. They do not share a calendar day or a WhatsApp message.
 - **BR-2.** Facts live in one content module: a shared block plus two day records, keyed by `n4vk` and `q8lm`. Components read that module. Numbers and colors live in the tuning module (BR-21).
-- **BR-3.** The WhatsApp number in the link is `59176632451`. The message is encoded with `encodeURIComponent` and includes that day's date and `16:00`.
+- **BR-3.** The WhatsApp number in the link is `59176632451`. The message is encoded with `encodeURIComponent` and includes that day's date and `16:30`.
 - **BR-4.** Confirmation is a handoff to WhatsApp. The site does not record yes, no, names, or headcount.
 - **BR-5.** The payment QR is one bank payload for both days, stored in the content module. The site draws the screen QR from that payload, and `Guardar QR` saves the bank's own QR image, which decodes to the same payload. The site does not send the guest to a payment processor.
 - **BR-6.** Presente leads with presence, then the QR, in one line.
 - **BR-7.** Theme is `dark` or `light`, stored in `localStorage` under its own key, separate from the cats and from the music choice.
-- **BR-8.** The event countdown uses that day's start instant in `America/La_Paz`. Saturday is `2026-10-17T16:00:00-04:00`. Sunday is `2026-10-18T16:00:00-04:00`.
+- **BR-8.** The event countdown uses that day's start instant in `America/La_Paz`. Saturday is `2026-10-17T16:30:00-04:00`. Sunday is `2026-10-18T16:30:00-04:00`.
 - **BR-9.** `n4vk` is Saturday. `q8lm` is Sunday. Every other opening is the gate. The clock never selects a day.
 - **BR-10.** No screen shows both dates. Nothing links to the other code. The gate shows neither date.
 - **BR-11.** The place line, the city, the map, the confirm control, the gift copy, the QR, `Guardar QR`, the countdown, and the `El lugar`, `Confirmar`, and `El regalo` signposts render only while `now` is strictly before that day's cutoff. They are omitted together. From the cutoff on, the page is in the party-over state.
@@ -965,7 +965,7 @@ The gate game's rules (section 3, *The guest gate*).
 
 - **FR-1.** The system MUST render the landmarks in section 3, omitting Dónde, Confirmar, and Presente when BR-11 says so.
 - **FR-2.** The system MUST show the title, the hero line, the verse, the citation, and `Muévete para explorar` on an invitation. In the party-over state, Llegada shows the post-party lines in place of the hero line.
-- **FR-3.** The system MUST show the resolved day's date line and `16:00`.
+- **FR-3.** The system MUST show the resolved day's date line and `16:30`.
 - **FR-4.** The system MUST show the event countdown, following US-6.
 - **FR-5.** The system MUST offer `Ver en el mapa` only while the place is visible.
 - **FR-6.** The system MUST link confirmation to WhatsApp using BR-3, only on an invitation, and only while the party is current.
@@ -1073,7 +1073,7 @@ Shared:
 | Share preview | Section 6 |
 | Post-party copy | Section 6 |
 | Timezone | `America/La_Paz` |
-| Clock time | `16:00` |
+| Clock time | `16:30` |
 | Cats | Section 3 |
 
 Saturday `n4vk`:
@@ -1081,7 +1081,7 @@ Saturday `n4vk`:
 | Field | Value |
 | --- | --- |
 | Link | `/?e=n4vk` |
-| Start | `2026-10-17T16:00:00-04:00` |
+| Start | `2026-10-17T16:30:00-04:00` |
 | Party over from | `2026-10-18T00:00:00-04:00` |
 | Date line | `sábado 17 de octubre de 2026` |
 | WhatsApp message | Saturday message in section 6 |
@@ -1091,7 +1091,7 @@ Sunday `q8lm`:
 | Field | Value |
 | --- | --- |
 | Link | `/?e=q8lm` |
-| Start | `2026-10-18T16:00:00-04:00` |
+| Start | `2026-10-18T16:30:00-04:00` |
 | Party over from | `2026-10-19T00:00:00-04:00` |
 | Date line | `domingo 18 de octubre de 2026` |
 | WhatsApp message | Sunday message in section 6 |
@@ -1206,7 +1206,7 @@ Manual checks, on real phones, before each release:
 
 ## 13. Success criteria
 
-- **SC-1.** A guest with a real link can say the verse, the date, 16:00, and the address after moving through the book or tapping the signposts, without greeting a cat, finding a page, or earning a badge.
+- **SC-1.** A guest with a real link can say the verse, the date, 16:30, and the address after moving through the book or tapping the signposts, without greeting a cat, finding a page, or earning a badge.
 - **SC-2.** That page never shows the other day's date.
 - **SC-3.** `/` and any unknown `e` show the special-guest sentences, the gate game, and the gate cats, and never a party, on every date.
 - **SC-4.** From the midnight after a day's party, that page has no address, no map, no confirm button, no gift QR, and no countdown. It thanks the guest, and the book can still be explored.
@@ -1293,7 +1293,7 @@ The links never change, so the site keeps improving after they go out. Every pus
 2. The content module, the tuning module, and the pure functions with tests: invite code, party over, countdown, layout, stage.
 3. The guest gate: the two sentences and the gate cats.
 4. The room: the camera by drag, wheel, and arrow keys; the landmark cards; the signposts; theme; reduced motion; focus that brings a control into view.
-5. The facts: date, `16:00`, countdown, address and map, WhatsApp, the QR or its pending sentence, `Guardar QR`.
+5. The facts: date, `16:30`, countdown, address and map, WhatsApp, the QR or its pending sentence, `Guardar QR`.
 6. The share preview, the favicon, and `noindex` (BR-23). WhatsApp freezes the preview when a message is sent, so this must be live before the links go out.
 7. The manual checks in section 12.
 

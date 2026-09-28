@@ -38,7 +38,7 @@ describe('US-1 Read my invitation by moving through the room', () => {
     expect(screen.getByText(copy.verseCitation)).toBeInTheDocument()
     expect(screen.getByText(copy.verse)).toBeInTheDocument()
     expect(screen.getByText('sábado 17 de octubre de 2026')).toBeInTheDocument()
-    expect(screen.getByText('16:00')).toBeInTheDocument()
+    expect(screen.getByText('16:30')).toBeInTheDocument()
     expect(screen.getByText(shared.place)).toBeInTheDocument()
   })
 
@@ -358,11 +358,11 @@ describe('US-6 Watch the countdown', () => {
     expect(Array.from(numbers).map((n) => n.textContent)).toEqual(['00', '00', '00', '00'])
   })
 
-  it('is gone after the cutoff, and the date and 16:00 stay as a memory (AC5)', () => {
+  it('is gone after the cutoff, and the date and 16:30 stay as a memory (AC5)', () => {
     renderRoom({ now: satCutoff })
     expect(screen.queryByTestId('countdown')).not.toBeInTheDocument()
     expect(screen.getByText(days.sat.dateLine)).toBeInTheDocument()
-    expect(screen.getByText('16:00')).toBeInTheDocument()
+    expect(screen.getByText('16:30')).toBeInTheDocument()
   })
 })
 

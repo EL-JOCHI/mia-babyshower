@@ -12,8 +12,8 @@ The shower is split across two days. Each group of guests receives its own link:
 
 | Link | Opens |
 | --- | --- |
-| 🗓️ `https://el-jochi.github.io/mia-babyshower/?e=n4vk` | Saturday 17 October 2026, 16:00 |
-| 🗓️ `https://el-jochi.github.io/mia-babyshower/?e=q8lm` | Sunday 18 October 2026, 16:00 |
+| 🗓️ `https://el-jochi.github.io/mia-babyshower/?e=n4vk` | Saturday 17 October 2026, 16:30 |
+| 🗓️ `https://el-jochi.github.io/mia-babyshower/?e=q8lm` | Sunday 18 October 2026, 16:30 |
 | 🚧 Anything else (including the bare address) | The guest gate |
 
 The **guest gate** says the invitation is for special guests and must be opened with the link they were sent, with a 30-second arcade game under it 🕹️. It never shows the date, the place, WhatsApp, or the QR. The gate is a courtesy, not a secret: the site is public.

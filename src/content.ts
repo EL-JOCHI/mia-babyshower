@@ -29,7 +29,7 @@ export const shared = {
   city: 'Santa Cruz de la Sierra, Bolivia',
   mapUrl: 'https://www.google.com/maps/search/?api=1&query=-17.73170923809386,-63.15786528996242',
   timezone: 'America/La_Paz',
-  clockTime: '16:00',
+  clockTime: '16:30',
   // Spec §2: the Banco Ganadero transfer QR's payload, verbatim, decoded locally from the host's
   // QR (a version-13 code). It holds no readable name or account number. The screen draws it in the
   // invitation's style; Guardar QR saves the bank's own image, src/assets/qr-bank.png, which decodes
@@ -41,19 +41,19 @@ export const shared = {
 export const days: Record<DayId, DayRecord> = {
   sat: {
     code: 'n4vk',
-    start: '2026-10-17T16:00:00-04:00',
+    start: '2026-10-17T16:30:00-04:00',
     overFrom: '2026-10-18T00:00:00-04:00',
     dateLine: 'sábado 17 de octubre de 2026',
     whatsappMessage:
-      '¡Hola! Quiero confirmar mi asistencia al baby shower de Mia el sábado 17 de octubre a las 16:00.',
+      '¡Hola! Quiero confirmar mi asistencia al baby shower de Mia el sábado 17 de octubre a las 16:30.',
   },
   sun: {
     code: 'q8lm',
-    start: '2026-10-18T16:00:00-04:00',
+    start: '2026-10-18T16:30:00-04:00',
     overFrom: '2026-10-19T00:00:00-04:00',
     dateLine: 'domingo 18 de octubre de 2026',
     whatsappMessage:
-      '¡Hola! Quiero confirmar mi asistencia al baby shower de Mia el domingo 18 de octubre a las 16:00.',
+      '¡Hola! Quiero confirmar mi asistencia al baby shower de Mia el domingo 18 de octubre a las 16:30.',
   },
 }
 
