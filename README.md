@@ -36,7 +36,7 @@ The **guest gate** says the invitation is for special guests and must be opened 
 - 🕹️ **Gate game.** On the gate, catch yarn and hearts with Mishona for 30 seconds, build a combo, and beat your best score. It runs smoothly: the frame loop moves the drops itself, and the cats hold still until the round ends.
 - 🐾 **Play.** Tap the countdown, the verse, the QR, the door, or a toy and a cat reacts.
 - 🎵 **Turn on music**: the host's track, loaded only when asked.
-- 🌗 **Icons.** A moon and a sun switch Oscuro and Claro; a cat's head with a `n/10` badge opens **Tus gatos**. Screen readers still hear the words. The music button stays text.
+- 🌗 **Icons.** A moon and a sun switch Oscuro and Claro; a cat's head with a `n/10` badge opens **Tus gatos**. A speaker turns the music on and off (sound waves while it plays), and an ink × closes Tus gatos. Screen readers still hear the words.
 
 | Cat | Feeling | Color | Rarity |
 | --- | --- | --- | --- |

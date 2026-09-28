@@ -120,7 +120,7 @@
     border-radius: 0;
   }
 
-  /* Spec §4: the icon buttons (the sun, the moon, and Tus gatos), each a touch target of at least
+  /* Spec §4: the icon buttons (the sun, the moon, the music speaker, Tus gatos, and the close ×), each a touch target of at least
      44 px. Their names are visually hidden text. */
   .hud-icon-button {
     position: relative;

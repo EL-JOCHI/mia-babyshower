@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { cats, copy } from '../content'
 import indexCss from '../index.css?raw'
 import { Hud } from './Hud'
+import { MusicControl } from './MusicControl'
 
 function renderHud(catsMet = 3) {
   return render(
@@ -45,9 +46,33 @@ describe('the controls (spec §4)', () => {
     renderHud()
     expect(ruleFor(indexCss, '.hud-icon-button')).toMatch(/min-width:\s*calc\(44 \* var\(--ui-px\)\)/)
     expect(ruleFor(indexCss, '.hud-icon-button')).toMatch(/min-height:\s*calc\(44 \* var\(--ui-px\)\)/)
-    for (const name of [copy.themeDark, copy.themeLight, copy.collection]) {
+    for (const name of [copy.themeDark, copy.themeLight, copy.musicOn, copy.collection]) {
       expect(screen.getByRole('button', { name })).toHaveClass('hud-icon-button')
     }
+  })
+
+  it('shows the music as a speaker: slashed while off, with sound waves while playing, named for screen readers', () => {
+    const { rerender } = render(<MusicControl available playing={false} onToggle={vi.fn()} />)
+    const off = screen.getByRole('button', { name: copy.musicOn })
+    const offIcon = off.querySelector('svg.music-icon')
+    expect(offIcon).toHaveAttribute('aria-hidden', 'true')
+    expect(offIcon).toHaveAttribute('data-playing', 'false')
+    expect(offIcon?.querySelector('.music-icon-muted')).not.toBeNull()
+    expect(offIcon?.querySelector('.music-icon-waves')).toBeNull()
+    expect(screen.getByText(copy.musicOn)).toHaveClass('sr-only')
+
+    rerender(<MusicControl available playing onToggle={vi.fn()} />)
+    const on = screen.getByRole('button', { name: copy.musicOff })
+    const onIcon = on.querySelector('svg.music-icon')
+    expect(onIcon).toHaveAttribute('data-playing', 'true')
+    expect(onIcon?.querySelector('.music-icon-waves')).not.toBeNull()
+    expect(onIcon?.querySelector('.music-icon-muted')).toBeNull()
+    expect(screen.getByText(copy.musicOff)).toHaveClass('sr-only')
+  })
+
+  it('shows no music control until the track exists', () => {
+    render(<MusicControl available={false} playing={false} onToggle={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: copy.musicOn })).not.toBeInTheDocument()
   })
 
   it('shows Tus gatos as a cat head with the cats met out of all of them, and announces the count with its name', () => {

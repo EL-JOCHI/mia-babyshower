@@ -87,7 +87,7 @@ Section 4 says how the book is laid out and how the flat room lays out the same 
 
 Signposts stay on screen: `Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`. `Inicio` leads to Llegada. Activating one glides the camera to that page. A signpost is absent when its landmark is absent. The guest never has to hunt for the invitation or for the door.
 
-A theme control, the music control, and `Tus gatos` stay fixed on screen on the gate and on both invitations. On an invitation the quest log also stays on screen (see *The game layer*). The theme offers **Oscuro** and **Claro** as a moon and a sun drawn in the ink style; their names stay for screen readers as visually hidden text, the active one is pressed, and each is a touch target of at least 44 px. `Tus gatos` is a cat's head with a small badge `{n}/10`, the cats met out of all of them; its name stays `Tus gatos` and the count is read with it. The music control stays a text button: `Activar música` or `Silenciar música`. `Confirmar por WhatsApp` and `Ver en el mapa` live inside their pages and move with them.
+A theme control, the music control, and `Tus gatos` stay fixed on screen on the gate and on both invitations. On an invitation the quest log also stays on screen (see *The game layer*). The theme offers **Oscuro** and **Claro** as a moon and a sun drawn in the ink style; their names stay for screen readers as visually hidden text, the active one is pressed, and each is a touch target of at least 44 px. `Tus gatos` is a cat's head with a small badge `{n}/10`, the cats met out of all of them; its name stays `Tus gatos` and the count is read with it. The music control is a speaker in the same ink style: a small cross while the music is off, sound waves while it plays; its name, visually hidden, is `Activar música` or `Silenciar música`, and it is a touch target of at least 44 px. Inside `Tus gatos`, the close control is an ink `×` named `Cerrar` for screen readers. `Confirmar por WhatsApp` and `Ver en el mapa` live inside their pages and move with them.
 
 ### The moods
 
@@ -438,7 +438,7 @@ One track, the host's own (`src/assets/audio/ambience.mp3`, 2 min 23 s at 256 kb
 
 - Without the file, the music control is absent. No broken player.
 - The first visit does not start the sound by itself.
-- The guest turns it on with `Activar música`. The same control then reads `Silenciar música`. The choice is stored in `localStorage` and shared by the gate and both invitations.
+- The guest turns it on with `Activar música` (the speaker with a small cross). The same control then reads `Silenciar música` and shows sound waves. The choice is stored in `localStorage` and shared by the gate and both invitations.
 - On a later visit with the choice stored as on, the loop starts on the guest's first tap, drag, or key press, because browsers block sound before a gesture. Until it actually plays, the control reads `Activar música`.
 - Turning it on starts the loop from the beginning of the file. Silencing pauses it. Moving the camera does not restart it.
 - While the page is hidden, for example while the guest is in WhatsApp, the music pauses. It resumes when the page is visible again, if the choice is on.
@@ -596,7 +596,7 @@ Room:
 - Map control: `Ver en el mapa`
 - Signposts: `Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`
 - Collection: `Tus gatos`, with its badge `{n}/{total}`
-- Close the collection: `Cerrar`
+- Close the collection: `Cerrar` (the name of the ink `×`)
 - Greet: `Saludar`
 - Caught: `Se quedó contigo: {name}.`
 - Not yet: `Aún no se acerca`

@@ -12,6 +12,16 @@ interface Props {
   onClose: () => void
 }
 
+// Closing Tus gatos: an ink ×, a double stroke like the other icons' echo line.
+function CloseMark() {
+  return (
+    <svg className="theme-icon close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path className="theme-icon-echo" d="M6.8 5.6 L 19 18.2 M19.2 5.6 L 6.8 18.4" />
+      <path className="theme-icon-line" d="M6 6.4 L 18 17.6 M18 6 L 6.2 18" />
+    </svg>
+  )
+}
+
 // Tus gatos (§3): a dialog over the room. Focus moves in, Escape closes it,
 // and the caller returns focus to the Tus gatos control.
 export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Props) {
@@ -48,8 +58,9 @@ export function Collection({ state, allowPlayAgain, onPlayAgain, onClose }: Prop
             <span>{copy.roundCount(state.round.length, cats.length)}</span>
             {state.rounds > 1 && <span className="collection-round">{copy.roundNumber(state.rounds)}</span>}
           </p>
-          <button type="button" className="hud-button collection-close" onClick={onClose}>
-            {copy.close}
+          <button type="button" className="hud-button hud-icon-button collection-close" onClick={onClose}>
+            <CloseMark />
+            <span className="sr-only">{copy.close}</span>
           </button>
         </div>
         <ul className="collection-list">
