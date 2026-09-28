@@ -20,6 +20,9 @@ const backdrop = vi.hoisted(() => ({
   mode: 'waits' as 'waits' | 'ready' | 'fails',
   ready: null as null | (() => void),
   mounts: 0,
+  // How many times the live attic has rendered, and the pan it reads each frame.
+  renders: 0,
+  pan: null as null | { readonly current: number },
 }))
 vi.mock('../world/World', () => ({
   default: function World({
@@ -74,12 +77,14 @@ vi.mock('../world/World', () => ({
     mood,
     theme,
     tier,
+    panRef,
     paused,
     onReady,
   }: {
     mood: string
     theme: string
     tier: string
+    panRef: { readonly current: number }
     paused: boolean
     onReady: () => void
   }) {
@@ -87,6 +92,11 @@ vi.mock('../world/World', () => ({
     useEffect(() => {
       backdrop.mounts += 1
     }, [])
+    // After every render that reaches the screen.
+    useEffect(() => {
+      backdrop.renders += 1
+      backdrop.pan = panRef
+    })
     useEffect(() => {
       backdrop.ready = onReady
       if (backdrop.mode === 'ready') onReady()
@@ -275,6 +285,8 @@ describe('the 3D book and its fallback (design §2)', () => {
     backdrop.mode = 'waits'
     backdrop.ready = null
     backdrop.mounts = 0
+    backdrop.renders = 0
+    backdrop.pan = null
     vi.mocked(hasWebGL).mockReturnValue(true)
   })
   afterEach(() => setScreenSize(jsdomWidth, jsdomHeight))
@@ -683,6 +695,8 @@ describe('three levels (spec §7)', () => {
     backdrop.mode = 'waits'
     backdrop.ready = null
     backdrop.mounts = 0
+    backdrop.renders = 0
+    backdrop.pan = null
     vi.mocked(hasWebGL).mockReturnValue(true)
   })
   afterEach(() => setScreenSize(jsdomWidth, jsdomHeight))
@@ -815,6 +829,24 @@ describe('three levels (spec §7)', () => {
     expect(mid().style.transform).toBe(`translate3d(${-camera.x}px, ${-camera.y}px, 0)`)
     expect(document.querySelector<HTMLElement>('.landmark-scale')!.style.zoom).toBe(String(after.scale))
   })
+
+  // Level 2 is for short and weak phones: panning must not re-render the attic's React tree each
+  // frame. The attic reads the pan itself, every frame.
+  it('leaves the live attic alone while the flat camera pans, and hands it the pan to read (spec §7)', async () => {
+    setScreenSize(844, 390)
+    backdrop.mode = 'ready'
+    renderWorldRoom()
+    await screen.findByTestId('backdrop')
+    await waitFor(() => expect(level()).toBe('backdrop'))
+    const renders = backdrop.renders
+    const pan = backdrop.pan!.current
+    const camera = mid().style.transform
+    drag(surface(), [600, 200], [300, 200])
+    fireEvent.wheel(surface(), { deltaY: 80, shiftKey: true })
+    expect(mid().style.transform).not.toBe(camera)
+    expect(backdrop.pan!.current).toBeGreaterThan(pan)
+    expect(backdrop.renders).toBe(renders)
+  })
 })
 
 describe('pausing (spec §8, Review Focus 4)', () => {
@@ -823,6 +855,8 @@ describe('pausing (spec §8, Review Focus 4)', () => {
     backdrop.mode = 'ready'
     backdrop.ready = null
     backdrop.mounts = 0
+    backdrop.renders = 0
+    backdrop.pan = null
     vi.mocked(hasWebGL).mockReturnValue(true)
   })
   afterEach(() => {
@@ -868,5 +902,57 @@ describe('pausing (spec §8, Review Focus 4)', () => {
     hide(false)
     expect(attic).toHaveAttribute('data-paused', 'false')
     expect(backdrop.mounts).toBe(1)
+  })
+
+  // A paused book draws no frame, so it cannot get ready: its load timeout waits until it runs again,
+  // and then gives it the whole loadTimeoutMs (facts are never gated, but Tus gatos over the cover is
+  // no reason to lose the book).
+  it('holds the load timeout while a full-screen dialog is open, and restarts it once it closes', () => {
+    world.mode = 'stalls'
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      const view = renderWorldRoom()
+      view.rerender(worldRoom({ dialogOpen: true }))
+      act(() => {
+        vi.advanceTimersByTime(tuning.world.loadTimeoutMs * 2)
+      })
+      expect(screen.queryByTestId('room-mid')).toBeNull()
+      expect(cover()).not.toBeNull()
+      view.rerender(worldRoom({ dialogOpen: false }))
+      act(() => {
+        vi.advanceTimersByTime(tuning.world.loadTimeoutMs - 10)
+      })
+      expect(screen.queryByTestId('room-mid')).toBeNull()
+      act(() => {
+        vi.advanceTimersByTime(20)
+      })
+      expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('holds the load timeout while the tab is hidden, and restarts it when the guest comes back', () => {
+    world.mode = 'stalls'
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true })
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      renderWorldRoom()
+      act(() => {
+        vi.advanceTimersByTime(tuning.world.loadTimeoutMs * 2)
+      })
+      expect(screen.queryByTestId('room-mid')).toBeNull()
+      hide(false)
+      act(() => {
+        vi.advanceTimersByTime(tuning.world.loadTimeoutMs - 10)
+      })
+      expect(screen.queryByTestId('room-mid')).toBeNull()
+      act(() => {
+        vi.advanceTimersByTime(20)
+      })
+      expect(screen.getByTestId('room-mid')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

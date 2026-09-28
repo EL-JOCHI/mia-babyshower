@@ -35,7 +35,9 @@ import { usePages } from './Pages'
 import { Signposts } from './Signposts'
 
 const World = lazy(loadWorld)
-const Backdrop = lazy(loadBackdrop)
+// Memoized: its props hold still while the flat camera pans (the attic reads the pan itself, each
+// frame), so a drag or a glide never re-renders the attic's own React root.
+const Backdrop = memo(lazy(loadBackdrop))
 
 interface Props extends RoomProps {
   // Claro or Oscuro: the lighter or darker version of the day's mood (spec §3).
@@ -277,11 +279,13 @@ function BookRoom({
   }, [opening])
 
   // Facts are never gated: a world that stalls before its first frame gives way to the flat room.
+  // A paused world draws no frame, so it cannot get ready: the wait holds while a full-screen dialog
+  // is open or the tab is hidden, and starts over, whole, once the world runs again.
   useEffect(() => {
-    if (ready) return
+    if (ready || paused) return
     const timer = window.setTimeout(giveWay, tuning.world.loadTimeoutMs)
     return () => window.clearTimeout(timer)
-  }, [ready, giveWay])
+  }, [ready, paused, giveWay])
 
   // Mobile browsers drop WebGL contexts, most often while the guest is away in WhatsApp after
   // Confirmar. The event does not bubble, so the surface catches it on its way down to the canvas.
