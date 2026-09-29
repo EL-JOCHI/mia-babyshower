@@ -69,9 +69,9 @@ One screen, with no camera to move, and a small arcade game under the two senten
 
 ### The room: the book
 
-On a real invitation the first thing on screen is the book's cover, in HTML: the title, the hero line (after the party, the post-party lines), and `Muévete para explorar`. Behind it the 3D book loads. The camera then starts at **Llegada**. The landmarks are the book's pages, in this order along it, each a pop-up page with its own object (design §5):
+On a real invitation the first thing on screen is the book's cover, in HTML: the title, the hero line (after the party, the post-party lines), and `Desliza para explorar`. Behind it the 3D book loads. The camera then starts at **Llegada**. The landmarks are the book's pages, in this order along it, each a pop-up page with its own object (design §5):
 
-1. **Llegada** — the book cover: the title, the hero line, and `Muévete para explorar`.
+1. **Llegada** — the book cover: the title, the hero line, and `Desliza para explorar`.
 2. **Palabra** — Salmo 127:3, the same verse as the example invitation, on an illuminated manuscript page with a candle flickering beside it.
 3. **Cuándo** — that day's date and `16:30`, pinned to the page, with a melting candle, an hourglass, and the countdown as flip-card digits. The candle is whole 30 days before the party and burns down toward a stub at the start.
 4. **Dónde** — a treasure map that unrolls, a pin that drops, the address, and `Ver en el mapa`. Only until the party is over.
@@ -361,7 +361,7 @@ The viewport height is `100dvh`, so the collapsing mobile address bar does not j
 
 The invitation is a Three.js diorama drawn with React Three Fiber (design §2): the attic, the open book, the pop-up paper pieces, the mood's window light (moonlight or a dusk sun) and candles, fog, and drifting dust or fireflies. Every card, cat, button, and piece of text is real HTML placed on the pages in 3D, so text stays sharp and keyboards and screen readers reach everything.
 
-- **The cover first.** The first paint is the book's cover in HTML, in `index.html` itself, before any script has loaded: the title, the hero line (or, after the party, the post-party lines), and `Muévete para explorar`. On the gate the first paint is the two gate sentences instead. The 3D book streams in behind the cover, as its own chunk. A guest who will get the book or the live attic (a day link, motion allowed, WebGL) starts fetching that chunk as soon as the page's script runs, before the first render; the gate, reduced motion, and browsers without WebGL never fetch it.
+- **The cover first.** The first paint is the book's cover in HTML, in `index.html` itself, before any script has loaded: the title, the hero line (or, after the party, the post-party lines), and `Desliza para explorar`. On the gate the first paint is the two gate sentences instead. The 3D book streams in behind the cover, as its own chunk. A guest who will get the book or the live attic (a day link, motion allowed, WebGL) starts fetching that chunk as soon as the page's script runs, before the first render; the gate, reduced motion, and browsers without WebGL never fetch it.
 - **The first frame.** The book is ready once it has drawn its first frame, and that frame draws only what the book had before the moods: the attic, the window's sky with its moon or sun, the book, its pages and paper pieces, the lights, and the dust. A first visit has no shader cache, so every other material would be one more shader to compile before the book is ready. The rest of the attic (the furniture, the mood's props, the window's stars, the fireflies, and the family) mounts right after, hidden, compiles its shaders in the background, and then shows shortly after. The compile leaves the page free only where the browser compiles shaders in parallel (`KHR_parallel_shader_compile`); elsewhere it can hold the page briefly. No compile starts while the book is paused; one already under way finishes. If the guest reaches Familia before the family shows, the fold-up and walk wait for it.
 - **Opening.** The cover swings open like a book once the book is ready and the guest moves: a drag, the wheel, an arrow key, any other key, or a signpost. Until then the camera waits on a wide view of the whole book and the pages lie flat, and nothing counts: no page is found or stands, and a move earns nothing. A signpost tapped while the book is still loading still sets where the camera is heading. The book renders on demand behind the closed cover — its first frame, then only when something changes — and runs continuously once the cover opens. Once open, the camera swoops down to the first page.
 - **The path.** The camera follows a smooth curve through the book, one point per page, evenly spaced. Progress along it runs from `0` (Llegada) to `1` (Familia).
@@ -398,7 +398,7 @@ The drag surface of the room uses `touch-action: pinch-zoom`, so one finger move
 - The theme control, the music control, `Tus gatos`, and the quest log stay fixed on screen while the room moves. `Confirmar por WhatsApp` and `Ver en el mapa` are ordinary links inside their landmarks.
 - When a control inside the room receives keyboard focus, the camera glides so that control is in view.
 
-Llegada shows `Muévete para explorar`. The next landmark is already in view at the edge, so the direction of the party is obvious.
+Llegada shows `Desliza para explorar`. Above the words an ink hand slides right to left, like the swipe that turns the page, a few times, then rests beside them; a little after the page opens, the signpost buttons nudge twice with a soft rose glow, so guests see they can tap them too. With reduced motion the hand stands still and the signposts don't move. The next landmark is already in view at the edge, so the direction of the party is obvious.
 
 ### Depth while moving (flat room)
 
@@ -582,7 +582,7 @@ Room:
 - Hero line: `Mia ya es nuestra princesa. Nos haría muy feliz celebrar su llegada contigo.`
 - Music on: `Activar música`
 - Music off: `Silenciar música`
-- Move hint: `Muévete para explorar`
+- Move hint: `Desliza para explorar`
 - Verse: `Los hijos son una herencia de parte de Jehová.`
 - Verse citation: `Salmo 127:3`
 - Place line: `Av. Prolongación Beni (Entre 6to y 7mo anillo). Calle 12 de Abril S/N`
@@ -778,7 +778,7 @@ The book starts as a sketch, becomes ink, and ends in light. It is a 3D book whe
 5. **Given** the book is still loading behind its cover, **When** the guest taps a signpost or moves, **Then** no page is found and nothing is earned; if the book then fails, the flat room opens on that signpost's page.
 6. **Given** a screen shorter than 640 px, **When** an invitation loads, **Then** the flat room shows, over the paper diorama until the live attic arrives and fades in behind the cards (the 3D chunk is fetched for the live attic, and no book is drawn); **Given** the book on a taller screen, **When** the screen turns shorter than 640 px, **Then** the flat room takes over on the current page. On a screen tall enough, a page at rest is drawn at 90% of its design size or more.
 7. **Given** reduced motion, or no WebGL, **When** an invitation loads, **Then** no canvas is mounted and every landmark that belongs at that clock is present as text. With reduced motion every layer moves at the camera's speed.
-8. **Given** the opening view, **When** it paints, **Then** `Muévete para explorar` is visible.
+8. **Given** the opening view, **When** it paints, **Then** `Desliza para explorar` is visible.
 9. **Given** the book, **When** the guest switches between Oscuro and Claro, **Then** the book takes the new theme without a reload.
 
 ### US-8 — Enter only with the link I was sent (P1, R1)
@@ -964,7 +964,7 @@ The gate game's rules (section 3, *The guest gate*).
 ## 9. Functional requirements
 
 - **FR-1.** The system MUST render the landmarks in section 3, omitting Dónde, Confirmar, and Presente when BR-11 says so.
-- **FR-2.** The system MUST show the title, the hero line, the verse, the citation, and `Muévete para explorar` on an invitation. In the party-over state, Llegada shows the post-party lines in place of the hero line.
+- **FR-2.** The system MUST show the title, the hero line, the verse, the citation, and `Desliza para explorar` on an invitation. In the party-over state, Llegada shows the post-party lines in place of the hero line.
 - **FR-3.** The system MUST show the resolved day's date line and `16:30`.
 - **FR-4.** The system MUST show the event countdown, following US-6.
 - **FR-5.** The system MUST offer `Ver en el mapa` only while the place is visible.

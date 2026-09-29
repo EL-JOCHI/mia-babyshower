@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dioramaCss, screenCss, themeCss } from './headMeta'
+import { dioramaCss, hintCss, screenCss, themeCss } from './headMeta'
 
 // Every source file's text, tests excluded (they quote variable names on purpose).
 const sources = import.meta.glob<string>(['./**/*.{ts,tsx,css}', '!./**/*.test.{ts,tsx}'], {
@@ -27,7 +27,7 @@ describe('CSS variables (BR-21)', () => {
 
   it('defines every variable that a stylesheet or component reads', () => {
     const defined = new Set([
-      ...names(themeCss() + screenCss() + dioramaCss(), /(--[\w-]+)\s*:/g),
+      ...names(themeCss() + screenCss() + dioramaCss() + hintCss(), /(--[\w-]+)\s*:/g),
       ...Object.entries(sources).flatMap(([path, text]) => [
         ...(path.endsWith('.css') ? names(text, /(--[\w-]+)\s*:/g) : []),
         ...names(text, /['"](--[\w-]+)['"]\s*:/g),

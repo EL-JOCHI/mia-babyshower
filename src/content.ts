@@ -155,7 +155,7 @@ export const copy = {
   relive: 'La fiesta ya pasó, pero los gatos siguen aquí. Revive el momento.',
   musicOn: 'Activar música',
   musicOff: 'Silenciar música',
-  moveHint: 'Muévete para explorar',
+  moveHint: 'Desliza para explorar',
   verse: 'Los hijos son una herencia de parte de Jehová.',
   verseCitation: 'Salmo 127:3',
   gift: 'El mayor regalo es poder contar con tu presencia, pero si deseas dar un presente, lo aceptamos con mucho gusto. Puedes usar este QR.',

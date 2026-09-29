@@ -270,6 +270,10 @@ export const tuning = {
   // screen's width, from their phone size at `fromPx` to `1 + grow` times it at `toPx`, then stop.
   // The 3D book needs none of this: its camera frames the pages for any screen.
   screen: { fromPx: 390, toPx: 2560, grow: 0.4 },
+  // The first page's hint (Desliza para explorar): a hand swipes beside it `slideCount` times, one
+  // swipe every `slideMs`, then rests. A little after the page opens, the signpost buttons nudge
+  // `nudgeCount` times, so guests see they can tap them too. None of it moves with reduced motion.
+  hint: { slideMs: 2800, slideCount: 6, nudgeDelayMs: 2500, nudgeMs: 900, nudgeCount: 2 },
   room: {
     slotVw: 0.85,
     slotMaxPx: 420,

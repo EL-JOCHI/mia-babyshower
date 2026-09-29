@@ -239,6 +239,22 @@
     padding: 0;
     list-style: none;
     pointer-events: auto;
+    /* A little after the page opens, the buttons nudge a couple of times (tuning.hint), so guests
+       see they can tap them to move around. */
+    animation: signpost-nudge var(--signpost-nudge-ms) ease-in-out var(--signpost-nudge-delay) var(--signpost-nudge-count);
+  }
+
+  @keyframes signpost-nudge {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    35% {
+      transform: translateY(calc(-8 * var(--ui-px)));
+    }
+    60% {
+      transform: translateY(calc(1 * var(--ui-px)));
+    }
   }
 
   .signpost {
@@ -251,6 +267,18 @@
     font-size: calc(14 * var(--ui-px));
     font-weight: 600;
     backdrop-filter: blur(4px);
+    /* With the nudge, a soft rose glow around each button. */
+    animation: signpost-glow var(--signpost-nudge-ms) ease-in-out var(--signpost-nudge-delay) var(--signpost-nudge-count);
+  }
+
+  @keyframes signpost-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+    40% {
+      box-shadow: 0 0 0 calc(3 * var(--ui-px)) color-mix(in srgb, var(--rose) 55%, transparent);
+    }
   }
 
   /* ---------- The room ---------- */
@@ -2352,6 +2380,12 @@
 
 /* Reduced motion: no roaming, no depth, no loops. A tapped act settles almost at once. */
 @media (prefers-reduced-motion: reduce) {
+  /* The signposts stay put, without the glow. */
+  .signposts ul,
+  .signpost {
+    animation: none;
+  }
+
   *,
   *::before,
   *::after {

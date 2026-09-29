@@ -98,7 +98,7 @@ Do this on real phones, not only on a computer: at least one iPhone and one mid-
 
 - [ ] **Gate** (the bare address): the two sentences, `Toca para jugar`, and the cats below. No date, no place, no WhatsApp, no QR, no quest log.
 - [ ] **Gate game:** `Toca para jugar` starts 30 seconds of catching yarn and hearts with Mishona. On the mid-range Android it moves smoothly, with no stutter; the cats below hold still until the round ends. At the end: the score, `Tu mejor puntaje`, and `Jugar otra vez`. The two sentences stay on screen.
-- [ ] **Saturday link:** the book's cover shows at once (the title, the hero line, `Muévete para explorar`). A drag or a signpost swings it open and the camera swoops down into the book.
+- [ ] **Saturday link:** the book's cover shows at once (the title, the hero line, `Desliza para explorar` with an ink hand swiping above it a few times; a couple of seconds in, the signpost buttons nudge twice with a soft glow). A drag or a signpost swings it open and the camera swoops down into the book.
 - [ ] **Sunday link:** the same, dated `domingo 18 de octubre de 2026`, and nowhere "17 de octubre".
 
 **The facts, without playing** (use only the signposts)

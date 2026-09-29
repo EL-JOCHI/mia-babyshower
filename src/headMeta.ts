@@ -57,6 +57,12 @@ export function screenCss(): string {
   return `:root{--ui-px:clamp(1px, calc(1px + (100vw - ${fromPx}px) * ${grow} / ${toPx - fromPx}), ${1 + grow}px)}`
 }
 
+// The first page's hint timings (tuning.hint), for the sliding hand and the signposts' nudge.
+export function hintCss(): string {
+  const { slideMs, slideCount, nudgeDelayMs, nudgeMs, nudgeCount } = tuning.hint
+  return `:root{--hint-slide-ms:${slideMs}ms;--hint-slide-count:${slideCount};--signpost-nudge-delay:${nudgeDelayMs}ms;--signpost-nudge-ms:${nudgeMs}ms;--signpost-nudge-count:${nudgeCount}}`
+}
+
 const round2 = (value: number) => Number(value.toFixed(2))
 
 // Spec §7 Level 3: the paper diorama's colors, one set per mood and theme, from the same looks as
@@ -161,7 +167,7 @@ export function headMeta(siteUrl: string): string {
     `<meta property="og:image:height" content="630" />`,
     `<meta property="og:image:alt" content="${title}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
-    `<style id="theme-tokens">${themeCss()}${screenCss()}${dioramaCss()}</style>`,
+    `<style id="theme-tokens">${themeCss()}${screenCss()}${dioramaCss()}${hintCss()}</style>`,
     `<script>${prePaintThemeScript()}${openingScript()}</script>`,
   ].join('\n    ')
 }
