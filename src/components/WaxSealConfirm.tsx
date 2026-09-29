@@ -10,7 +10,7 @@ interface Props {
   onConfirm: () => void
 }
 
-// Confirmar (design §5): the invitation letter. Confirmar por WhatsApp is a normal link: the tap
+// Confirmar (design §5): the invitation letter. Haz click aquí para confirmar tu asistencia is a normal link: the tap
 // presses a wax seal onto the letter while the browser opens WhatsApp in a new tab at once. The
 // link's own navigation is never delayed or held back, so popup blockers stay happy (BR-3).
 export function WaxSealConfirm({ day, sealed, onConfirm }: Props) {

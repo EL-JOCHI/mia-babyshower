@@ -2,19 +2,18 @@
 
 An interactive web invitation for Mia's baby shower 👶💖. It is a **pop-up storybook in a cat's attic** 📖🌙: a 3D book whose pages pop up as guests travel through it. Saturday's link opens it under the moon and Sunday's in a golden dusk, and its pages go from pencil sketch to ink to candlelight. Guests find the date, the place, the RSVP, and the gift QR on its pages. Along the way they meet ten hand-drawn cats 🐱, the family's own, collect their cards, and play with the two legendary ones. At the end, the family, as paper pop-ups, folds up and walks in through a lit door. 🚪✨
 
-> **Source of truth:** [`docs/requirements.md`](docs/requirements.md). Every behavior, string, and rule comes from there.
-
 ---
 
 ## 🔗 The links
 
 The shower is split across two days. Each group of guests receives its own link:
 
-| Link | Opens |
-| --- | --- |
-| 🗓️ `https://el-jochi.github.io/mia-babyshower/?e=n4vk` | Saturday 17 October 2026, 16:30 |
-| 🗓️ `https://el-jochi.github.io/mia-babyshower/?e=q8lm` | Sunday 18 October 2026, 16:30 |
-| 🚧 Anything else (including the bare address) | The guest gate |
+
+| Link                                                    | Opens                           |
+| ------------------------------------------------------- | ------------------------------- |
+| 🗓️`https://el-jochi.github.io/mia-babyshower/?e=n4vk` | Saturday 17 October 2026, 16:30 |
+| 🗓️`https://el-jochi.github.io/mia-babyshower/?e=q8lm` | Sunday 18 October 2026, 16:30   |
+| 🚧 Anything else (including the bare address)           | The guest gate                  |
 
 The **guest gate** says the invitation is for special guests and must be opened with the link they were sent, with a 30-second arcade game under it 🕹️. It never shows the date, the place, WhatsApp, or the QR. The gate is a courtesy, not a secret: the site is public.
 
@@ -38,18 +37,19 @@ The **guest gate** says the invitation is for special guests and must be opened 
 - 🎵 **Turn on music**: the host's track, loaded only when asked.
 - 🌗 **Icons.** A moon and a sun switch Oscuro and Claro; a cat's head with a `n/10` badge opens **Tus gatos**. A speaker turns the music on and off (sound waves while it plays), and an ink × closes Tus gatos. Screen readers still hear the words.
 
-| Cat | Feeling | Color | Rarity |
-| --- | --- | --- | --- |
-| 🎀 Mishona | Coquetería | sunny gold | Común |
-| 💗 Choni | Cariño | rose | Común |
-| 👀 Chavela | Temor | violet | Poco común |
-| 🎸 Kiri kiri | Juego | ember | Poco común |
-| 👃 Delilah | Curiosidad | mint | Poco común |
-| ⚡ Chona | Energía | chartreuse | Poco común |
-| 🐟 Chori | Apapacho | apricot | Poco común |
-| 🧶 Minina | Travesura | orchid | Poco común |
-| 🌙 Misha | Calma | moon blue | Legendario |
-| ⭐ Kira | Asombro | star teal | Legendario |
+
+| Cat          | Feeling     | Color      | Rarity      |
+| ------------ | ----------- | ---------- | ----------- |
+| 🎀 Mishona   | Coquetería | sunny gold | Común      |
+| 💗 Choni     | Cariño     | rose       | Común      |
+| 👀 Chavela   | Temor       | violet     | Poco común |
+| 🎸 Kiri kiri | Juego       | ember      | Poco común |
+| 👃 Delilah   | Curiosidad  | mint       | Poco común |
+| ⚡ Chona     | Energía    | chartreuse | Poco común |
+| 🐟 Chori     | Apapacho    | apricot    | Poco común |
+| 🧶 Minina    | Travesura   | orchid     | Poco común |
+| 🌙 Misha     | Calma       | moon blue  | Legendario  |
+| ⭐ Kira      | Asombro     | star teal  | Legendario  |
 
 ### 🌙 After the party
 
@@ -94,13 +94,14 @@ Then open:
 
 ### 🧰 Scripts
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | 🔥 Dev server with hot reload |
-| `npm test` | ✅ Runs the Vitest suite once (the acceptance scenarios from the spec) |
-| `npm run lint` | 🧹 ESLint |
-| `npm run build` | 📦 Type-checks, then builds the static site into `dist/` |
-| `npm run preview` | 👀 Serves the built `dist/` locally, like production |
+
+| Command           | What it does                                                           |
+| ----------------- | ---------------------------------------------------------------------- |
+| `npm run dev`     | 🔥 Dev server with hot reload                                          |
+| `npm test`        | ✅ Runs the Vitest suite once (the acceptance scenarios from the spec) |
+| `npm run lint`    | 🧹 ESLint                                                              |
+| `npm run build`   | 📦 Type-checks, then builds the static site into`dist/`                |
+| `npm run preview` | 👀 Serves the built`dist/` locally, like production                    |
 
 ---
 
@@ -117,14 +118,13 @@ Two files hold everything you're likely to adjust. Components read them, so a ch
 
 ## 🖼️ Host files
 
-| File | Where it is | Notes |
-| --- | --- | --- |
-| 🏦 The bank's gift QR (PNG) | `src/assets/qr-bank.png` | The host's cropped Banco Ganadero QR, padded with a white quiet zone. `Guardar QR` saves it as `qr-regalo-mia.png`. Its SHA-256 is pinned in a test, so it cannot change by accident. |
-| 🎵 Ambience track (MP3) | `src/assets/audio/ambience.mp3` | The host's track, in the repo. Detected at build time; without it the music control is hidden. |
 
-🔳 **The QR on the page** is drawn from its payload (the Banco Ganadero QR, decoded locally): `shared.giftQr` in `src/content.ts`. The bank's QR expires on **27 September 2027**. Scan the page's QR and the saved `qr-regalo-mia.png` with the Banco Ganadero app before sending the links.
+| File                        | Where it is                     | Notes                                                                                                                                                                                |
+| --------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 🏦 The bank's gift QR (PNG) | `src/assets/qr-bank.png`        | The host's cropped Banco Ganadero QR, padded with a white quiet zone.`Guardar QR` saves it as `qr-regalo-mia.png`. Its SHA-256 is pinned in a test, so it cannot change by accident. |
+| 🎵 Ambience track (MP3)     | `src/assets/audio/ambience.mp3` | The host's track, in the repo. Detected at build time; without it the music control is hidden.                                                                                       |
 
-📸 `ideas/` holds the host reference photos. It is in `.gitignore` and must never be committed.
+🔳 **The QR on the page** is drawn from its payload: `shared.giftQr` in `src/content.ts`. The bank's QR expires on **27 September 2027**.
 
 ---
 
@@ -167,9 +167,7 @@ No router, no state library, no animation library, no game engine, no analytics.
 
 ## 🌐 Publishing
 
-The site deploys to GitHub Pages through `.github/workflows/pages.yml` on every push to `main`.
-
-➡️ Step-by-step instructions: **[`docs/publishing.md`](docs/publishing.md)**
+The site deploys to GitHub Pages through `.github/workflows/pages.yml` on every push to `main`
 
 ---
 

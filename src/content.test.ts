@@ -48,3 +48,10 @@ describe('the copy (spec §4)', () => {
     expect(copy.collectionCount(3, cats.length)).toBe('3/10')
   })
 })
+
+// The confirm button says plainly what a tap does, for guests who don't know the invitation's ways.
+describe('the confirm button', () => {
+  it('reads Haz click aquí para confirmar tu asistencia', () => {
+    expect(copy.confirm).toBe('Haz click aquí para confirmar tu asistencia')
+  })
+})

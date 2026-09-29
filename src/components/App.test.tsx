@@ -426,7 +426,7 @@ describe('US-15 The game layer: pages, badges, and XP (design §5, §6)', () => 
     expect(toast()).toHaveTextContent(gameCopy.badges.puerta)
   })
 
-  it('seals the invitation from Confirmar por WhatsApp, and the link still opens WhatsApp at once', () => {
+  it('seals the invitation from Haz click aquí para confirmar tu asistencia, and the link still opens WhatsApp at once', () => {
     render(<App search="?e=n4vk" />)
     const link = screen.getByRole('link', { name: copy.confirm })
     // The click's default action (opening WhatsApp in a new tab) is never held back.

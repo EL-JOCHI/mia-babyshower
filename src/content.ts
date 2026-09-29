@@ -163,7 +163,7 @@ export const copy = {
   qrPending: 'El QR estará aquí pronto.',
   qrSave: 'Guardar QR',
   qrHint: 'Toca el gatito para guardar el QR en tu celular.',
-  confirm: 'Confirmar por WhatsApp',
+  confirm: 'Haz click aquí para confirmar tu asistencia',
   map: 'Ver en el mapa',
   signposts: {
     llegada: 'Inicio',

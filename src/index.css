@@ -206,6 +206,8 @@
     color: var(--button-ink);
     font-size: calc(16 * var(--ui-px));
     font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
     text-decoration: none;
     box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent);
   }

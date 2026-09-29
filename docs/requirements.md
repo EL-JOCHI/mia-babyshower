@@ -75,7 +75,7 @@ On a real invitation the first thing on screen is the book's cover, in HTML: the
 2. **Palabra** — Salmo 127:3, the same verse as the example invitation, on an illuminated manuscript page with a candle flickering beside it.
 3. **Cuándo** — that day's date and `16:30`, pinned to the page, with a melting candle, an hourglass, and the countdown as flip-card digits. The candle is whole 30 days before the party and burns down toward a stub at the start.
 4. **Dónde** — a treasure map that unrolls, a pin that drops, the address, and `Ver en el mapa`. Only until the party is over.
-5. **Confirmar** — the invitation letter and `Confirmar por WhatsApp`, with a message that names this day. Tapping it presses a wax seal onto the letter while WhatsApp opens at once. Only until the party is over.
+5. **Confirmar** — the invitation letter and `Haz click aquí para confirmar tu asistencia`, with a message that names this day. Tapping it presses a wax seal onto the letter while WhatsApp opens at once. Only until the party is over.
 6. **Presente** — one line, presence first, then a gift box whose ribbon unties and whose lid lifts to reveal the gift QR drawn in the invitation's style, with `Guardar QR` below as a cat button and its hint. Only until the party is over. See *The gift QR*.
 7. **Familia** — the lit doorway. The family, four faceless paper figures, folds up from the page and walks in. Misha and Kira are with them. Once every page that counts has been found (the badge `Cuento completo`), the door glows brighter.
 
@@ -87,7 +87,7 @@ Section 4 says how the book is laid out and how the flat room lays out the same 
 
 Signposts stay on screen: `Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`. `Inicio` leads to Llegada. Activating one glides the camera to that page. A signpost is absent when its landmark is absent. The guest never has to hunt for the invitation or for the door.
 
-A theme control, the music control, and `Tus gatos` stay fixed on screen on the gate and on both invitations. On an invitation the quest log also stays on screen (see *The game layer*). The theme offers **Oscuro** and **Claro** as a moon and a sun drawn in the ink style; their names stay for screen readers as visually hidden text, the active one is pressed, and each is a touch target of at least 44 px. `Tus gatos` is a cat's head with a small badge `{n}/10`, the cats met out of all of them; its name stays `Tus gatos` and the count is read with it. The music control is a speaker in the same ink style: a small cross while the music is off, sound waves while it plays; its name, visually hidden, is `Activar música` or `Silenciar música`, and it is a touch target of at least 44 px. Inside `Tus gatos`, the close control is an ink `×` named `Cerrar` for screen readers. `Confirmar por WhatsApp` and `Ver en el mapa` live inside their pages and move with them.
+A theme control, the music control, and `Tus gatos` stay fixed on screen on the gate and on both invitations. On an invitation the quest log also stays on screen (see *The game layer*). The theme offers **Oscuro** and **Claro** as a moon and a sun drawn in the ink style; their names stay for screen readers as visually hidden text, the active one is pressed, and each is a touch target of at least 44 px. `Tus gatos` is a cat's head with a small badge `{n}/10`, the cats met out of all of them; its name stays `Tus gatos` and the count is read with it. The music control is a speaker in the same ink style: a small cross while the music is off, sound waves while it plays; its name, visually hidden, is `Activar música` or `Silenciar música`, and it is a touch target of at least 44 px. Inside `Tus gatos`, the close control is an ink `×` named `Cerrar` for screen readers. `Haz click aquí para confirmar tu asistencia` and `Ver en el mapa` live inside their pages and move with them.
 
 ### The moods
 
@@ -284,7 +284,7 @@ A light layer of play over the facts (design §6). It never gates a fact: every 
 | La palabra | Palabra found | 20 |
 | Guardaste la fecha | Cuándo found | 30 |
 | Encontraste el lugar | Dónde found | 30 |
-| Invitación sellada | Tapping `Confirmar por WhatsApp` | 50 |
+| Invitación sellada | Tapping `Haz click aquí para confirmar tu asistencia` | 50 |
 | Encontraste el regalo | Presente found | 20 |
 | QR guardado | Tapping `Guardar QR` | 20 |
 | Llegaste a la puerta | Familia found | 30 |
@@ -395,7 +395,7 @@ The drag surface of the room uses `touch-action: pinch-zoom`, so one finger move
 - When a drag is released, or shortly after the wheel stops, the camera glides to the nearest page if it is within half the spacing between pages. With reduced motion it jumps there. The arrow keys are not snapped.
 - Tap a signpost to glide to that landmark.
 - Tap or drag a toy. Tap `Saludar` when a cat offers it.
-- The theme control, the music control, `Tus gatos`, and the quest log stay fixed on screen while the room moves. `Confirmar por WhatsApp` and `Ver en el mapa` are ordinary links inside their landmarks.
+- The theme control, the music control, `Tus gatos`, and the quest log stay fixed on screen while the room moves. `Haz click aquí para confirmar tu asistencia` and `Ver en el mapa` are ordinary links inside their landmarks.
 - When a control inside the room receives keyboard focus, the camera glides so that control is in view.
 
 Llegada shows `Desliza para explorar`. Above the words an ink hand slides right to left, like the swipe that turns the page, a few times, then rests beside them; a little after the page opens, the signpost buttons nudge twice with a soft rose glow, so guests see they can tap them too. With reduced motion the hand stands still and the signposts don't move. The next landmark is already in view at the edge, so the direction of the party is obvious.
@@ -592,7 +592,7 @@ Room:
 - QR pending: `El QR estará aquí pronto.`
 - QR save: `Guardar QR`
 - QR save hint: `Toca el gatito para guardar el QR en tu celular.`
-- Confirm control: `Confirmar por WhatsApp`
+- Confirm control: `Haz click aquí para confirmar tu asistencia` (a plain instruction, for guests who don't know how to use the invitation; it opens WhatsApp with that day's message)
 - Map control: `Ver en el mapa`
 - Signposts: `Inicio`, `La fecha`, `El lugar`, `Confirmar`, `El regalo`, `La familia`
 - Collection: `Tus gatos`, with its badge `{n}/{total}`
@@ -700,7 +700,7 @@ A guest with a real link can reach the verse, their date, 16:30, and, while the 
 2. **Given** Sunday and a clock before `2026-10-19T00:00:00-04:00`, **When** the room renders, **Then** the guest sees `domingo 18 de octubre de 2026` and does not see `17 de octubre`.
 3. **Given** a phone, tablet, and desktop width, **When** either room renders, **Then** landmark text is readable, actions are tappable, and the page itself does not scroll sideways.
 4. **Given** the signpost `La fecha`, **When** the guest activates it, **Then** the camera target is Cuándo.
-5. **Given** a keyboard, **When** focus moves to `Confirmar por WhatsApp`, **Then** the camera target brings the Confirmar landmark into view.
+5. **Given** a keyboard, **When** focus moves to `Haz click aquí para confirmar tu asistencia`, **Then** the camera target brings the Confirmar landmark into view.
 6. **Given** a 360px-wide viewport and 7 landmarks, **When** the layout is computed, **Then** no two landmark cards overlap.
 
 ### US-2 — Choose a theme (P1, R1)
@@ -722,7 +722,7 @@ A guest can switch between dark and light, and the browser remembers.
 
 **Acceptance scenarios:**
 
-1. **Given** Saturday, **When** the guest activates `Confirmar por WhatsApp`, **Then** the destination is `https://wa.me/59176632451?text={encoded message}` and the decoded message is the Saturday message in section 6.
+1. **Given** Saturday, **When** the guest activates `Haz click aquí para confirmar tu asistencia`, **Then** the destination is `https://wa.me/59176632451?text={encoded message}` and the decoded message is the Saturday message in section 6.
 2. **Given** Sunday, **When** the guest activates confirm, **Then** the decoded message is the Sunday message and does not contain `17 de octubre`.
 3. **Given** the gate, **When** it renders, **Then** there is no confirm control.
 4. **Given** either invitation, **When** the guest only opens it, **Then** the site has stored nothing. Activating confirm stores only the badge `Invitación sellada` in `mia-progress`, never a yes, a name, or a headcount (BR-4).
@@ -900,7 +900,7 @@ The game layer in section 3. It never gates a fact.
 1. **Given** an invitation, **When** it renders, **Then** the quest log shows `Nivel 1`, `Páginas 0/6`, and `Gatos 0/10`. **Given** the gate, **Then** there is no quest log.
 2. **Given** the camera glides to Cuándo from `La fecha` and rests there, **When** it has rested, **Then** the quest log reads `Páginas 1/6`, a toast shows `Guardaste la fecha` and `+30 XP`, the page is stamped `¡Página encontrada!`, and `mia-progress` is `{ pages: ["cuando"], badges: ["fecha"], xp: 30 }`. A page the camera only passes is not counted.
 3. **Given** a clock at or after the cutoff, **When** the guest reaches Familia, **Then** the quest log counts out of 3 and the toast shows `Llegaste a la puerta`.
-4. **Given** an invitation, **When** the guest activates `Confirmar por WhatsApp`, **Then** WhatsApp still opens at once, the wax seal presses, and `Invitación sellada` (`+50 XP`) is earned. **When** the guest activates `Guardar QR`, **Then** `QR guardado` (`+20 XP`) is earned.
+4. **Given** an invitation, **When** the guest activates `Haz click aquí para confirmar tu asistencia`, **Then** WhatsApp still opens at once, the wax seal presses, and `Invitación sellada` (`+50 XP`) is earned. **When** the guest activates `Guardar QR`, **Then** `QR guardado` (`+20 XP`) is earned.
 5. **Given** an invitation, **When** the guest presses Tab, **Then** nothing is earned; **When** the guest presses an arrow key, drags, or uses the wheel once the book is ready, **Then** `Abriste el cuento` (`+10 XP`) is earned once. A signpost earns nothing, and so does a move while the book is still loading.
 6. **Given** several awards at once, **When** they show, **Then** one toast shows at a time, each for the toast time, and the award that raised the level adds `¡Subiste a nivel {n}!`.
 7. **Given** a first greeting, **When** the card shows, **Then** the cat's XP and `Tu primer gato` are stored, `Gatos 1/10` shows, and the toasts wait until the card has gone. A cat met before, greeted again in a new round, adds no XP.

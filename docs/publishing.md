@@ -105,7 +105,7 @@ Do this on real phones, not only on a computer: at least one iPhone and one mid-
 
 - [ ] `La fecha`: `sábado 17 de octubre de 2026` (Sunday: `domingo 18 de octubre de 2026`), `16:30`, and the countdown.
 - [ ] `El lugar`: the address, and `Ver en el mapa` opens the right pin.
-- [ ] `Confirmar`: `Confirmar por WhatsApp` opens a chat with **+591 76632451** and the message for that day.
+- [ ] `Confirmar`: `Haz click aquí para confirmar tu asistencia` opens a chat with **+591 76632451** and the message for that day.
 - [ ] `El regalo`: the one gift line, the QR drawn on bone paper with a cat in the middle, the cat button `Guardar QR`, and `Toca el gatito para guardar el QR en tu celular.` under it.
 - [ ] Every page reads without pinching, and its buttons are easy to tap.
 
@@ -130,7 +130,7 @@ Do this on real phones, not only on a computer: at least one iPhone and one mid-
 - [ ] **Mid-range Android over mobile data:** the cover shows at once, and the book opens within about 6 seconds. If it doesn't, the flat room takes over by itself on the page you were heading to, over the paper diorama, and the live attic fades in behind the cards when it arrives.
 - [ ] **WhatsApp's in-app browser**, on iPhone and on Android: open both links from a WhatsApp chat. Every page reads without pinching.
 - [ ] **Landscape:** turn the phone sideways on `El lugar`. The flat room takes over on the same page, over the live 3D attic of that day's mood, with the address and `Ver en el mapa` at full size; panning sideways drifts the attic. It stays for the rest of the visit. Opening a link with the phone already sideways goes straight to the same view.
-- [ ] **Back from WhatsApp:** tap `Confirmar por WhatsApp`, then come back to the invitation. It is still on `Confirmar`, either in the book or, if the phone dropped the 3D view while you were away, in the flat room over the paper diorama. Everything still works. (If the phone reloaded the page instead, it starts again at the cover; cats and badges are kept.)
+- [ ] **Back from WhatsApp:** tap `Haz click aquí para confirmar tu asistencia`, then come back to the invitation. It is still on `Confirmar`, either in the book or, if the phone dropped the 3D view while you were away, in the flat room over the paper diorama. Everything still works. (If the phone reloaded the page instead, it starts again at the cover; cats and badges are kept.)
 - [ ] **Optional, the device tier (Android only):** the draw-call readout in the bottom-left corner (for example `book · normal: 43 calls`) exists only on the dev server, never on the published site. Don't check the tier over the Wi-Fi `Network` address of `npm run dev -- --host`: that is plain `http://`, and there the browser hides the phone's memory, so every phone shows `normal` and the check tells you nothing. The phone has to open the dev server as `localhost`: plug the Android phone into your computer by USB with USB debugging on, open `chrome://inspect/#devices` in Chrome on the computer, turn on **Port forwarding** for `5173` to `localhost:5173`, run `npm run dev`, and open `http://localhost:5173/?e=n4vk` in Chrome on the phone. An Android with 2 GB of memory or less, or 2 cores or fewer, shows `low` (no candle shadow, fewer stars and dust motes); others show `normal`. An iPhone always gets `normal` (Safari reports no memory), so there is nothing to check on it.
 - [ ] **The preview card** in WhatsApp (below).
 - [ ] **Scan the gift QR with the Banco Ganadero app**, before sending any link:

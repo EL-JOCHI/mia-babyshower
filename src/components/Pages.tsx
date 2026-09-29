@@ -29,7 +29,7 @@ interface PagesInput {
   // The acts playing now, and how to play one (§3 Playing with what is on screen).
   acts: { active: ActiveActs; play: (act: ActId) => void }
   cats: PerchCat
-  // Confirmar por WhatsApp and Guardar QR count toward the game layer (design §6).
+  // Haz click aquí para confirmar tu asistencia and Guardar QR count toward the game layer (design §6).
   onEvent: (event: ProgressEvent) => void
   progress: Progress
   // The pages standing, or in view, now: their objects open at once, found or not (design §10:

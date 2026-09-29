@@ -220,7 +220,7 @@ describe('US-15 Moving and reaching pages in the flat room (design §6)', () => 
     expect(document.querySelector('.gift-box')).toContainElement(screen.getByText(copy.qrPending))
   })
 
-  it('reports Guardar QR and Confirmar por WhatsApp as progress events', () => {
+  it('reports Guardar QR and Haz click aquí para confirmar tu asistencia as progress events', () => {
     // The bank's image never arrives here, so Guardar QR neither shares nor downloads.
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
     try {
